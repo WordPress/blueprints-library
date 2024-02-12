@@ -1,0 +1,119 @@
+{
+	"version": 2,
+	"title": "Dark Navy",
+	"settings": {
+		"color": {
+			"palette": [
+				{
+					"slug": "primary",
+					"color": "#DEFFEF",
+					"name": "Primary"
+				},
+				{
+					"slug": "foreground",
+					"color": "#A6FFD4",
+					"name": "Foreground"
+				},
+				{
+					"slug": "background",
+					"color": "#050E24",
+					"name": "Background"
+				},
+				{
+					"slug": "tertiary",
+					"color": "#0F1E42",
+					"name": "Tertiary"
+				}
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "Inter, sans-serif",
+					"slug": "body-font",
+					"name": "Body",
+					"fontFace": [
+						{
+							"fontDisplay": "block",
+							"fontFamily": "Inter",
+							"fontWeight": "100 500",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [
+								"file:./assets/fonts/Inter-Light.ttf"
+							]
+						},
+						{
+							"fontDisplay": "block",
+							"fontFamily": "Inter",
+							"fontWeight": "600 900",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [
+								"file:./assets/fonts/Inter-Bold.ttf"
+							]
+						}
+					]
+				},
+				{
+					"fontFamily": "'InterLight', serif",
+					"slug": "heading-font",
+					"name": "Headings",
+					"fontFace": [
+						{
+							"fontDisplay": "block",
+							"fontFamily": "InterLight",
+							"fontStyle": "normal",
+							"fontStretch": "normal",
+							"src": [
+								"file:./assets/fonts/Inter-Light.ttf"
+							]
+						}
+					]
+				}
+			]
+		}
+	},
+	"styles": {
+		"blocks": {
+			"core/site-title": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--body-font)"
+				}
+			}
+		},
+		"elements": {
+			"h1": {
+				"typography": {
+					"fontWeight": 300
+				}
+			},
+			"h2": {
+				"typography": {
+					"fontWeight": 300
+				}
+			},
+			"h3": {
+				"typography": {
+					"fontWeight": 300
+				}
+			},
+			"h4": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--body-font)",
+					"fontWeight": 700
+				}
+			},
+			"h5": {
+				"typography": {
+					"fontWeight": 700
+				}
+			},
+			"h6": {
+				"typography": {
+					"fontWeight": 700
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"name": "wordpress/composer-capture-progress",
+	"type": "composer-plugin",
+	"require": {
+		"composer-plugin-api": "^2.0"
+	},
+	"require-dev": {
+		"composer/composer": "^2.0"
+	},
+	"extra": {
+		"class": "WordPress\\Composer\\CaptureProgress\\CaptureProgressPlugin"
+	},
+	"autoload": {
+		"psr-4": {
+			"WordPress\\Composer\\CaptureProgress\\": "src"
+		}
+	}
+}

@@ -1,7 +1,7 @@
 vendor/
 opfs/
-build/
 rest/
+dist/
 .idea/
 .vscode
 test.php
