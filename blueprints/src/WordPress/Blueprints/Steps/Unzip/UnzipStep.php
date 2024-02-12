@@ -20,6 +20,12 @@ class UnzipStep extends BaseStep {
 	}
 
 	public function execute() {
+		while($entry = ZipStreamReader::readEntry($this->input->zipFile)) {
+			$file = ZipStreamReader::readEntry($this->input->zipFile);
+			$file->saveTo($this->input->toPath);
+		}
+		fclose($this->input->zipFile);
+
 		$zipPath = temp_path( 'temp.zip' );
 		$this->input->zipFile->saveTo( $zipPath );
 
