@@ -1,8 +1,8 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps\WriteFile;
+namespace WordPress\Blueprints\Steps\WriteFile;
 
-use blueprints\src\WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\Steps\BaseStep;
 
 class WriteFileStep extends BaseStep {
 	public function __construct(

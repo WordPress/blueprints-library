@@ -1,6 +1,6 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps;
+namespace WordPress\Blueprints\Steps;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 

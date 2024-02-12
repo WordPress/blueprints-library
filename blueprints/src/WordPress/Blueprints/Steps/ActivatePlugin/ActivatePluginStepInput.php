@@ -1,8 +1,8 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps\ActivatePlugin;
+namespace WordPress\Blueprints\Steps\ActivatePlugin;
 
-use blueprints\src\WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\Steps\BaseStepInput;
 
 class ActivatePluginStepInput extends BaseStepInput {
 

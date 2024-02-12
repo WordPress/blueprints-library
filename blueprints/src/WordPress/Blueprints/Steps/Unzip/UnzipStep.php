@@ -1,11 +1,9 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps\Unzip;
+namespace WordPress\Blueprints\Steps\Unzip;
 
-use blueprints\src\WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\Steps\BaseStep;
 use WordPress\Zip\zipStreamReader;
-use ZipArchive;
-use function WordPress\Blueprints\Steps\Unzip\temp_path;
 
 class UnzipStep extends BaseStep {
 
@@ -20,28 +18,32 @@ class UnzipStep extends BaseStep {
 	}
 
 	public function execute() {
-		while($entry = ZipStreamReader::readEntry($this->input->zipFile)) {
-			$file = ZipStreamReader::readEntry($this->input->zipFile);
-			$file->saveTo($this->input->toPath);
-		}
-		fclose($this->input->zipFile);
-
-		$zipPath = temp_path( 'temp.zip' );
-		$this->input->zipFile->saveTo( $zipPath );
-
-		try {
-			if ( ! is_dir( $this->input->toPath ) ) {
-				mkdir( $this->input->toPath, 0777, true );
+		while ( $entry = ZipStreamReader::readEntry( $this->input->zipFile ) ) {
+			if ( ! $entry->isFileEntry() ) {
+				continue;
 			}
-			$zip = new ZipArchive();
-			if ( $zip->open( $zipPath ) !== true ) {
-				throw new \Exception( 'Failed to open zip file' );
+			$path   = $this->input->toPath . '/' . sanitize_path( $entry->path );
+			$parent = dirname( $path );
+			if ( ! is_dir( $parent ) ) {
+				mkdir( $parent, 0777, true );
 			}
-			$zip->extractTo( $this->input->toPath );
-			$zip->close();
-			chmod( $this->input->toPath, 0777 );
-		} finally {
-			unlink( $zipPath );
+
+			if ( $entry->isDirectory ) {
+				if ( ! is_dir( $path ) ) {
+					mkdir( $path, 0777, true );
+				}
+			} else {
+				file_put_contents( $path, $entry->bytes );
+			}
 		}
 	}
+}
+
+// @TODO: Find a more reliable technique
+function sanitize_path( $path ) {
+	if ( empty( $path ) ) {
+		return '';
+	}
+
+	return preg_replace( '#/\.+(/|$)#', '/', $path );
 }

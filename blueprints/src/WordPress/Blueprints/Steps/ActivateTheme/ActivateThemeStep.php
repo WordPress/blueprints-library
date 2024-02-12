@@ -1,8 +1,8 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps\ActivateTheme;
+namespace WordPress\Blueprints\Steps\ActivateTheme;
 
-use blueprints\src\WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\Steps\BaseStep;
 use WordPress\Blueprints\Steps\ActivateTheme\ActivateThemeStepInput;
 use WordPress\Blueprints\Steps\ActivateTheme\ProgressCaptionEvent;
 use function WordPress\Blueprints\Steps\ActivateTheme\run_php_file;

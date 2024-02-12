@@ -14,4 +14,8 @@ class ZipEndCentralDirectoryEntry {
 		public readonly string $comment
 	) {
 	}
+	
+	public function isFileEntry() {
+		return false;
+	}
 }

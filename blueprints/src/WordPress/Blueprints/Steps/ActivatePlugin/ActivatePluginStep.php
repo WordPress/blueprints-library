@@ -1,9 +1,9 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Steps\ActivatePlugin;
+namespace WordPress\Blueprints\Steps\ActivatePlugin;
 
-use blueprints\src\WordPress\Blueprints\ProgressCaptionEvent;
-use blueprints\src\WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\ProgressCaptionEvent;
+use WordPress\Blueprints\Steps\BaseStep;
 use function WordPress\Blueprints\Steps\ActivatePlugin\run_php_file;
 
 require_once __DIR__ . '/Utils.php';

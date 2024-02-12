@@ -1,9 +1,9 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints;
+namespace WordPress\Blueprints;
 
-use blueprints\src\WordPress\Blueprints\Resources\Resource;
-use blueprints\src\WordPress\Blueprints\Steps\Unzip\UnzipStep;
+use WordPress\Blueprints\Resources\Resource;
+use WordPress\Blueprints\Steps\Unzip\UnzipStep;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class CompiledStep {

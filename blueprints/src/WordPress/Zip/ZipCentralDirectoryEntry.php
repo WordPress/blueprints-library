@@ -28,4 +28,7 @@ class ZipCentralDirectoryEntry {
 		$this->isDirectory = $this->path[ - 1 ] === '/';
 	}
 
+	public function isFileEntry() {
+		return false;
+	}
 }
