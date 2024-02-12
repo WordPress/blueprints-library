@@ -7,6 +7,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use WordPress\Blueprints\Cache\FileCache;
 use WordPress\Blueprints\HttpDownloader;
 use WordPress\Blueprints\ProgressEvent;
+use WordPress\DataSource\HttpSource;
 
 $client     = HttpClient::create();
 $downloader = new HttpDownloader( $client, new FileCache() );
@@ -26,7 +27,7 @@ $urls = [
 
 $fps = [];
 foreach ( $urls as $url ) {
-	$fps[] = $downloader->fetch( $url );
+	$fps[] = ( new HttpSource( $client, new FileCache(), $url ) )->stream();
 }
 
 $woo_resource = new PHPStreamResource( $fps[0] );

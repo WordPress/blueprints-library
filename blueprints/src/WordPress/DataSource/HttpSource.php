@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints;
+namespace WordPress\DataSource;
 
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -30,15 +30,20 @@ class ProgressEvent extends Event {
 	}
 }
 
-class HttpDownloader {
+class HttpSource implements DataSourceInterface {
 
 	public EventDispatcher $events;
 
-	public function __construct( protected HttpClientInterface $client, protected CacheInterface $cache ) {
+	public function __construct(
+		protected HttpClientInterface $client,
+		protected CacheInterface $cache,
+		protected string $url
+	) {
 		$this->events = new EventDispatcher();
 	}
 
-	public function fetch( string $url ) {
+	public function stream() {
+		$url = $this->url;
 		if ( $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
