@@ -2,7 +2,7 @@
 
 namespace WordPress\Zip;
 
-class ZipStreamDecoder {
+class ZipStreamReader {
 
 	const SIGNATURE_FILE = 0x04034b50;
 	const SIGNATURE_CENTRAL_DIRECTORY = 0x02014b50;
@@ -11,36 +11,23 @@ class ZipStreamDecoder {
 	const UINT32 = 'V';
 	const UINT16 = 'v';
 
-	public function __construct( protected $fp ) {
-	}
-
-	public function next() {
-		$entry = $this->nextZipEntry( $this->fp );
-		if ( $entry === null ) {
-			fclose( $this->fp );
-		}
-
-		return $entry;
-	}
-
-
 	/**
 	 * Reads the next zip entry from a stream of zip file bytes.
 	 *
 	 * @param resource $fp A stream of zip file bytes.
 	 */
-	protected function nextZipEntry( $fp ) {
+	static public function readEntry( $fp ) {
 		$signature = fread( $fp, 4 );
 		if ( feof( $fp ) ) {
 			return null;
 		}
 		$signature = unpack( 'V', $signature )[1];
 		if ( $signature === static::SIGNATURE_FILE ) {
-			return $this->readFileEntry( $fp, true );
+			return static::readFileEntry( $fp, true );
 		} elseif ( $signature === static::SIGNATURE_CENTRAL_DIRECTORY ) {
-			return $this->readCentralDirectoryEntry( $fp, true );
+			return static::readCentralDirectoryEntry( $fp, true );
 		} elseif ( $signature === static::SIGNATURE_CENTRAL_DIRECTORY_END ) {
-			return $this->readEndCentralDirectoryEntry( $fp, true );
+			return static::readEndCentralDirectoryEntry( $fp, true );
 		}
 
 		return null;
@@ -71,7 +58,7 @@ class ZipStreamDecoder {
 	 *
 	 * @param resource $fp
 	 */
-	protected function readFileEntry(
+	static protected function readFileEntry(
 		$fp,
 		bool $skipSignature = false
 	) {
@@ -99,7 +86,7 @@ class ZipStreamDecoder {
 		$pathLength           = unpack( static::UINT16, fread( $fp, 2 ) )[1];
 		$extraLength          = unpack( static::UINT16, fread( $fp, 2 ) )[1];
 		$entry['path']        = fread( $fp, $pathLength );
-		$entry['isDirectory'] = $this->endsWithSlash( $entry['path'] );
+		$entry['isDirectory'] = static::endsWithSlash( $entry['path'] );
 		$entry['extra']       = fread( $fp, $extraLength );
 
 		// Make sure we consume the body stream or else
@@ -147,7 +134,7 @@ class ZipStreamDecoder {
 	 *
 	 * @param resource stream
 	 */
-	protected function readCentralDirectoryEntry(
+	static protected function readCentralDirectoryEntry(
 		$stream,
 		$skipSignature = false
 	) {
@@ -185,7 +172,7 @@ class ZipStreamDecoder {
 		];
 		$entry['lastByteAt']  = $entry['firstByteAt'] + 30 + $pathLength + $fileCommentLength + $extraLength + $entry['compressedSize'] - 1;
 		$entry['path']        = fread( $stream, $pathLength );
-		$entry['isDirectory'] = $this->endsWithSlash( $entry['path'] );
+		$entry['isDirectory'] = static::endsWithSlash( $entry['path'] );
 
 		$entry['extra']       = $extraLength ? fread( $stream, $extraLength ) : '';
 		$entry['fileComment'] = $fileCommentLength ? fread( $stream, $fileCommentLength ) : '';
@@ -193,7 +180,7 @@ class ZipStreamDecoder {
 		return $entry;
 	}
 
-	protected function endsWithSlash( string $path ) {
+	static protected function endsWithSlash( string $path ) {
 		return $path[ strlen( $path ) - 1 ] == ord( '/' );
 	}
 
@@ -217,7 +204,7 @@ class ZipStreamDecoder {
 	 *
 	 * @param resource $stream
 	 */
-	protected function readEndCentralDirectoryEntry(
+	static protected function readEndCentralDirectoryEntry(
 		$stream,
 		bool $skipSignature = false
 	) {

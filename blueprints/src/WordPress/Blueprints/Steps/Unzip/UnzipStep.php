@@ -3,6 +3,7 @@
 namespace blueprints\src\WordPress\Blueprints\Steps\Unzip;
 
 use blueprints\src\WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Zip\zipStreamReader;
 use ZipArchive;
 use function WordPress\Blueprints\Steps\Unzip\temp_path;
 
@@ -19,7 +20,6 @@ class UnzipStep extends BaseStep {
 	}
 
 	public function execute() {
-		return '';
 		$zipPath = temp_path( 'temp.zip' );
 		$this->input->zipFile->saveTo( $zipPath );
 
