@@ -1,0 +1,9 @@
+vendor/
+opfs/
+build/
+rest/
+.idea/
+.vscode
+test.php
+run_phar.php
+run_src.php
