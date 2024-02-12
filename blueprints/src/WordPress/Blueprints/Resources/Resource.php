@@ -1,6 +1,6 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Resources;
+namespace WordPress\Blueprints\Resources;
 
 interface Resource {
 	public function saveTo( string $path ): void;

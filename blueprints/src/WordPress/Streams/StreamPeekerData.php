@@ -4,6 +4,6 @@ namespace WordPress\Streams;
 
 class StreamPeekerData {
 
-	public function __construct( public $fp, public $callback, public $on_close ) {
+	public function __construct( public $fp, public $onChunk = null, public $onClose = null ) {
 	}
 }

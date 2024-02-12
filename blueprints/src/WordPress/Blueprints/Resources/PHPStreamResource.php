@@ -1,6 +1,6 @@
 <?php
 
-namespace blueprints\src\WordPress\Blueprints\Resources;
+namespace WordPress\Blueprints\Resources;
 
 class PHPStreamResource implements Resource {
 	public function __construct(
@@ -9,6 +9,9 @@ class PHPStreamResource implements Resource {
 	}
 
 	public function saveTo( string $path ): void {
+		if ( file_exists( $path ) ) {
+			unlink( $path );
+		}
 		while ( $chunk = $this->read( 8192 ) ) {
 			file_put_contents( $path, $chunk, FILE_APPEND );
 		}

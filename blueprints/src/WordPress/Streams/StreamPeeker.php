@@ -5,7 +5,7 @@ namespace WordPress\Streams;
 class StreamPeeker {
 	private $position;
 	private $stream;
-	private $callback;
+	private $onChunk;
 	private $onClose;
 
 	protected $context;
@@ -40,11 +40,11 @@ class StreamPeeker {
 			return false;
 		}
 
-		if ( isset( $contextOptions['peek']['wrapper_data']->callback ) && is_callable( $contextOptions['peek']['wrapper_data']->callback ) ) {
-			$this->callback = $contextOptions['peek']['wrapper_data']->callback;
+		if ( isset( $contextOptions['peek']['wrapper_data']->onChunk ) && is_callable( $contextOptions['peek']['wrapper_data']->onChunk ) ) {
+			$this->onChunk = $contextOptions['peek']['wrapper_data']->onChunk;
 		} else {
-			// Default callback function if none provided
-			$this->callback = function ( $data ) {
+			// Default onChunk function if none provided
+			$this->onChunk = function ( $data ) {
 			};
 		}
 
@@ -61,13 +61,17 @@ class StreamPeeker {
 		return true;
 	}
 
+	public function stream_cast( int $cast_as ) {
+		return $this->stream;
+	}
+
 	// Reads from the stream
 	public function stream_read( $count ) {
 		$ret            = fread( $this->stream, $count );
 		$this->position += strlen( $ret );
 
-		$callback = $this->callback;
-		$callback( $ret );
+		$onChunk = $this->onChunk;
+		$onChunk( $ret );
 
 		return $ret;
 	}
