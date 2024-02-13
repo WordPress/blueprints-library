@@ -3,5 +3,5 @@
 namespace WordPress\DataSource;
 
 interface DataSourceInterface {
-	public function stream();
+	public function stream( $resourceIdentifier );
 }

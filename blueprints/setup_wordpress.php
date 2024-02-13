@@ -2,10 +2,7 @@
 
 require 'vendor/autoload.php';
 
-use Symfony\Component\HttpClient\HttpClient;
-use WordPress\Blueprints\Cache\FileCache;
-use WordPress\DataSource\HttpSource;
-use WordPress\DataSource\ProgressEvent;
+use WordPress\Blueprints\ContainerBuilder;
 use function WordPress\Zip\zip_extract_to;
 
 $urls = [
@@ -17,18 +14,14 @@ $urls = [
 	'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' => 'outdir/wordpress/wp-content/mu-plugins',
 ];
 
-$fps    = [];
-$client = HttpClient::create();
-foreach ( $urls as $url => $target_path ) {
-	$source = new HttpSource( $client, new FileCache(), $url );
-	$source->events->addListener(
-		ProgressEvent::class,
-		function ( ProgressEvent $event ) {
-			echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-		}
-	);
+$container = ContainerBuilder::build( 'native' );
 
-	$fps[ $url ] = [ $source->stream(), $target_path ];
+$fps = [];
+foreach ( $urls as $url => $target_path ) {
+	$fps[ $url ] = [
+		$container['data_source.url']->stream( $url ),
+		$target_path,
+	];
 }
 
 foreach ( $fps as $url => [$fp, $target_path] ) {

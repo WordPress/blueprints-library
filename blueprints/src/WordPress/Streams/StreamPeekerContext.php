@@ -2,7 +2,7 @@
 
 namespace WordPress\Streams;
 
-class StreamPeekerData {
+class StreamPeekerContext {
 
 	public function __construct( public $fp, public $onChunk = null, public $onClose = null ) {
 	}

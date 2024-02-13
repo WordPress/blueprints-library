@@ -2,16 +2,11 @@
 
 namespace WordPress\DataSource;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
+class FileSource extends BaseDataSource {
 
-class FileSource implements DataSourceInterface {
+	public function stream( $resourceIdentifier ) {
+		$path = $resourceIdentifier;
 
-	public function __construct(
-		protected string $path
-	) {
-	}
-
-	public function stream() {
-		return fopen( $this->path, 'r' );
+		return fopen( $path, 'r' );
 	}
 }

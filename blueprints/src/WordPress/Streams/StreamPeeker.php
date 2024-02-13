@@ -20,7 +20,7 @@ class StreamPeeker {
 		stream_wrapper_unregister( 'peek' );
 	}
 
-	static public function wrap( StreamPeekerData $data ) {
+	static public function wrap( StreamPeekerContext $data ) {
 		$context = stream_context_create( [
 			'peek' => [
 				'wrapper_data' => $data,

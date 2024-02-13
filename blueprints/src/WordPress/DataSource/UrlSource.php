@@ -8,11 +8,12 @@ use Symfony\Component\HttpClient\Response\StreamWrapper;
 use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use WordPress\Streams\StreamPeeker;
-use WordPress\Streams\StreamPeekerData;
+use WordPress\Streams\StreamPeekerContext;
 
-class ResponseStreamPeekerData extends StreamPeekerData {
+class ResponseStreamPeekerContext extends StreamPeekerContext {
 
-	public function __construct( public $fp, public $onChunk, public $onClose, protected $response ) {
+	public function __construct( $fp, $onChunk, $onClose, protected $response ) {
+		parent::__construct( $fp, $onChunk, $onClose );
 	}
 
 	public function getResponse() {
@@ -21,29 +22,18 @@ class ResponseStreamPeekerData extends StreamPeekerData {
 
 }
 
-class ProgressEvent extends Event {
-	public function __construct(
-		public string $url,
-		public int $downloadedBytes,
-		public int|null $totalBytes
-	) {
-	}
-}
 
-class HttpSource implements DataSourceInterface {
-
-	public EventDispatcher $events;
+class UrlSource extends BaseDataSource {
 
 	public function __construct(
 		protected HttpClientInterface $client,
-		protected CacheInterface $cache,
-		protected string $url
+		protected CacheInterface $cache
 	) {
-		$this->events = new EventDispatcher();
+		parent::__construct();
 	}
 
-	public function stream() {
-		$url = $this->url;
+	public function stream( $resourceIdentifier ) {
+		$url = $resourceIdentifier;
 		if ( $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
@@ -88,7 +78,7 @@ class HttpSource implements DataSourceInterface {
 		};
 
 		return StreamPeeker::wrap(
-			new ResponseStreamPeekerData(
+			new ResponseStreamPeekerContext(
 				$stream,
 				$onChunk,
 				$onClose,
