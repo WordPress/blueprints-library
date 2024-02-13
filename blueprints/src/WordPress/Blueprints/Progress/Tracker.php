@@ -124,12 +124,23 @@ class Tracker {
 		return $subTracker;
 	}
 
-	public function set( $value, $options = [] ) {
+	public function set( float $value, ?string $caption ): void {
+		if ( $value < $this->selfProgress ) {
+			throw new \InvalidArgumentException( "Progress cannot go backwards (tried updating to $value when it already was $this->selfProgress)" );
+		}
 		$this->selfProgress = min( $value, 100 );
+		if ( $caption !== null ) {
+			$this->selfCaption = $caption;
+		}
 		$this->notifyProgress();
 		if ( $this->selfProgress + 0.00001 >= 100 ) {
 			$this->finish();
 		}
+	}
+
+	public function setCaption( $caption ) {
+		$this->selfCaption = $caption;
+		$this->notifyProgress();
 	}
 
 	public function finish() {
@@ -154,10 +165,6 @@ class Tracker {
 		return $this->selfCaption;
 	}
 
-	public function setCaption( $caption ) {
-		$this->selfCaption = $caption;
-		$this->notifyProgress();
-	}
 
 	public function isDone() {
 		return $this->getProgress() + 0.00001 >= 100;
