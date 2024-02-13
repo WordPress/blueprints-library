@@ -21,6 +21,9 @@
 	"autoload": {
 		"psr-4": {
 			"WordPress\\": "src/WordPress"
-		}
+		},
+		"files": [
+			"src/WordPress/Zip/functions.php"
+		]
 	}
 }

@@ -30,6 +30,16 @@ class StreamPeeker {
 		return fopen( 'peek://', 'r', false, $context );
 	}
 
+	public function stream_set_option( int $option, int $arg1, ?int $arg2 ): bool {
+		if ( \STREAM_OPTION_BLOCKING === $option ) {
+			return stream_set_blocking( $this->stream, (bool) $arg1 );
+		} elseif ( \STREAM_OPTION_READ_TIMEOUT === $option ) {
+			return stream_set_timeout( $this->stream, $arg1, $arg2 );
+		}
+
+		return false;
+	}
+
 	// Opens the stream
 	public function stream_open( $path, $mode, $options, &$opened_path ) {
 		$contextOptions = stream_context_get_options( $this->context );

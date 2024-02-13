@@ -15,8 +15,8 @@ class ZipStreamReader {
 	 * @param resource $fp A stream of zip file bytes.
 	 */
 	static public function readEntry( $fp ) {
-		$signature = fread( $fp, 4 );
-		if ( feof( $fp ) ) {
+		$signature = static::fread( $fp, 4 );
+		if ( $signature === false ) {
 			return null;
 		}
 		$signature = unpack( 'V', $signature )[1];
@@ -57,14 +57,19 @@ class ZipStreamReader {
 	 * @param resource $stream
 	 */
 	static protected function readFileEntry( $stream ) {
-		$data  = fread( $stream, 26 );
+		$data  = static::fread( $stream, 26 );
 		$data  = unpack( 'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
 			$data );
-		$path  = fread( $stream, $data['pathLength'] );
-		$extra = fread( $stream, $data['extraLength'] );
-		$bytes = fread( $stream, $data['compressedSize'] );
+		$path  = static::fread( $stream, $data['pathLength'] );
+		$extra = static::fread( $stream, $data['extraLength'] );
+		$bytes = static::fread( $stream, $data['compressedSize'] );
+
 		if ( $data['compressionMethod'] === static::COMPRESSION_DEFLATE ) {
-			$bytes = gzinflate( $bytes );
+			try {
+				$bytes = gzinflate( $bytes );
+			} catch ( \Throwable $e ) {
+				// Ignore the error
+			}
 		}
 
 		return new ZipFileEntry(
@@ -114,12 +119,12 @@ class ZipStreamReader {
 	 * @param resource stream
 	 */
 	static protected function readCentralDirectoryEntry( $stream ): ZipCentralDirectoryEntry {
-		$data        = fread( $stream, 42 );
+		$data        = static::fread( $stream, 42 );
 		$data        = unpack( 'vversionCreated/vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength/vfileCommentLength/vdiskNumber/vinternalAttributes/VexternalAttributes/VfirstByteAt',
 			$data );
-		$path        = fread( $stream, $data['pathLength'] );
-		$extra       = $data['extraLength'] ? fread( $stream, $data['extraLength'] ) : '';
-		$fileComment = $data['fileCommentLength'] ? fread( $stream, $data['fileCommentLength'] ) : '';
+		$path        = static::fread( $stream, $data['pathLength'] );
+		$extra       = static::fread( $stream, $data['extraLength'] );
+		$fileComment = static::fread( $stream, $data['fileCommentLength'] );
 
 		return new ZipCentralDirectoryEntry(
 			$data['versionCreated'],
@@ -162,21 +167,8 @@ class ZipStreamReader {
 	 *
 	 * @param resource $stream
 	 */
-	static protected function readEndCentralDirectoryEntry(
-		$stream,
-		bool $skipSignature = false
-	) {
-		if ( ! $skipSignature ) {
-			$signature = fread( $stream, 4 );
-			if ( feof( $stream ) ) {
-				return null;
-			}
-			$signature = unpack( 'V', $signature )[1];
-			if ( $signature !== static::SIGNATURE_CENTRAL_DIRECTORY_END ) {
-				return null;
-			}
-		}
-		$data = fread( $stream, 18 );
+	static protected function readEndCentralDirectoryEntry( $stream ) {
+		$data = static::fread( $stream, 18 );
 		$data = unpack( 'vdiskNumber/vcentralDirectoryStartDisk/vnumberCentralDirectoryRecordsOnThisDisk/vnumberCentralDirectoryRecords/VcentralDirectorySize/VcentralDirectoryOffset/vcommentLength',
 			$data );
 
@@ -187,8 +179,43 @@ class ZipStreamReader {
 			$data['numberCentralDirectoryRecords'],
 			$data['centralDirectorySize'],
 			$data['centralDirectoryOffset'],
-			$data['commentLength'] ? fread( $stream, $data['commentLength'] ) : ''
+			static::fread( $stream, $data['commentLength'] )
 		);
+	}
+
+	/**
+	 * Reads a fixed number of bytes from a stream.
+	 * Unlike fread(), this function will block until enough bytes are available.
+	 *
+	 * @param $stream
+	 * @param $length
+	 *
+	 * @return false|string
+	 */
+	static protected function fread( $stream, $length ) {
+		if ( $length === 0 ) {
+			return '';
+		}
+
+		$data = '';
+		while ( true ) {
+			$chunk = fread( $stream, $length );
+			if ( false === $chunk ) {
+				return false;
+			}
+			$length -= strlen( $chunk );
+			$data   .= $chunk;
+
+			if ( $length === 0 ) {
+				break;
+			}
+
+			if ( feof( $stream ) ) {
+				return false;
+			}
+		}
+
+		return $data;
 	}
 
 }

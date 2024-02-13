@@ -12,8 +12,11 @@ Run tests with
 vendor/bin/pest
 ```
 
-Try asynchronous resource fetching with
+Setup WordPress with SQLite using asynchronous resource fetching as follows:
 
-```
-php resource_Resolution.php
+```shell
+php setup_wordpress.php
+cd outdir/wordpress  
+php wp-cli.phar core install --url=localhost:8550 --title="My test site" --admin_user=admin --admin_email="admin@localhost.com" --admin_password="password"
+php wp-cli.phar server --port=8550 
 ```

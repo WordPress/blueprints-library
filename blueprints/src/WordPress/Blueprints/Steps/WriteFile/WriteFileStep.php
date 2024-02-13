@@ -10,7 +10,12 @@ class WriteFileStep extends BaseStep {
 	) {
 	}
 
+	public static function getInputClass(): string {
+		return WriteFileStepInput::class;
+	}
+	
 	public function execute() {
 		$this->input->file->saveTo( $this->input->toPath );
 	}
+
 }
