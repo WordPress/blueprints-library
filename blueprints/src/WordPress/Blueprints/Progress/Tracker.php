@@ -124,7 +124,7 @@ class Tracker {
 		return $subTracker;
 	}
 
-	public function set( float $value, ?string $caption ): void {
+	public function set( float $value, ?string $caption = null ): void {
 		if ( $value < $this->selfProgress ) {
 			throw new \InvalidArgumentException( "Progress cannot go backwards (tried updating to $value when it already was $this->selfProgress)" );
 		}
@@ -154,8 +154,8 @@ class Tracker {
 
 	public function getCaption() {
 		for ( $i = count( $this->subTrackers ) - 1; $i >= 0; $i -- ) {
-			if ( ! $this->subTrackers[ $i ]->done ) {
-				$captionMaybe = $this->subTrackers[ $i ]->caption;
+			if ( ! $this->subTrackers[ $i ]->isDone() ) {
+				$captionMaybe = $this->subTrackers[ $i ]->getCaption();
 				if ( $captionMaybe ) {
 					return $captionMaybe;
 				}
@@ -175,7 +175,7 @@ class Tracker {
 			return 100;
 		}
 		$sum = array_reduce( $this->subTrackers, function ( $sum, $tracker ) {
-			return $sum + $tracker->progress * $tracker->weight;
+			return $sum + $tracker->getProgress() * $tracker->getWeight();
 		}, $this->selfProgress * $this->selfWeight );
 
 		return round( $sum * 10000 ) / 10000;
@@ -226,11 +226,11 @@ class Tracker {
 		$this->events->dispatch( new ProgressEvent(
 			$this->getProgress(),
 			$this->getCaption(),
-		) );
+		), 'progress' );
 	}
 
 	private function notifyDone() {
-		$this->events->dispatch( 'done' );
+		$this->events->dispatch( new DoneEvent(), 'done' );
 	}
 
 }
