@@ -1,14 +1,18 @@
 <?php
 
-
 namespace WordPress\Blueprints\Steps\Unzip;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+class UnzipStepInput {
+	public $zipFile;
+	public string $toPath;
 
-class UnzipStepInput extends BaseStepInput {
-	public function __construct(
-		public $zipFile,
-		public string $toPath
-	) {
+	/**
+	 * @param $zipFile
+	 * @param string $toPath
+	 */
+	public function __construct( $zipFile, string $toPath ) {
+		$this->zipFile = $zipFile;
+		$this->toPath  = $toPath;
 	}
+
 }

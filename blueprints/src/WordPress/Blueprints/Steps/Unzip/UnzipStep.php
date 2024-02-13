@@ -2,22 +2,14 @@
 
 namespace WordPress\Blueprints\Steps\Unzip;
 
-use WordPress\Blueprints\Steps\BaseStep;
 use function WordPress\Zip\zip_extract_to;
 
-class UnzipStep extends BaseStep {
+class UnzipStep {
 
-	public function __construct(
-		public UnzipStepInput $input
+	public function execute(
+		UnzipStepInput $input
 	) {
-		parent::__construct();
+		zip_extract_to( $input->zipFile, $input->toPath );
 	}
 
-	public static function getInputClass(): string {
-		return UnzipStepInput::class;
-	}
-
-	public function execute() {
-		zip_extract_to( $this->input->zipFile, $this->input->toPath );
-	}
 }

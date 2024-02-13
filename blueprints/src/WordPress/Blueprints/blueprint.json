@@ -1,0 +1,48 @@
+{
+	"What are the top level items?",
+	"What's the structure for second level items",
+	"Do it on GitHub",
+	"What use-case? Do we need env overrides?",
+	"php": {
+		"version": "7.4",
+		"networking": true,
+		"phpExtensionBundles": [
+			"kitchen-sink"
+		]
+	},
+	"wp-setup": {
+		"version": "6.0",
+		"plugins": [
+			"friends",
+			{
+				"resource": "wordpress.org/plugins",
+				"slug": "hello-dolly"
+			}
+		],
+		"themes": [
+			"pendant",
+			"twentytwentyone"
+		],
+		"steps": [
+			{
+				"step": "plugins",
+				"plugins": [
+					"friends",
+					{
+						"resource": "wordpress.org/plugins",
+						"slug": "hello-dolly"
+					}
+				]
+			}
+		]
+	},
+	"client": {
+		"browser": {
+		},
+		"node": {
+			// mount a local directory?
+		},
+		"login": true,
+		"landingPage": "/wp-admin/"
+	}
+}

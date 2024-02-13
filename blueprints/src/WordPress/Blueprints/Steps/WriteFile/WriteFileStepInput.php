@@ -6,9 +6,17 @@ use WordPress\Blueprints\Resources\Resource;
 use WordPress\Blueprints\Steps\BaseStepInput;
 
 class WriteFileStepInput extends BaseStepInput {
-	public function __construct(
-		public Resource $file,
-		public string $toPath
-	) {
+	public $file;
+	public string $toPath;
+
+	/**
+	 * @param $file
+	 * @param string $toPath
+	 */
+	public function __construct( $file, string $toPath ) {
+		$this->file   = $file;
+		$this->toPath = $toPath;
 	}
+
+
 }
