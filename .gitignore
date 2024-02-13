@@ -2,6 +2,7 @@ vendor/
 opfs/
 rest/
 dist/
+outdir/
 .idea/
 .vscode
 test.php
