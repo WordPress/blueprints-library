@@ -8,7 +8,7 @@ class WriteFileStep {
 
 	public function execute(
 		WriteFileStepInput $input,
-		?Tracker $progress
+		Tracker $progress = null
 	) {
 		$fp2 = fopen( $input->toPath, 'w' );
 		stream_copy_to_stream( $input->file, $fp2 );

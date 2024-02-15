@@ -50,13 +50,8 @@ class CompiledBlueprint {
 
 class Compiler {
 
-	public function __construct( public array $availableSteps, public array $availableResources ) {
-	}
-
-	public function compile( array $blueprint ) {
-//		$this->assertValid( $blueprint );
-
-
+	public function compile(array $blueprint)
+	{
 		return new CompiledBlueprint(
 			new CompiledVersion(
 				$blueprint['preferredVersions']['php'] ?? '8.0',
