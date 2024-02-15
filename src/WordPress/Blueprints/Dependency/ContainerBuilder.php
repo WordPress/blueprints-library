@@ -111,12 +111,15 @@ class ContainerBuilder {
 			return new AnnotationReader();
 		};
 
-		$container['validator']    = function ( $c ) {
+		$container['validator']            = function ( $c ) {
 			return Validation::createValidatorBuilder()->enableAnnotationMapping()->getValidator();
 		};
-		$container['form_builder'] = function ( $c ) {
+		$container['form.factory_builder'] = function ( $c ) {
 			return Forms::createFormFactoryBuilder()
 			            ->addExtension( new ValidatorExtension( $c['validator'] ) );
+		};
+		$container['form.factory']         = function ( $c ) {
+			return $c['form.factory_builder']->getFormFactory();
 		};
 
 		$container['json_schema_compiler'] = function ( $c ) {
@@ -136,15 +139,16 @@ class ContainerBuilder {
 
 		$container['blueprint.form_factory'] = function ( $c ) {
 			return function () use ( $c ) {
-				return $c['form_builder']->getFormFactory()->create( DynamicType::class, new Blueprint(), [
-					'data_class'          => Blueprint::class,
-					'dynamic_form_helper' => $c['forms.dynamic_form_helper'],
-				] );
+				return $c['forms.dynamic_form_helper']->buildFormForDataClass(
+					$c['form.factory']->createBuilder(),
+					Blueprint::class
+				);
 			};
 		};
 
 		$container['forms.dynamic_form_helper'] = function ( $c ) {
 			return new DynamicFormHelper(
+				$c['validator'],
 				$c['available_steps'],
 				$c['available_resources']
 			);
@@ -157,7 +161,6 @@ class ContainerBuilder {
 		self::registerBlueprintStep( UnzipStep::class );
 		self::registerBlueprintStep( WriteFileStep::class );
 		self::registerBlueprintStep( MkdirStep::class );
-
 
 		$container['available_resources'] = $container->factory( function ( $c ) {
 			$steps = [];

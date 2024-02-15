@@ -7,22 +7,28 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use WordPress\Blueprints\Parsing\Constraint\BlueprintSteps;
 use WordPress\Blueprints\Parsing\Constraint\ResourceStream;
 
 class DynamicFormHelper extends AbstractType {
 
-	public function __construct( private array $availableSteps, private array $availableResources ) {
+	public function __construct(
+		private ValidatorInterface $validator,
+		private array $availableSteps,
+		private array $availableResources
+	) {
 	}
 
 	public function buildFormForDataClass( FormBuilderInterface $builder, $dataClass ) {
-		$validator = Validation::createValidatorBuilder()->enableAnnotationMapping()->getValidator();
-		$metadata  = $validator->getMetadataFor( $dataClass );
+		$metadata = $this->validator->getMetadataFor( $dataClass );
 		foreach ( $metadata->properties as $property => $value ) {
 			foreach ( $value->constraints as $constraint ) {
 				if ( $constraint instanceof ResourceStream ) {
@@ -35,6 +41,8 @@ class DynamicFormHelper extends AbstractType {
 			}
 			$builder->add( $property, TextType::class );
 		}
+
+		return $builder->getForm();
 	}
 
 	public function addResourceStreamField( FormBuilderInterface $builder, $name ) {
@@ -53,9 +61,14 @@ class DynamicFormHelper extends AbstractType {
 		} );
 	}
 
-	public function addDynamicCollectionField( FormBuilderInterface $builder, $name, $discriminator_field, $getDataClass ) {
+	public function addDynamicCollectionField(
+		FormBuilderInterface $builder,
+		$dynamicCollectionName,
+		$discriminator_field,
+		$getDataClass
+	) {
 		$builder
-			->add( $name, CollectionType::class, [
+			->add( $dynamicCollectionName, CollectionType::class, [
 				'entry_type'   => TextType::class,
 				'allow_add'    => true,
 				'allow_delete' => true,
@@ -63,70 +76,63 @@ class DynamicFormHelper extends AbstractType {
 			] );
 
 		$builder->addEventListener( FormEvents::PRE_SUBMIT,
-			function ( FormEvent $event ) use ( $name, $discriminator_field, $getDataClass ) {
-				$data = $event->getData(); // Array representation of the submitted data
-				$form = $event->getForm();
-				if ( ! isset( $data[ $name ] ) ) {
-					return;
-				}
-				foreach ( $data[ $name ] as $key => $stepData ) {
-					// Determine the type of post based on postData, e.g., by checking if certain keys exist
-					$discriminator_value = $stepData[ $discriminator_field ];
-					$dataClass           = $getDataClass( $discriminator_value );
-					if ( ! $dataClass ) {
-						// @TODO: This doesn't seem to work
-						$form->get( $name )->addError( new FormError( 'Invalid step type "' . $discriminator_value . '"' ) );
-						continue;
+			function ( FormEvent $event ) use ( $builder, $dynamicCollectionName, $discriminator_field, $getDataClass ) {
+				$data = $event->getData();
+				if ( isset( $data[ $dynamicCollectionName ] ) ) {
+					foreach ( $data[ $dynamicCollectionName ] as $key => $stepData ) {
+						$this->onPreSubmit(
+							$builder,
+							$event->getForm()->get( $dynamicCollectionName ),
+							$data[ $dynamicCollectionName ],
+							$key,
+							$discriminator_field,
+							$getDataClass
+						);
 					}
-
-					// Dynamically adjust the form field for this post
-					$form->get( $name )->add( $key, DynamicType::class, [
-						'data_class'          => $dataClass,
-						'dynamic_form_helper' => $this,
-					] )->get( $key )
-					     ->add( $discriminator_field, TextType::class, [
-						     'mapped' => false,
-					     ] );
 				}
 			} );
 	}
 
-	public function addDynamicObjectField( FormBuilderInterface $builder, $name, $discriminator_field, $getDataClass ) {
-		$subBuilder = $builder->create( $name, FormType::class, [
+	public function addDynamicObjectField( FormBuilderInterface $formBuilder, $dynamicFieldName, $discriminator_field, $getDataClass ) {
+		$formBuilder->addEventListener(
+			FormEvents::PRE_SUBMIT,
+			function ( FormEvent $event ) use ( $formBuilder, $dynamicFieldName, $discriminator_field, $getDataClass ) {
+				$this->onPreSubmit( $formBuilder, $event->getForm(), $event->getData(), $dynamicFieldName, $discriminator_field,
+					$getDataClass );
+			}
+		);
+		$formBuilder->add( $dynamicFieldName, FormType::class, [
 			'data_class' => null,
 		] );
-
-		$builder->addEventListener( FormEvents::PRE_SUBMIT,
-			function ( FormEvent $event ) use ( $name, $discriminator_field, $getDataClass ) {
-				$data = $event->getData(); // Array representation of the submitted data
-				$form = $event->getForm();
-
-				if ( ! isset( $data[ $name ] ) ) {
-					return;
-				}
-
-				// Determine the type of post based on postData, e.g., by checking if certain keys exist
-				$field_data          = $data[ $name ];
-				$discriminator_value = $field_data[ $discriminator_field ];
-				$dataClass           = $getDataClass( $discriminator_value );
-				if ( ! $dataClass ) {
-					// @TODO: This doesn't seem to work
-					$form->get( $name )->addError( new FormError( 'Invalid resource type "' . $discriminator_value . '"' ) );
-
-					return;
-				}
-
-				// Dynamically adjust the form field for this post
-				$form->add( $name, DynamicType::class, [
-					'data_class'          => $dataClass,
-					'dynamic_form_helper' => $this,
-				] )->get( $name )
-				     ->add( $discriminator_field, TextType::class, [
-					     'mapped' => false,
-				     ] );
-			} );
-		$builder->add( $subBuilder );
 	}
 
+	public function onPreSubmit( $builder, FormInterface $form, $data, $name, $discriminator_field, $getDataClass ) {
+		if ( ! isset( $data[ $name ] ) ) {
+			return;
+		}
+
+		// Determine the type of post based on postData, e.g., by checking if certain keys exist
+		$field_data          = $data[ $name ];
+		$discriminator_value = $field_data[ $discriminator_field ];
+		$dataClass           = $getDataClass( $discriminator_value );
+		if ( ! $dataClass ) {
+			// @TODO: This doesn't seem to work
+			$form->get( $name )->addError( new FormError( 'Invalid resource type "' . $discriminator_value . '"' ) );
+
+			return;
+		}
+
+		// Dynamically adjust the form field for this post
+		$form->add(
+			$this
+				->buildFormForDataClass( $builder->create( $name, FormType::class, [
+					'auto_initialize' => 0,
+					'data_class'      => $dataClass,
+				] ), $dataClass )
+				->add( $discriminator_field, TextType::class, [
+					'mapped' => false,
+				] )
+		);
+	}
 }
 
