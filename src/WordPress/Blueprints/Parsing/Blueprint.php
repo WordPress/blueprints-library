@@ -1,9 +1,10 @@
 <?php
 
-namespace WordPress\Blueprints\Parser;
+namespace WordPress\Blueprints\Parsing;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
+use WordPress\Blueprints\Parsing\Constraint\BlueprintSteps;
+
 
 class Blueprint {
 
@@ -24,6 +25,7 @@ class Blueprint {
 
 	/**
 	 * @Assert\Valid()
+	 * @BlueprintSteps
 	 */
 	public $steps;
 

@@ -4,10 +4,17 @@ namespace WordPress\Blueprints\Dependency;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Pimple\Container;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Validator\Validation;
 use WordPress\Blueprints\Cache\FileCache;
-use WordPress\Blueprints\Parser\BlueprintParser;
+use WordPress\Blueprints\Parsing\Blueprint;
+use WordPress\Blueprints\Parsing\Form\DynamicFormHelper;
+use WordPress\Blueprints\Parsing\Form\DynamicType;
+use WordPress\Blueprints\Parsing\Parser;
+use WordPress\Blueprints\Resources\PathResource;
+use WordPress\Blueprints\Resources\URLResource;
 use WordPress\Blueprints\Steps\Mkdir\MkdirStep;
 use WordPress\Blueprints\Steps\Unzip\UnzipStep;
 use WordPress\Blueprints\Steps\WriteFile\WriteFileStep;
@@ -104,12 +111,16 @@ class ContainerBuilder {
 			return new AnnotationReader();
 		};
 
-		$container['validator'] = function ( $c ) {
-			return Validation::createValidator();
+		$container['validator']    = function ( $c ) {
+			return Validation::createValidatorBuilder()->enableAnnotationMapping()->getValidator();
+		};
+		$container['form_builder'] = function ( $c ) {
+			return Forms::createFormFactoryBuilder()
+			            ->addExtension( new ValidatorExtension( $c['validator'] ) );
 		};
 
 		$container['json_schema_compiler'] = function ( $c ) {
-			return new BlueprintParser( $c['available_steps'], $c['validator'] );
+			return new Parser( $c['available_steps'], $c['validator'] );
 		};
 
 		$container['available_steps'] = $container->factory( function ( $c ) {
@@ -123,11 +134,66 @@ class ContainerBuilder {
 			return $steps;
 		} );
 
+		$container['blueprint.form_factory'] = function ( $c ) {
+			return function () use ( $c ) {
+				return $c['form_builder']->getFormFactory()->create( DynamicType::class, new Blueprint(), [
+					'data_class'          => Blueprint::class,
+					'dynamic_form_helper' => $c['forms.dynamic_form_helper'],
+				] );
+			};
+		};
+
+		$container['forms.dynamic_form_helper'] = function ( $c ) {
+			return new DynamicFormHelper(
+				$c['available_steps'],
+				$c['available_resources']
+			);
+		};
+
+		$container['blueprint.parser'] = function ( $c ) {
+			return new Parser( $c['blueprint.form_factory'] );
+		};
+
 		self::registerBlueprintStep( UnzipStep::class );
 		self::registerBlueprintStep( WriteFileStep::class );
 		self::registerBlueprintStep( MkdirStep::class );
 
+
+		$container['available_resources'] = $container->factory( function ( $c ) {
+			$steps = [];
+			foreach ( $c->keys() as $key ) {
+				if ( str_starts_with( $key, 'resource_meta.' ) ) {
+					$steps[ $c[ $key ]->slug ] = $c[ $key ];
+				}
+			}
+
+			return $steps;
+		} );
+
+		self::registerResourceType( URLResource::class );
+		self::registerResourceType( PathResource::class );
+
 		return $container;
+	}
+
+	public function registerResourceType( string $dataClass ) {
+		if ( ! class_exists( $dataClass ) ) {
+			throw new \InvalidArgumentException( "Resource data class $dataClass does not exist" );
+		}
+
+		if ( defined( "$dataClass::SLUG" ) ) {
+			$slug = $dataClass::SLUG;
+		} else {
+			$slug = ( new \ReflectionClass( $dataClass ) )->getShortName();
+			$slug = lowercase_until_uppercase( $slug );
+			if ( str_ends_with( strtolower( $slug ), 'resource' ) ) {
+				$slug = substr( $slug, 0, - 8 );
+			}
+		}
+		$this->container["resource_meta.$slug"] = new ResourceMeta(
+			$slug,
+			$dataClass
+		);
 	}
 
 	public function registerBlueprintStep( string $stepClass, string $inputClass = null, callable $factory = null ) {
@@ -137,8 +203,8 @@ class ContainerBuilder {
 			$slug = $stepClass::SLUG;
 		} else {
 			$slug = ( new \ReflectionClass( $stepClass ) )->getShortName();
-			$slug = lcfirst( $slug );
-			if ( str_ends_with( $slug, 'Step' ) ) {
+			$slug = lowercase_until_uppercase( $slug );
+			if ( str_ends_with( strtolower( $slug ), 'step' ) ) {
 				$slug = substr( $slug, 0, - 4 );
 			}
 		}
@@ -167,4 +233,16 @@ class ContainerBuilder {
 		);
 	}
 
+}
+
+
+function lowercase_until_uppercase( string $string ) {
+	$len = strlen( $string );
+	for ( $i = 0; $i < $len; $i ++ ) {
+		if ( ctype_lower( $string[ $i ] ) ) {
+			return strtolower( substr( $string, 0, $i ) ) . substr( $string, $i );
+		}
+	}
+
+	return $string;
 }

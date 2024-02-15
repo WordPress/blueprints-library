@@ -20,3 +20,9 @@ cd outdir/wordpress
 php wp-cli.phar core install --url=localhost:8550 --title="My test site" --admin_user=admin --admin_email="admin@localhost.com" --admin_password="password"
 php wp-cli.phar server --port=8550 
 ```
+
+Blueprint parsing demo:
+
+```shell
+php parse_blueprint.php
+```

@@ -3,11 +3,12 @@
 namespace WordPress\Blueprints\Steps\Unzip;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use WordPress\Blueprints\Parsing\Constraint\ResourceStream;
 
 class UnzipStepInput {
 
 	/**
-	 * @Assert\NotBlank
+	 * @ResourceStream
 	 * @Assert\NotNull
 	 */
 	public $zipFile;

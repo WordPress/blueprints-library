@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MkdirStepInput {
 	public function __construct(
 		/** @Assert\Type("string") */
-		public string $path
+		public $path = null
 	) {
 	}
 
