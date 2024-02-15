@@ -56,13 +56,13 @@ class ZipStreamReader {
 	 *
 	 * @param resource $stream
 	 */
-	static protected function readFileEntry( $stream ) {
-		$data  = fread( $stream, 26 );
+	static protected function readFileEntry( $stream ): ZipFileEntry {
+		$data  = self::read_bytes( $stream, 26 );
 		$data  = unpack( 'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
 			$data );
-		$path  = fread( $stream, $data['pathLength'] );
-		$extra = fread( $stream, $data['extraLength'] );
-		$bytes = fread( $stream, $data['compressedSize'] );
+		$path  = self::read_bytes( $stream, $data['pathLength'] );
+		$extra = self::read_bytes( $stream, $data['extraLength'] );
+		$bytes = self::read_bytes( $stream, $data['compressedSize'] );
 
 		if ( $data['compressionMethod'] === static::COMPRESSION_DEFLATE ) {
 			try {
@@ -72,7 +72,7 @@ class ZipStreamReader {
 			}
 		}
 
-		$entry = new ZipFileEntry(
+		return new ZipFileEntry(
 			$data['versionNeeded'],
 			$data['generalPurpose'],
 			$data['compressionMethod'],
@@ -167,7 +167,7 @@ class ZipStreamReader {
 	 *
 	 * @param resource $stream
 	 */
-	static protected function readEndCentralDirectoryEntry( $stream ) {
+	static protected function readEndCentralDirectoryEntry( $stream ): ZipEndCentralDirectoryEntry {
 		$data = static::read_bytes( $stream, 18 );
 		$data = unpack( 'vdiskNumber/vcentralDirectoryStartDisk/vnumberCentralDirectoryRecordsOnThisDisk/vnumberCentralDirectoryRecords/VcentralDirectorySize/VcentralDirectoryOffset/vcommentLength',
 			$data );
@@ -192,7 +192,7 @@ class ZipStreamReader {
 	 *
 	 * @return false|string
 	 */
-	static protected function read_bytes( $stream, $length ) {
+	static protected function read_bytes( $stream, $length ): string|bool {
 		if ( $length === 0 ) {
 			return '';
 		}
