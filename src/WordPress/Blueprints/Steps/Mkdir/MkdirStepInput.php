@@ -2,11 +2,13 @@
 
 namespace WordPress\Blueprints\Steps\Mkdir;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class MkdirStepInput extends BaseStepInput {
+class MkdirStepInput {
 	public function __construct(
+		/** @Assert\Type("string") */
 		public string $path
 	) {
 	}
+
 }

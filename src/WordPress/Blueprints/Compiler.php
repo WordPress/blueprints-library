@@ -55,8 +55,6 @@ class Compiler {
 
 	public function compile( array $blueprint ) {
 //		$this->assertValid( $blueprint );
-
-
 		return new CompiledBlueprint(
 			new CompiledVersion(
 				$blueprint['preferredVersions']['php'] ?? '8.0',

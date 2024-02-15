@@ -1,12 +1,17 @@
 {
 	"require": {
-		"symfony/event-dispatcher": "^7.0",
+		"symfony/event-dispatcher": "^v5.4.35",
 		"justinrainbow/json-schema": "^5.2",
-		"symfony/filesystem": "^7.0",
+		"symfony/filesystem": "^v5.4.35",
+		"symfony/cache": "^v5.4.35",
+		"symfony/form": "v6.4.3",
 		"psr/simple-cache": "^3.0",
-		"symfony/http-client": "^7.0",
-		"symfony/http-kernel": "^7.0",
-		"pimple/pimple": "^3.0"
+		"symfony/http-client": "^v5.4.35",
+		"symfony/http-kernel": "^v5.4.31",
+		"pimple/pimple": "^3.0",
+		"doctrine/annotations": "^2.0",
+		"symfony/validator": "^v5.4.35",
+		"symfony/serializer": "^v5.4.35"
 	},
 	"require-dev": {
 		"pestphp/pest": "^2.33"

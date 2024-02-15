@@ -2,7 +2,9 @@
 
 require 'vendor/autoload.php';
 
-use WordPress\Blueprints\ContainerBuilder;
+use WordPress\Blueprints\Dependency\ContainerBuilder;
+use WordPress\Blueprints\Steps\Mkdir\MkdirStep;
+use WordPress\Blueprints\Steps\Mkdir\MkdirStepInput;
 use WordPress\Blueprints\Steps\Unzip\UnzipStep;
 use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
 use WordPress\Blueprints\Steps\WriteFile\WriteFileStep;
@@ -17,11 +19,19 @@ $urls = [
 	'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' => 'outdir/wordpress/wp-content/mu-plugins',
 ];
 
-$container = ContainerBuilder::build( 'native' );
+$builder   = new ContainerBuilder();
+$container = $builder->build( 'native' );
 
 $steps = [];
 foreach ( $urls as $url => $target_path ) {
 	$fp = $container['data_source.url']->stream( $url );
+	if ( $fp === false ) {
+		throw new \RuntimeException( 'Failed to download ' . $url );
+	}
+	$steps[] = function () use ( $fp, $target_path ) {
+		$step = new MkdirStep();
+		$step->execute( new MkdirStepInput( dirname( $target_path ) ) );
+	};
 	if ( str_ends_with( $url, '.zip' ) ) {
 		$steps[] = function () use ( $fp, $target_path ) {
 			$step = new UnzipStep();

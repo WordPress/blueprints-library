@@ -9,7 +9,7 @@ class UnzipStep {
 
 	public function execute(
 		UnzipStepInput $input,
-		?Tracker $progress
+		?Tracker $progress = null
 	) {
 		$progress?->set( 10, 'Unzipping...' );
 		zip_extract_to( $input->zipFile, $input->toPath );

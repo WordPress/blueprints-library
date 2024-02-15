@@ -25,8 +25,6 @@ function zip_extract_to( $fp, $toPath ) {
 			file_put_contents( $path, $entry->bytes );
 		}
 	}
-
-	return feof( $fp ) ? 1 : 0;
 }
 
 // @TODO: Find a more reliable technique
