@@ -1,5 +1,6 @@
 <?php
 
+use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Map;
@@ -57,6 +58,13 @@ $builder
 			->setPhp( '7.4' )
 			->setWp( '5.3' )
 	)
+	->setPlugins( [
+		'akismet',
+		'hello-dolly',
+	] )
+	->setPhpExtensionBundles( [
+		'kitchen-sink',
+	] )
 	->setLandingPage( "/wp-admin" )
 	->setSteps( [
 		( new WriteFileStepBuilder() )
@@ -103,7 +111,20 @@ function replaceUrlsWithResourceObjects( $jsonData ) {
 }
 
 replaceUrlsWithResourceObjects( $builder );
-$builder->validate();
+try {
+	$builder->validate();
+} catch ( InvalidValue $e ) {
+	// Nice and granular error information
+	print_r( [
+		"dataPointer"   => $e->getDataPointer(),
+		"schemaPointer" => $e->getSchemaPointer(),
+		"Message"       => $e->getMessage(),
+		"Data"          => $e->data,
+		"Constraint"    => $e->constraint,
+	] );
+	die();
+}
+
 
 // The Blueprint is valid!
 $blueprint = $builder->toDataObject();
