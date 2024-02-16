@@ -60,7 +60,7 @@ class Blueprint
     /** @var string[] PHP Constants to define on every request */
     public $constants;
 
-    /** @var string[]|VFSReferenceBuilder[]|LiteralReferenceBuilder[]|CoreThemeReferenceBuilder[]|CorePluginReferenceBuilder[]|UrlReferenceBuilder[]|array WordPress plugins to install and activate */
+    /** @var string[]|string[]|VFSReferenceBuilder[]|LiteralReferenceBuilder[]|CoreThemeReferenceBuilder[]|CorePluginReferenceBuilder[]|UrlReferenceBuilder[]|array WordPress plugins to install and activate */
     public $plugins;
 
     /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */

@@ -22,6 +22,6 @@ class RunSQLStep
     /** @var string The step identifier. */
     public $step = 'runSql';
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $sql;
 }

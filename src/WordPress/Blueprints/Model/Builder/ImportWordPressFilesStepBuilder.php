@@ -29,11 +29,12 @@ class ImportWordPressFilesStepBuilder extends ImportWordPressFilesStep implement
         $properties->step = Schema::string();
         $properties->step->const = "importWordPressFiles";
         $properties->wordPressFilesZip = new Schema();
-        $properties->wordPressFilesZip->anyOf[0] = VFSReferenceBuilder::schema();
-        $properties->wordPressFilesZip->anyOf[1] = LiteralReferenceBuilder::schema();
-        $properties->wordPressFilesZip->anyOf[2] = CoreThemeReferenceBuilder::schema();
-        $properties->wordPressFilesZip->anyOf[3] = CorePluginReferenceBuilder::schema();
-        $properties->wordPressFilesZip->anyOf[4] = UrlReferenceBuilder::schema();
+        $properties->wordPressFilesZip->anyOf[0] = Schema::string();
+        $properties->wordPressFilesZip->anyOf[1] = VFSReferenceBuilder::schema();
+        $properties->wordPressFilesZip->anyOf[2] = LiteralReferenceBuilder::schema();
+        $properties->wordPressFilesZip->anyOf[3] = CoreThemeReferenceBuilder::schema();
+        $properties->wordPressFilesZip->anyOf[4] = CorePluginReferenceBuilder::schema();
+        $properties->wordPressFilesZip->anyOf[5] = UrlReferenceBuilder::schema();
         $properties->wordPressFilesZip->setFromRef('#/definitions/FileReference');
         $properties->pathInZip = Schema::string();
         $properties->pathInZip->description = "The path inside the zip file where the WordPress files are.";
@@ -71,7 +72,7 @@ class ImportWordPressFilesStepBuilder extends ImportWordPressFilesStep implement
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $wordPressFilesZip
+     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $wordPressFilesZip
      * @return $this
      * @codeCoverageIgnoreStart
      */

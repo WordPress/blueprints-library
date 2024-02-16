@@ -23,7 +23,7 @@ class InstallThemeStep
     /** @var string The step identifier. */
     public $step = 'installTheme';
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $themeZipFile;
 
     /** @var InstallThemeStepOptionsBuilder Optional installation options. */

@@ -23,7 +23,7 @@ class InstallPluginStep
     /** @var string The step identifier. */
     public $step = 'installPlugin';
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $pluginZipFile;
 
     /** @var InstallPluginOptionsBuilder */

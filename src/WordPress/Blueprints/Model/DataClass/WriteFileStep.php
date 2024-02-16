@@ -25,6 +25,6 @@ class WriteFileStep
     /** @var string The path of the file to write to */
     public $path;
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder|string The data to write */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder|string The data to write */
     public $data;
 }

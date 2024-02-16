@@ -144,6 +144,9 @@
 		"FileReference": {
 			"anyOf": [
 				{
+					"type": "string"
+				},
+				{
 					"$ref": "#/definitions/VFSReference"
 				},
 				{

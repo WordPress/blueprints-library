@@ -29,11 +29,12 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $properties->step = Schema::string();
         $properties->step->const = "unzip";
         $properties->zipFile = new Schema();
-        $properties->zipFile->anyOf[0] = VFSReferenceBuilder::schema();
-        $properties->zipFile->anyOf[1] = LiteralReferenceBuilder::schema();
-        $properties->zipFile->anyOf[2] = CoreThemeReferenceBuilder::schema();
-        $properties->zipFile->anyOf[3] = CorePluginReferenceBuilder::schema();
-        $properties->zipFile->anyOf[4] = UrlReferenceBuilder::schema();
+        $properties->zipFile->anyOf[0] = Schema::string();
+        $properties->zipFile->anyOf[1] = VFSReferenceBuilder::schema();
+        $properties->zipFile->anyOf[2] = LiteralReferenceBuilder::schema();
+        $properties->zipFile->anyOf[3] = CoreThemeReferenceBuilder::schema();
+        $properties->zipFile->anyOf[4] = CorePluginReferenceBuilder::schema();
+        $properties->zipFile->anyOf[5] = UrlReferenceBuilder::schema();
         $properties->zipFile->setFromRef('#/definitions/FileReference');
         $properties->zipPath = Schema::string();
         $properties->zipPath->description = "The path of the zip file to extract";
@@ -73,7 +74,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $zipFile
+     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $zipFile
      * @return $this
      * @codeCoverageIgnoreStart
      */

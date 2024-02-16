@@ -22,7 +22,7 @@ class ImportWordPressFilesStep
     /** @var string */
     public $step = 'importWordPressFiles';
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $wordPressFilesZip;
 
     /** @var string The path inside the zip file where the WordPress files are. */

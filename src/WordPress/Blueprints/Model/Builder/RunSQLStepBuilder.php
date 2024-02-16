@@ -30,11 +30,12 @@ class RunSQLStepBuilder extends RunSQLStep implements ClassStructureContract
         $properties->step->description = "The step identifier.";
         $properties->step->const = "runSql";
         $properties->sql = new Schema();
-        $properties->sql->anyOf[0] = VFSReferenceBuilder::schema();
-        $properties->sql->anyOf[1] = LiteralReferenceBuilder::schema();
-        $properties->sql->anyOf[2] = CoreThemeReferenceBuilder::schema();
-        $properties->sql->anyOf[3] = CorePluginReferenceBuilder::schema();
-        $properties->sql->anyOf[4] = UrlReferenceBuilder::schema();
+        $properties->sql->anyOf[0] = Schema::string();
+        $properties->sql->anyOf[1] = VFSReferenceBuilder::schema();
+        $properties->sql->anyOf[2] = LiteralReferenceBuilder::schema();
+        $properties->sql->anyOf[3] = CoreThemeReferenceBuilder::schema();
+        $properties->sql->anyOf[4] = CorePluginReferenceBuilder::schema();
+        $properties->sql->anyOf[5] = UrlReferenceBuilder::schema();
         $properties->sql->setFromRef('#/definitions/FileReference');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
@@ -70,7 +71,7 @@ class RunSQLStepBuilder extends RunSQLStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $sql
+     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $sql
      * @return $this
      * @codeCoverageIgnoreStart
      */

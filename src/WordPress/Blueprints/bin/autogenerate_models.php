@@ -96,8 +96,10 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 $fileReferences       = $blueprintSchema->definitions->FileReference;
 $fileReferenceClasses = [];
 foreach ( $fileReferences->anyOf as $name => $property ) {
-	$parts                         = explode( '/', $property->{'$ref'} );
-	$fileReferenceClasses[ $name ] = end( $parts );
+	if ( $property->{'$ref'} ) {
+		$parts                         = explode( '/', $property->{'$ref'} );
+		$fileReferenceClasses[ $name ] = end( $parts );
+	}
 }
 $fileReferenceInterface = ( new \Swaggest\PhpCodeBuilder\PhpInterface() )
 	->setName( 'FileReferenceInterface' )

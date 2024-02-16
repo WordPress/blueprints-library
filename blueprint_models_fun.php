@@ -1,6 +1,7 @@
 <?php
 
 use Swaggest\JsonSchema\InvalidValue;
+use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\Model\BlueprintDeserializer;
 use WordPress\Blueprints\Model\BlueprintSerializer;
 use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
@@ -38,10 +39,40 @@ $builder
 			->setPassword( "password" ),
 		( ( new UnzipStepBuilder() )
 			->setZipFile(
-				( new UrlReferenceBuilder() )->setUrl( 'https://example.com/wordpress.zip' )
+				"https://wordpress.org/latest.zip"
+//				( new UrlReferenceBuilder() )->setUrl( 'https://example.com/wordpress.zip' )
 			) )
 			->setExtractToPath( "/wordpress" ),
 	] );
+
+
+function replaceUrlsWithResourceObjects( $jsonData ) {
+	if ( ! ( $jsonData instanceof ClassStructureContract ) ) {
+		return;
+	}
+	foreach ( $jsonData::schema()->getProperties() as $key => $value ) {
+		if ( is_string( $jsonData->$key ) ) {
+			if ( $jsonData::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
+				$jsonData->$key = ( new UrlReferenceBuilder() )->setUrl( $jsonData->$key );
+			}
+		} elseif ( is_object( $jsonData->$key ) ) {
+			replaceUrlsWithResourceObjects( $jsonData->$key );
+		} elseif ( is_array( $jsonData->$key ) ) {
+			foreach ( $jsonData->$key as $k => $v ) {
+				replaceUrlsWithResourceObjects( $v );
+			}
+		}
+	}
+}
+
+replaceUrlsWithResourceObjects( $builder );
+print_r( $builder->toDataObject() );
+//foreach($)
+//'#/definitions/FileReference'
+//
+//print_r( UnzipStepBuilder::schema()->getProperties()['zipFile']->getFromRef() );
+die();
+
 $blueprint = $builder->toDataObject();
 
 // No exception on exporting valid data

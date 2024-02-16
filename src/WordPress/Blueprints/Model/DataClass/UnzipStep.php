@@ -22,7 +22,7 @@ class UnzipStep
     /** @var string */
     public $step = 'unzip';
 
-    /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $zipFile;
 
     /** @var string The path of the zip file to extract */

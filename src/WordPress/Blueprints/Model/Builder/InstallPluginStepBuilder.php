@@ -30,11 +30,12 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
         $properties->step->description = "The step identifier.";
         $properties->step->const = "installPlugin";
         $properties->pluginZipFile = new Schema();
-        $properties->pluginZipFile->anyOf[0] = VFSReferenceBuilder::schema();
-        $properties->pluginZipFile->anyOf[1] = LiteralReferenceBuilder::schema();
-        $properties->pluginZipFile->anyOf[2] = CoreThemeReferenceBuilder::schema();
-        $properties->pluginZipFile->anyOf[3] = CorePluginReferenceBuilder::schema();
-        $properties->pluginZipFile->anyOf[4] = UrlReferenceBuilder::schema();
+        $properties->pluginZipFile->anyOf[0] = Schema::string();
+        $properties->pluginZipFile->anyOf[1] = VFSReferenceBuilder::schema();
+        $properties->pluginZipFile->anyOf[2] = LiteralReferenceBuilder::schema();
+        $properties->pluginZipFile->anyOf[3] = CoreThemeReferenceBuilder::schema();
+        $properties->pluginZipFile->anyOf[4] = CorePluginReferenceBuilder::schema();
+        $properties->pluginZipFile->anyOf[5] = UrlReferenceBuilder::schema();
         $properties->pluginZipFile->setFromRef('#/definitions/FileReference');
         $properties->options = InstallPluginOptionsBuilder::schema();
         $ownerSchema->type = Schema::OBJECT;
@@ -71,7 +72,7 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $pluginZipFile
+     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $pluginZipFile
      * @return $this
      * @codeCoverageIgnoreStart
      */
