@@ -26,6 +26,7 @@ class RmDirStepBuilder extends RmDirStep implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "rmdir";
         $properties->path = Schema::string();
@@ -47,6 +48,18 @@ class RmDirStepBuilder extends RmDirStep implements ClassStructureContract
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -79,6 +92,7 @@ class RmDirStepBuilder extends RmDirStep implements ClassStructureContract
     {
         $dataObject = new RmDirStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->path = $this->recursiveJsonSerialize($this->path);
         return $dataObject;

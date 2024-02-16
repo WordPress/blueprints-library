@@ -26,6 +26,7 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "activatePlugin";
         $properties->pluginPath = Schema::string();
@@ -49,6 +50,18 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -93,6 +106,7 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
     {
         $dataObject = new ActivatePluginStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->pluginPath = $this->recursiveJsonSerialize($this->pluginPath);
         $dataObject->pluginName = $this->recursiveJsonSerialize($this->pluginName);

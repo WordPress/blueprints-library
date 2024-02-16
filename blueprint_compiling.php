@@ -68,11 +68,9 @@ $builder
 	->setLandingPage( "/wp-admin" )
 	->setSteps( [
 		( new WriteFileStepBuilder() )
-			->setProgress( ( new ProgressBuilder() )
-				->setCaption( "Logging in" )
-				->setWeight( 3 )
-			)
-			->setPath( __DIR__ . '/test.txt' )
+			->setContinueOnError( true )
+//			->setPath( __DIR__ . '/test.txt' )
+			->setPath( '/wordpress.txt' )
 			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
 		( ( new UnzipStepBuilder() )
 			->setZipFile(
@@ -205,12 +203,12 @@ foreach ( $compiledSteps as $k => $runStep ) {
 	try {
 		$results[ $k ] = new StepSuccess( $step, $runStep() );
 	} catch ( \Exception $e ) {
-		//if($step->continueOnError){
-		$results[ $k ] = new StepFailure( $step, $e );
-		//} else {
-		//	throw $e;
-		//}
+		if ( $step->continueOnError === true ) {
+			$results[ $k ] = new StepFailure( $step, $e );
+		} else {
+			throw $e;
+		}
 	}
 }
 
-print_r( $results );
+var_dump( $results );

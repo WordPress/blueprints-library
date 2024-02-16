@@ -26,6 +26,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "unzip";
         $properties->zipFile = new Schema();
@@ -57,6 +58,18 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -113,6 +126,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     {
         $dataObject = new UnzipStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->zipFile = $this->recursiveJsonSerialize($this->zipFile);
         $dataObject->zipPath = $this->recursiveJsonSerialize($this->zipPath);

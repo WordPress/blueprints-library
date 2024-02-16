@@ -26,6 +26,7 @@ class SetPHPIniEntryStepBuilder extends SetPHPIniEntryStep implements ClassStruc
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "setPhpIniEntry";
         $properties->key = Schema::string();
@@ -50,6 +51,18 @@ class SetPHPIniEntryStepBuilder extends SetPHPIniEntryStep implements ClassStruc
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -94,6 +107,7 @@ class SetPHPIniEntryStepBuilder extends SetPHPIniEntryStep implements ClassStruc
     {
         $dataObject = new SetPHPIniEntryStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->key = $this->recursiveJsonSerialize($this->key);
         $dataObject->value = $this->recursiveJsonSerialize($this->value);

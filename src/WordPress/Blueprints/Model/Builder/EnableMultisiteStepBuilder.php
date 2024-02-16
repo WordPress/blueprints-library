@@ -26,6 +26,7 @@ class EnableMultisiteStepBuilder extends EnableMultisiteStep implements ClassStr
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "enableMultisite";
         $ownerSchema->type = Schema::OBJECT;
@@ -49,6 +50,18 @@ class EnableMultisiteStepBuilder extends EnableMultisiteStep implements ClassStr
     /** @codeCoverageIgnoreEnd */
 
     /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
      * @param string $step
      * @return $this
      * @codeCoverageIgnoreStart
@@ -64,6 +77,7 @@ class EnableMultisiteStepBuilder extends EnableMultisiteStep implements ClassStr
     {
         $dataObject = new EnableMultisiteStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         return $dataObject;
     }

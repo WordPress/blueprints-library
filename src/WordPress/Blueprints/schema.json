@@ -306,6 +306,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "activatePlugin"
@@ -331,6 +334,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "activateTheme"
@@ -351,6 +357,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -377,6 +386,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -412,6 +424,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "defineSiteUrl"
@@ -433,6 +448,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "enableMultisite"
@@ -448,6 +466,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -469,6 +490,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -495,6 +519,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "installPlugin",
@@ -520,6 +547,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -554,6 +584,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "login"
@@ -578,6 +611,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "mkdir"
@@ -598,6 +634,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -625,6 +664,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "request"
@@ -645,6 +687,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -667,6 +712,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "rmdir"
@@ -687,6 +735,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -710,6 +761,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "runPHPWithOptions"
@@ -731,6 +785,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "runWpInstallationWizard"
@@ -750,6 +807,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -772,6 +832,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -799,6 +862,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "setSiteOptions",
@@ -821,6 +887,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -852,6 +921,9 @@
 				"progress": {
 					"$ref": "#/definitions/Progress"
 				},
+				"continueOnError": {
+					"type": "boolean"
+				},
 				"step": {
 					"type": "string",
 					"const": "updateUserMeta"
@@ -878,6 +950,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",
@@ -911,6 +986,9 @@
 			"properties": {
 				"progress": {
 					"$ref": "#/definitions/Progress"
+				},
+				"continueOnError": {
+					"type": "boolean"
 				},
 				"step": {
 					"type": "string",

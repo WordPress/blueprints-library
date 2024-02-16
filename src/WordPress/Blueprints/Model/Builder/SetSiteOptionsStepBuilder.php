@@ -26,6 +26,7 @@ class SetSiteOptionsStepBuilder extends SetSiteOptionsStep implements ClassStruc
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->description = "The name of the step. Must be \"setSiteOptions\".";
         $properties->step->const = "setSiteOptions";
@@ -49,6 +50,18 @@ class SetSiteOptionsStepBuilder extends SetSiteOptionsStep implements ClassStruc
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -81,6 +94,7 @@ class SetSiteOptionsStepBuilder extends SetSiteOptionsStep implements ClassStruc
     {
         $dataObject = new SetSiteOptionsStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->options = $this->recursiveJsonSerialize($this->options);
         return $dataObject;

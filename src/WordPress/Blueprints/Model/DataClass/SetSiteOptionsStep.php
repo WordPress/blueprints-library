@@ -14,6 +14,9 @@ class SetSiteOptionsStep
     /** @var ProgressBuilder */
     public $progress;
 
+    /** @var bool */
+    public $continueOnError;
+
     /** @var string The name of the step. Must be "setSiteOptions". */
     public $step = 'setSiteOptions';
 

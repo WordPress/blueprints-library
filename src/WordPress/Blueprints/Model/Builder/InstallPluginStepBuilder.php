@@ -26,6 +26,7 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->description = "The step identifier.";
         $properties->step->const = "installPlugin";
@@ -55,6 +56,18 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -99,6 +112,7 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     {
         $dataObject = new InstallPluginStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->pluginZipFile = $this->recursiveJsonSerialize($this->pluginZipFile);
         $dataObject->options = $this->recursiveJsonSerialize($this->options);

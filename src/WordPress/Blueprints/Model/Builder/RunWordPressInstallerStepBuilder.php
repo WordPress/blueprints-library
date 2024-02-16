@@ -26,6 +26,7 @@ class RunWordPressInstallerStepBuilder extends RunWordPressInstallerStep impleme
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "runWpInstallationWizard";
         $properties->options = WordPressInstallationOptionsBuilder::schema();
@@ -46,6 +47,18 @@ class RunWordPressInstallerStepBuilder extends RunWordPressInstallerStep impleme
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -78,6 +91,7 @@ class RunWordPressInstallerStepBuilder extends RunWordPressInstallerStep impleme
     {
         $dataObject = new RunWordPressInstallerStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->options = $this->recursiveJsonSerialize($this->options);
         return $dataObject;

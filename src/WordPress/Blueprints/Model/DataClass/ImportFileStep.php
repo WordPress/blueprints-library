@@ -19,6 +19,9 @@ class ImportFileStep
     /** @var ProgressBuilder */
     public $progress;
 
+    /** @var bool */
+    public $continueOnError;
+
     /** @var string */
     public $step = 'importFile';
 

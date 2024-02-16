@@ -26,6 +26,7 @@ class RunSQLStepBuilder extends RunSQLStep implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->description = "The step identifier.";
         $properties->step->const = "runSql";
@@ -59,6 +60,18 @@ class RunSQLStepBuilder extends RunSQLStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
      * @param string $step The step identifier.
      * @return $this
      * @codeCoverageIgnoreStart
@@ -86,6 +99,7 @@ class RunSQLStepBuilder extends RunSQLStep implements ClassStructureContract
     {
         $dataObject = new RunSQLStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->sql = $this->recursiveJsonSerialize($this->sql);
         return $dataObject;

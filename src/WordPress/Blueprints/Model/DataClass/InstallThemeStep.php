@@ -20,6 +20,9 @@ class InstallThemeStep
     /** @var ProgressBuilder */
     public $progress;
 
+    /** @var bool */
+    public $continueOnError;
+
     /** @var string The step identifier. */
     public $step = 'installTheme';
 

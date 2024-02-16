@@ -26,6 +26,7 @@ class MvStepBuilder extends MvStep implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "mv";
         $properties->fromPath = Schema::string();
@@ -50,6 +51,18 @@ class MvStepBuilder extends MvStep implements ClassStructureContract
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -94,6 +107,7 @@ class MvStepBuilder extends MvStep implements ClassStructureContract
     {
         $dataObject = new MvStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->fromPath = $this->recursiveJsonSerialize($this->fromPath);
         $dataObject->toPath = $this->recursiveJsonSerialize($this->toPath);

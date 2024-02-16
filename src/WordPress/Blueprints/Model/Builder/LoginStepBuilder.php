@@ -26,6 +26,7 @@ class LoginStepBuilder extends LoginStep implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->progress = ProgressBuilder::schema();
+        $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "login";
         $properties->username = Schema::string();
@@ -48,6 +49,18 @@ class LoginStepBuilder extends LoginStep implements ClassStructureContract
     public function setProgress(ProgressBuilder $progress)
     {
         $this->progress = $progress;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $continueOnError
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setContinueOnError($continueOnError)
+    {
+        $this->continueOnError = $continueOnError;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -92,6 +105,7 @@ class LoginStepBuilder extends LoginStep implements ClassStructureContract
     {
         $dataObject = new LoginStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
+        $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->username = $this->recursiveJsonSerialize($this->username);
         $dataObject->password = $this->recursiveJsonSerialize($this->password);

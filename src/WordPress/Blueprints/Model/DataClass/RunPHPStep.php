@@ -14,6 +14,9 @@ class RunPHPStep
     /** @var ProgressBuilder */
     public $progress;
 
+    /** @var bool */
+    public $continueOnError;
+
     /** @var string The step identifier. */
     public $step = 'runPHP';
 
