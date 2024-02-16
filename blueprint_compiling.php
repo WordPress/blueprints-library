@@ -14,6 +14,7 @@ use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 use WordPress\Blueprints\Model\DataClass\LiteralReference;
 use WordPress\Blueprints\Model\DataClass\UrlReference;
+use WordPress\Blueprints\Model\DataClass\VFSReference;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 
 require 'vendor/autoload.php';
@@ -135,12 +136,14 @@ foreach ( $resources as $path => $resourceDeclaration ) {
 	if ( $resourceDeclaration instanceof LiteralReference ) {
 		$fp = fopen( "php://temp", 'r+' );
 		fwrite( $fp, $resourceDeclaration->contents );
+		rewind( $fp );
 	} elseif ( $resourceDeclaration instanceof UrlReference ) {
 		$fp = $container['data_source.url']->stream( $resourceDeclaration->url );
+	} elseif ( $resourceDeclaration instanceof VFSReference ) {
+		$fp = fopen( $resourceDeclaration->path, 'r' );
 	} else {
 		throw new \InvalidArgumentException( "Unknown resource type " . $resourceDeclaration->resource );
 	}
-	rewind( $fp );
 	$resourceMap[ $resourceDeclaration ] = $fp;
 }
 
