@@ -175,13 +175,42 @@ foreach ( $blueprint->steps as $step ) {
 	if ( empty( $stepMeta[ $step->step ] ) ) {
 		throw new \InvalidArgumentException( "No handler for step {$step->step}" );
 	}
-	$compiledSteps[] = function () use ( $step, $stepMeta, $resourceMap ) {
+	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $stepMeta, $resourceMap ) {
 		$handler = $stepMeta[ $step->step ]['factory']();
 		$handler->setResourceMap( $resourceMap );
-		$handler->execute( $step, null );
+
+		return $handler->execute( $step, $progressTracker );
 	};
 }
 
-foreach ( $compiledSteps as $step ) {
-	$step();
+class StepResult {
+
 }
+
+class StepSuccess extends StepResult {
+
+	public function __construct( public $step, public $result ) {
+	}
+}
+
+class StepFailure extends StepResult {
+
+	public function __construct( public $step, public \Exception $exception ) {
+	}
+}
+
+$results = [];
+foreach ( $compiledSteps as $k => $runStep ) {
+	$step = $blueprint->steps[ $k ];
+	try {
+		$results[ $k ] = new StepSuccess( $step, $runStep() );
+	} catch ( \Exception $e ) {
+		//if($step->continueOnError){
+		$results[ $k ] = new StepFailure( $step, $e );
+		//} else {
+		//	throw $e;
+		//}
+	}
+}
+
+print_r( $results );
