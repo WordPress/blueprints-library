@@ -15,5 +15,5 @@ class EnableMultisiteStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'enableMultisite';
 }

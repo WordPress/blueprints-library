@@ -15,7 +15,7 @@ class LoginStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'login';
 
     /** @var string The user to log in as. Defaults to 'admin'. */
     public $username;

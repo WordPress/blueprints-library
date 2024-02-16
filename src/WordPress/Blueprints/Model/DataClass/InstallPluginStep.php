@@ -21,7 +21,7 @@ class InstallPluginStep
     public $progress;
 
     /** @var string The step identifier. */
-    public $step;
+    public $step = 'installPlugin';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $pluginZipFile;

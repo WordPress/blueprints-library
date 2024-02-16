@@ -15,7 +15,7 @@ class ActivateThemeStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'activateTheme';
 
     /** @var string The name of the theme folder inside wp-content/themes/ */
     public $themeFolderName;

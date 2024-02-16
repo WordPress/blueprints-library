@@ -11,7 +11,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class UrlReference
 {
     /** @var string Identifies the file resource as a URL */
-    public $resource;
+    public $resource = 'url';
 
     /** @var string The URL of the file */
     public $url;

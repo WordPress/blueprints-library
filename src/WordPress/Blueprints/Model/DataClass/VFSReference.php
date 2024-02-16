@@ -11,7 +11,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class VFSReference
 {
     /** @var string Identifies the file resource as Virtual File System (VFS) */
-    public $resource;
+    public $resource = 'vfs';
 
     /** @var string The path to the file in the VFS */
     public $path;

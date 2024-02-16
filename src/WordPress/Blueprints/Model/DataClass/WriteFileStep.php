@@ -20,7 +20,7 @@ class WriteFileStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'writeFile';
 
     /** @var string The path of the file to write to */
     public $path;

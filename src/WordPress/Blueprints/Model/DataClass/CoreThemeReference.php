@@ -11,7 +11,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class CoreThemeReference
 {
     /** @var string Identifies the file resource as a WordPress Core theme */
-    public $resource;
+    public $resource = 'wordpress.org/themes';
 
     /** @var string The slug of the WordPress Core theme */
     public $slug;

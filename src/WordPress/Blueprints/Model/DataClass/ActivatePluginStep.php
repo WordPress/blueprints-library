@@ -15,7 +15,7 @@ class ActivatePluginStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'activatePlugin';
 
     /** @var string Path to the plugin directory as absolute path (/wordpress/wp-content/plugins/plugin-name); or the plugin entry file relative to the plugins directory (plugin-name/plugin-name.php). */
     public $pluginPath;

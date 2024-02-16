@@ -15,7 +15,7 @@ class CpStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'cp';
 
     /** @var string Source path */
     public $fromPath;

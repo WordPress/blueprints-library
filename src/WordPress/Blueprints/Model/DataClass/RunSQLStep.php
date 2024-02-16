@@ -20,7 +20,7 @@ class RunSQLStep
     public $progress;
 
     /** @var string The step identifier. */
-    public $step;
+    public $step = 'runSql';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $sql;

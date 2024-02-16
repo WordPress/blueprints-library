@@ -15,7 +15,7 @@ class RunPHPStep
     public $progress;
 
     /** @var string The step identifier. */
-    public $step;
+    public $step = 'runPHP';
 
     /** @var string The PHP code to run. */
     public $code;

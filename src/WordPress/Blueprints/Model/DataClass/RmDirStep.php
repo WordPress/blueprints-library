@@ -15,7 +15,7 @@ class RmDirStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'rmdir';
 
     /** @var string The path to remove */
     public $path;

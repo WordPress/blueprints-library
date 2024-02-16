@@ -15,7 +15,7 @@ class DefineWpConfigConstsStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'defineWpConfigConsts';
 
     /** @var array The constants to define */
     public $consts;

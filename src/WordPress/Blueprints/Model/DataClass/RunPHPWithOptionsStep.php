@@ -16,7 +16,7 @@ class RunPHPWithOptionsStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'runPHPWithOptions';
 
     /** @var PHPRunOptionsBuilder */
     public $options;

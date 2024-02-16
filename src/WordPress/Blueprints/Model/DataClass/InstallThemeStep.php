@@ -21,7 +21,7 @@ class InstallThemeStep
     public $progress;
 
     /** @var string The step identifier. */
-    public $step;
+    public $step = 'installTheme';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $themeZipFile;

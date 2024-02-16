@@ -15,7 +15,7 @@ class UpdateUserMetaStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'updateUserMeta';
 
     /** @var array An object of user meta values to set, e.g. { "first_name": "John" } */
     public $meta;

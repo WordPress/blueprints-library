@@ -16,7 +16,7 @@ class RunWordPressInstallerStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'runWpInstallationWizard';
 
     /** @var WordPressInstallationOptionsBuilder */
     public $options;

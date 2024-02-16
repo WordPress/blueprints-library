@@ -11,7 +11,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class LiteralReference
 {
     /** @var string Identifies the file resource as a literal file */
-    public $resource;
+    public $resource = 'literal';
 
     /** @var string The name of the file */
     public $name;

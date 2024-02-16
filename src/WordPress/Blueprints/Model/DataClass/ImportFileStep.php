@@ -20,7 +20,7 @@ class ImportFileStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'importFile';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $file;

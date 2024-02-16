@@ -15,7 +15,7 @@ class MkdirStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'mkdir';
 
     /** @var string The path of the directory you want to create */
     public $path;

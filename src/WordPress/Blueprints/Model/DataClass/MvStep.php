@@ -15,7 +15,7 @@ class MvStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'mv';
 
     /** @var string Source path */
     public $fromPath;

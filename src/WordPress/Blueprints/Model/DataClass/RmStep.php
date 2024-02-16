@@ -15,7 +15,7 @@ class RmStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'rm';
 
     /** @var string The path to remove */
     public $path;

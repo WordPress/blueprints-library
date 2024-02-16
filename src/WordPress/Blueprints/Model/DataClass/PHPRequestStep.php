@@ -16,7 +16,7 @@ class PHPRequestStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'request';
 
     /** @var PHPRequestBuilder */
     public $request;

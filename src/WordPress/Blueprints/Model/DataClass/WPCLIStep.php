@@ -15,7 +15,7 @@ class WPCLIStep
     public $progress;
 
     /** @var string The step identifier. */
-    public $step;
+    public $step = 'wp-cli';
 
     /** @var string|string[]|array The WP CLI command to run. */
     public $command;

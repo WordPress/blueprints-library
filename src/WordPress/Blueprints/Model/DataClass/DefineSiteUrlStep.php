@@ -15,7 +15,7 @@ class DefineSiteUrlStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'defineSiteUrl';
 
     /** @var string The URL */
     public $siteUrl;

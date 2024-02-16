@@ -20,7 +20,7 @@ class ImportWordPressFilesStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'importWordPressFiles';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $wordPressFilesZip;

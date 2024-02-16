@@ -15,7 +15,7 @@ class SetSiteOptionsStep
     public $progress;
 
     /** @var string The name of the step. Must be "setSiteOptions". */
-    public $step;
+    public $step = 'setSiteOptions';
 
     /** @var array The options to set on the site. */
     public $options;

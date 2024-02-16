@@ -15,7 +15,7 @@ class SetPHPIniEntryStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'setPhpIniEntry';
 
     /** @var string Entry name e.g. "display_errors" */
     public $key;

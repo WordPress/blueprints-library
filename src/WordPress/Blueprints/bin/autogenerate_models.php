@@ -58,9 +58,10 @@ $app = new CarefulPhpApp();
 $app->setNamespaceRoot( $dataClassNs, './DataClass' );
 $app->setNamespaceRoot( $builderNs, './Builder' );
 
-$builder                    = new \Swaggest\PhpCodeBuilder\JsonSchema\PhpBuilder();
-$builder->buildSetters      = true;
-$builder->makeEnumConstants = true;
+$builder                          = new \Swaggest\PhpCodeBuilder\JsonSchema\PhpBuilder();
+$builder->buildSetters            = true;
+$builder->makeEnumConstants       = true;
+$builder->declarePropertyDefaults = true;
 
 $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCallback(
 	function ( \Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema ) use ( $app, $builderNs ) {
@@ -105,7 +106,16 @@ $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookC
 		$prop = $ref->getProperty( 'properties' );
 		$prop->setAccessible( true );
 		$prop->setValue( $class, [] );
-		
+
+		// Add default values for the "const" properties
+		$schemaProperties = $schema->getProperties();
+		foreach ( $dataClass->getProperties() as $property ) {
+			$name = $property->getNamedVar()->getName();
+			if ( $schemaProperties->$name && $schemaProperties->$name->const ) {
+				$property->getNamedVar()->setDefault( $schemaProperties->$name->const );
+			}
+		};
+
 		// Add a toDataObject method to the builder class that will return a new instance of the data class
 		$toDataObjectBody = "\$dataObject = new $dataClassName();\n";
 		foreach ( $dataClass->getProperties() as $property ) {

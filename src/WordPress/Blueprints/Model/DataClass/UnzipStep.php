@@ -20,7 +20,7 @@ class UnzipStep
     public $progress;
 
     /** @var string */
-    public $step;
+    public $step = 'unzip';
 
     /** @var VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
     public $zipFile;
