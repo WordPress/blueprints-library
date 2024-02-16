@@ -11,6 +11,11 @@ class WriteFileHandler extends BaseStepHandler {
 		WriteFileStep $input,
 		Tracker $progress = null
 	) {
+		if ( is_string( $input->data ) ) {
+			file_put_contents( $input->path, $input->data );
+
+			return;
+		}
 		$fp2 = fopen( $input->path, 'w' );
 		if ( $fp2 === false ) {
 			throw new \Exception( "Failed to open file at {$input->path}" );

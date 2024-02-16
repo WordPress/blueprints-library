@@ -1,5 +1,6 @@
 <?php
 
+use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Map;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
@@ -8,10 +9,12 @@ use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
 use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 use WordPress\Blueprints\Model\DataClass\LiteralReference;
 use WordPress\Blueprints\Model\DataClass\UrlReference;
+use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 
 require 'vendor/autoload.php';
 
@@ -45,6 +48,65 @@ function registerBlueprintStepHandler( $stepHandlerClass, array $details = [] ) 
 registerBlueprintStepHandler( WordPress\Blueprints\Steps\UnzipStepHandler::class );
 registerBlueprintStepHandler( WordPress\Blueprints\Steps\WriteFileHandler::class );
 
+
+$builder = new BlueprintBuilder();
+$builder
+	->setPreferredVersions(
+		( new BlueprintPreferredVersionsBuilder() )
+			->setPhp( '7.4' )
+			->setWp( '5.3' )
+	)
+	->setLandingPage( "/wp-admin" )
+	->setSteps( [
+		( new WriteFileStepBuilder() )
+			->setProgress( ( new ProgressBuilder() )
+				->setCaption( "Logging in" )
+				->setWeight( 3 )
+			)
+			->setPath( __DIR__ . '/test.txt' )
+			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
+		( ( new UnzipStepBuilder() )
+			->setZipFile(
+				'https://wordpress.org/latest.zip'
+//				( new UrlReferenceBuilder() )->setUrl( 'https://wordpress.org/latest.zip' )
+			) )
+			->setExtractToPath( __DIR__ . '/outdir2' ),
+		( new WriteFileStepBuilder() )
+			->setPath( __DIR__ . '/outdir2/test.zip' )
+			->setData( 'https://wordpress.org/latest.zip' ),
+	] );
+
+function replaceUrlsWithResourceObjects( $jsonData ) {
+	if ( ! ( $jsonData instanceof ClassStructureContract ) || $jsonData instanceof WriteFileStep ) {
+		return;
+	}
+	foreach ( $jsonData::schema()->getProperties() as $key => $value ) {
+		if ( is_string( $jsonData->$key ) ) {
+			if ( $jsonData::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
+				if ( str_starts_with( $jsonData->$key, 'https://' ) ) {
+					$jsonData->$key = ( new UrlReferenceBuilder() )->setUrl( $jsonData->$key );
+				} elseif ( str_starts_with( $jsonData->$key, 'file://' ) || str_starts_with( $jsonData->$key, './' ) ) {
+					$jsonData->$key = ( new VFSReferenceBuilder() )->setPath( $jsonData->$key );
+				} else {
+					$jsonData->$key = ( new LiteralReferenceBuilder() )->setName( "literal" )->setContents( $jsonData->$key );
+				}
+			}
+		} elseif ( is_object( $jsonData->$key ) ) {
+			replaceUrlsWithResourceObjects( $jsonData->$key );
+		} elseif ( is_array( $jsonData->$key ) ) {
+			foreach ( $jsonData->$key as $k => $v ) {
+				replaceUrlsWithResourceObjects( $v );
+			}
+		}
+	}
+}
+
+replaceUrlsWithResourceObjects( $builder );
+$builder->validate();
+
+// The Blueprint is valid!
+$blueprint = $builder->toDataObject();
+
 // Find all the resources in the blueprint
 function findResources( $jsonData, &$resources, $path = '' ) {
 	if ( $jsonData instanceof FileReferenceInterface ) {
@@ -62,30 +124,6 @@ function findResources( $jsonData, &$resources, $path = '' ) {
 	}
 }
 
-
-$builder = new BlueprintBuilder();
-$builder
-	->setPreferredVersions(
-		( new BlueprintPreferredVersionsBuilder() )
-			->setPhp( '7.4' )
-			->setWp( '5.3' )
-	)
-	->setLandingPage( "/wp-admin" )
-	->setSteps( [
-		( new WriteFileStepBuilder() )
-			->setProgress( ( new ProgressBuilder() )
-				->setCaption( "Logging in" )
-				->setWeight( 3 )
-			)
-			->setPath( __DIR__ . '/test.txt' )
-			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" ) ),
-		( ( new UnzipStepBuilder() )
-			->setZipFile(
-				( new UrlReferenceBuilder() )->setUrl( 'https://wordpress.org/latest.zip' )
-			) )
-			->setExtractToPath( __DIR__ . '/outdir2' ),
-	] );
-$blueprint = $builder->toDataObject();
 
 $resources = [];
 findResources( $blueprint, $resources );
