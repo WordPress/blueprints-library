@@ -3,16 +3,22 @@
 namespace WordPress\Blueprints\Dependency;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\PsrCachedReader;
 use Pimple\Container;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Validator\Validation;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Doctrine\Common\Annotations\Reader;
 use WordPress\Blueprints\Cache\FileCache;
-use WordPress\Blueprints\Parsing\Blueprint;
-use WordPress\Blueprints\Parsing\Form\DynamicFormHelper;
-use WordPress\Blueprints\Parsing\Form\DynamicType;
-use WordPress\Blueprints\Parsing\Parser;
+use WordPress\Blueprints\Parser\Annotation\ResourceDefinition;
+use WordPress\Blueprints\Parser\Annotation\StepDefinition;
+use WordPress\Blueprints\Parser\Blueprint;
+use WordPress\Blueprints\Parser\Form\Discriminator\DiscriminatedDataClassRegistry;
+use WordPress\Blueprints\Parser\Form\DataClassToForm;
+use WordPress\Blueprints\Parser\Parser;
 use WordPress\Blueprints\Resources\PathResource;
 use WordPress\Blueprints\Resources\URLResource;
 use WordPress\Blueprints\Steps\Mkdir\MkdirStep;
@@ -108,7 +114,11 @@ class ContainerBuilder {
 		}
 
 		$container['annotation_reader'] = function ( $c ) {
-			return new AnnotationReader();
+			// Then create the annotation reader and cached reader:
+			$annotationReader = new AnnotationReader();
+			$cache            = new ArrayAdapter();
+
+			return new PsrCachedReader( $annotationReader, $cache );
 		};
 
 		$container['validator']            = function ( $c ) {
@@ -126,6 +136,40 @@ class ContainerBuilder {
 			return new Parser( $c['available_steps'], $c['validator'] );
 		};
 
+		$container['blueprint.parser'] = function ( $c ) {
+			return new Parser( $c['blueprint.form_factory'] );
+		};
+
+		$container['blueprint.form_factory'] = function ( $c ) {
+			return function () use ( $c ) {
+				return $c['blueprint.parser.data_class_to_form']->buildFormForDataClass(
+					$c['form.factory']->createBuilder( FormType::class, null, [
+						'data_class' => Blueprint::class,
+					] )
+				);
+			};
+		};
+
+		$container['blueprint.parser.data_class_to_form'] = function ( $c ) {
+			return new DataClassToForm(
+				$c['blueprint.parser.discriminated_class_registry'],
+				$c['annotation_reader'],
+			);
+		};
+
+		$container['blueprint.parser.discriminated_class_registry'] = function ( $c ) {
+			return new DiscriminatedDataClassRegistry(
+				$c['annotation_reader']
+			);
+		};
+
+		self::registerBlueprintStep( UnzipStep::class );
+		self::registerBlueprintStep( WriteFileStep::class );
+		self::registerBlueprintStep( MkdirStep::class );
+
+		self::registerResourceType( URLResource::class );
+		self::registerResourceType( PathResource::class );
+
 		$container['available_steps'] = $container->factory( function ( $c ) {
 			$steps = [];
 			foreach ( $c->keys() as $key ) {
@@ -136,31 +180,6 @@ class ContainerBuilder {
 
 			return $steps;
 		} );
-
-		$container['blueprint.form_factory'] = function ( $c ) {
-			return function () use ( $c ) {
-				return $c['forms.dynamic_form_helper']->buildFormForDataClass(
-					$c['form.factory']->createBuilder(),
-					Blueprint::class
-				);
-			};
-		};
-
-		$container['forms.dynamic_form_helper'] = function ( $c ) {
-			return new DynamicFormHelper(
-				$c['validator'],
-				$c['available_steps'],
-				$c['available_resources']
-			);
-		};
-
-		$container['blueprint.parser'] = function ( $c ) {
-			return new Parser( $c['blueprint.form_factory'] );
-		};
-
-		self::registerBlueprintStep( UnzipStep::class );
-		self::registerBlueprintStep( WriteFileStep::class );
-		self::registerBlueprintStep( MkdirStep::class );
 
 		$container['available_resources'] = $container->factory( function ( $c ) {
 			$steps = [];
@@ -173,9 +192,6 @@ class ContainerBuilder {
 			return $steps;
 		} );
 
-		self::registerResourceType( URLResource::class );
-		self::registerResourceType( PathResource::class );
-
 		return $container;
 	}
 
@@ -184,15 +200,10 @@ class ContainerBuilder {
 			throw new \InvalidArgumentException( "Resource data class $dataClass does not exist" );
 		}
 
-		if ( defined( "$dataClass::SLUG" ) ) {
-			$slug = $dataClass::SLUG;
-		} else {
-			$slug = ( new \ReflectionClass( $dataClass ) )->getShortName();
-			$slug = lowercase_until_uppercase( $slug );
-			if ( str_ends_with( strtolower( $slug ), 'resource' ) ) {
-				$slug = substr( $slug, 0, - 8 );
-			}
-		}
+		$this->container['blueprint.parser.discriminated_class_registry']->register( $dataClass );
+		$slug = $this->container['annotation_reader']->getClassAnnotation( new \ReflectionClass( $dataClass ),
+			ResourceDefinition::class )->id;
+
 		$this->container["resource_meta.$slug"] = new ResourceMeta(
 			$slug,
 			$dataClass
@@ -201,16 +212,6 @@ class ContainerBuilder {
 
 	public function registerBlueprintStep( string $stepClass, string $inputClass = null, callable $factory = null ) {
 		$container = $this->container;
-
-		if ( defined( "$stepClass::SLUG" ) ) {
-			$slug = $stepClass::SLUG;
-		} else {
-			$slug = ( new \ReflectionClass( $stepClass ) )->getShortName();
-			$slug = lowercase_until_uppercase( $slug );
-			if ( str_ends_with( strtolower( $slug ), 'step' ) ) {
-				$slug = substr( $slug, 0, - 4 );
-			}
-		}
 
 		if ( ! $factory ) {
 			$factory = function () use ( $stepClass ) {
@@ -228,6 +229,12 @@ class ContainerBuilder {
 		if ( ! class_exists( $inputClass ) ) {
 			throw new \InvalidArgumentException( "Could not determine input class for $stepClass" );
 		}
+
+		$container['blueprint.parser.discriminated_class_registry']->register( $inputClass );
+
+		$slug = $container['annotation_reader']->getClassAnnotation( new \ReflectionClass( $inputClass ),
+			StepDefinition::class )->id;
+
 		$container["step.$slug"]      = $container->factory( $factory );
 		$container["step_meta.$slug"] = new StepMeta(
 			$slug,

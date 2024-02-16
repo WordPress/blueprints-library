@@ -3,8 +3,12 @@
 namespace WordPress\Blueprints\Resources;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use WordPress\Blueprints\Parser\Annotation\ResourceDefinition;
 
-class PathResource extends ResourceDeclaration {
+/**
+ * @ResourceDefinition(id="path")
+ */
+class PathResource {
 
 	/**
 	 * @Assert\Type("string")

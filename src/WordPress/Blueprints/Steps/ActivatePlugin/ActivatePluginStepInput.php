@@ -2,9 +2,12 @@
 
 namespace WordPress\Blueprints\Steps\ActivatePlugin;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 
-class ActivatePluginStepInput extends BaseStepInput {
+/**
+ * @StepDefinition(id="activatePlugin")
+ */
+class ActivatePluginStepInput {
 
 	public function __construct(
 		/**

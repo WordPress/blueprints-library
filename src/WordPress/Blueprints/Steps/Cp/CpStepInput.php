@@ -2,9 +2,12 @@
 
 namespace WordPress\Blueprints\Steps\Cp;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 
-class CpStepInput extends BaseStepInput {
+/**
+ * @StepDefinition(id="cp")
+ */
+class CpStepInput {
 	public function __construct(
 		public string $fromPath,
 		public string $toPath

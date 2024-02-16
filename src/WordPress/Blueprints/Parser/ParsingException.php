@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\Parsing;
+namespace WordPress\Blueprints\Parser;
 
 use WordPress\Blueprints\BlueprintException;
 

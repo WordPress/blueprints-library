@@ -3,13 +3,17 @@
 namespace WordPress\Blueprints\Resources;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use WordPress\Blueprints\Parser\Annotation\ResourceDefinition;
 
-class URLResource extends ResourceDeclaration {
+/**
+ * @ResourceDefinition(id="url")
+ */
+class URLResource {
 
 	/**
 	 * @Assert\Type("string")
+	 * @Assert\URL
 	 * @Assert\NotBlank
-	 * @Assert\NotNull
 	 */
 	public $url;
 

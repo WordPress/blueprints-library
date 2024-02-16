@@ -2,9 +2,12 @@
 
 namespace WordPress\Blueprints\Steps\ActivateTheme;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 
-class ActivateThemeStepInput extends BaseStepInput {
+/**
+ * @StepDefinition(id="activateTheme")
+ */
+class ActivateThemeStepInput {
 
 	public function __construct(
 		/**

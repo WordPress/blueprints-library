@@ -3,9 +3,12 @@
 namespace WordPress\Blueprints\Steps\WriteFile;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 
-class WriteFileStepInput extends BaseStepInput {
+/**
+ * @StepDefinition(id="writeFile")
+ */
+class WriteFileStepInput {
 
 	/** @Assert\Type("resource") */
 	public $file;

@@ -1,10 +1,10 @@
 <?php
 
-namespace WordPress\Blueprints\Parsing;
+namespace WordPress\Blueprints\Parser;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use WordPress\Blueprints\Parsing\Constraint\BlueprintSteps;
-
+use WordPress\Blueprints\Parser\Form\Discriminator\DiscriminatedCollection;
+use WordPress\Blueprints\Parser\Annotation\ResourceType;
 
 class Blueprint {
 
@@ -25,7 +25,7 @@ class Blueprint {
 
 	/**
 	 * @Assert\Valid()
-	 * @BlueprintSteps
+	 * @DiscriminatedCollection(group="step", typeProperty="step")
 	 */
 	public $steps;
 
