@@ -8,7 +8,7 @@ use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 /**
  * @StepDefinition(id="mkdir")
  */
-class MkdirStepInput {
+class MkdirStepDefinition {
 	public function __construct(
 		/** @Assert\Type("string") */
 		public $path = null

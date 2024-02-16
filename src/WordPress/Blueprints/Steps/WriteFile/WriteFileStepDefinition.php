@@ -8,7 +8,7 @@ use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 /**
  * @StepDefinition(id="writeFile")
  */
-class WriteFileStepInput {
+class WriteFileStepDefinition {
 
 	/** @Assert\Type("resource") */
 	public $file;

@@ -7,7 +7,7 @@ use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 /**
  * @StepDefinition(id="activatePlugin")
  */
-class ActivatePluginStepInput {
+class ActivatePluginStepDefinition {
 
 	public function __construct(
 		/**

@@ -8,7 +8,7 @@ use WordPress\Blueprints\Parser\Form\Discriminator\DiscriminatedClass;
 
 class MkdirStep {
 
-	public function execute( MkdirStepInput $input ) {
+	public function execute( MkdirStepDefinition $input ) {
 		if ( is_dir( $input->path ) ) {
 			return;
 		}

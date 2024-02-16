@@ -7,7 +7,7 @@ use WordPress\Blueprints\Progress\Tracker;
 class WriteFileStep {
 
 	public function execute(
-		WriteFileStepInput $input,
+		WriteFileStepDefinition $input,
 		?Tracker $progress = null
 	) {
 		$fp2 = fopen( $input->toPath, 'w' );

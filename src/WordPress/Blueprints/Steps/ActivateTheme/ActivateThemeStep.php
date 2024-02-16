@@ -3,17 +3,17 @@
 namespace WordPress\Blueprints\Steps\ActivateTheme;
 
 use WordPress\Blueprints\Steps\BaseStep;
-use WordPress\Blueprints\Steps\ActivateTheme\ActivateThemeStepInput;
+use WordPress\Blueprints\Steps\ActivateTheme\ActivateThemeStepDefinition;
 use WordPress\Blueprints\Steps\ActivateTheme\ProgressCaptionEvent;
 use function WordPress\Blueprints\Steps\ActivateTheme\run_php_file;
 
 require_once __DIR__ . '/Utils.php';
 
 class ActivateThemeStep extends BaseStep {
-	public const INPUT_TYPE = ActivateThemeStepInput::class;
+	public const INPUT_TYPE = ActivateThemeStepDefinition::class;
 
 	public function __construct(
-		private ActivateThemeStepInput $input,
+		private ActivateThemeStepDefinition $input,
 	) {
 		parent::__construct();
 	}

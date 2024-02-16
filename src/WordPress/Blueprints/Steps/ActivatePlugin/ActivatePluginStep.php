@@ -10,7 +10,7 @@ require_once __DIR__ . '/Utils.php';
 
 class ActivatePluginStep extends BaseStep {
 
-	/** @var ActivatePluginStepInput */
+	/** @var ActivatePluginStepDefinition */
 	protected $args;
 
 	public function execute() {

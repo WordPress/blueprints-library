@@ -9,7 +9,7 @@ use WordPress\Blueprints\Parser\Annotation\ResourceType;
 /**
  * @StepDefinition(id="unzip")
  */
-class UnzipStepInput {
+class UnzipStepDefinition {
 
 	/**
 	 * @ResourceType

@@ -8,7 +8,7 @@ use function WordPress\Zip\zip_extract_to;
 class UnzipStep {
 
 	public function execute(
-		UnzipStepInput $input,
+		UnzipStepDefinition $input,
 		?Tracker $progress = null
 	) {
 		$progress?->set( 10, 'Unzipping...' );

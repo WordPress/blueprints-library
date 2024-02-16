@@ -4,11 +4,11 @@ require 'vendor/autoload.php';
 
 use WordPress\Blueprints\Dependency\ContainerBuilder;
 use WordPress\Blueprints\Steps\Mkdir\MkdirStep;
-use WordPress\Blueprints\Steps\Mkdir\MkdirStepInput;
+use WordPress\Blueprints\Steps\Mkdir\MkdirStepDefinition;
 use WordPress\Blueprints\Steps\Unzip\UnzipStep;
-use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
+use WordPress\Blueprints\Steps\Unzip\UnzipStepDefinition;
 use WordPress\Blueprints\Steps\WriteFile\WriteFileStep;
-use WordPress\Blueprints\Steps\WriteFile\WriteFileStepInput;
+use WordPress\Blueprints\Steps\WriteFile\WriteFileStepDefinition;
 
 $urls = [
 	'https://wordpress.org/latest.zip'                                       => 'outdir',
@@ -30,13 +30,13 @@ foreach ( $urls as $url => $target_path ) {
 	}
 	$steps[] = function () use ( $fp, $target_path ) {
 		$step = new MkdirStep();
-		$step->execute( new MkdirStepInput( dirname( $target_path ) ) );
+		$step->execute( new MkdirStepDefinition( dirname( $target_path ) ) );
 	};
 	if ( str_ends_with( $url, '.zip' ) ) {
 		$steps[] = function () use ( $fp, $target_path ) {
 			$step = new UnzipStep();
 			$step->execute(
-				new UnzipStepInput( $fp, $target_path )
+				new UnzipStepDefinition( $fp, $target_path )
 			);
 			fclose( $fp );
 		};
@@ -44,7 +44,7 @@ foreach ( $urls as $url => $target_path ) {
 		$steps[] = function () use ( $fp, $target_path ) {
 			$step = new WriteFileStep();
 			$step->execute(
-				new WriteFileStepInput( $fp, $target_path )
+				new WriteFileStepDefinition( $fp, $target_path )
 			);
 			fclose( $fp );
 		};

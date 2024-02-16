@@ -6,6 +6,9 @@ use WordPress\Blueprints\Parser\ParsingException;
 
 require 'vendor/autoload.php';
 
+$builder   = new ContainerBuilder();
+$container = $builder->build( 'native' );
+
 $raw_blueprint = json_encode( [
 	"wpVersion" => "6.4",
 	"steps"     => [
@@ -13,9 +16,6 @@ $raw_blueprint = json_encode( [
 		[ "step" => "mkdir", "path" => "/wordpress", ],
 	],
 ] );
-
-$builder   = new ContainerBuilder();
-$container = $builder->build( 'native' );
 
 try {
 	$blueprint = $container['blueprint.parser']->parse( $raw_blueprint );

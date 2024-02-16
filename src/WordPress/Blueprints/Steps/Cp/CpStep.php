@@ -6,7 +6,7 @@ use WordPress\Blueprints\Steps\BaseStep;
 
 class CpStep extends BaseStep {
 	public function __construct(
-		private CpStepInput $input
+		private CpStepDefinition $input
 	) {
 		parent::__construct();
 	}

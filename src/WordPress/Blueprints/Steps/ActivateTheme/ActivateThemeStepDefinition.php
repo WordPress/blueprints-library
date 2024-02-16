@@ -7,7 +7,7 @@ use WordPress\Blueprints\Parser\Annotation\StepDefinition;
 /**
  * @StepDefinition(id="activateTheme")
  */
-class ActivateThemeStepInput {
+class ActivateThemeStepDefinition {
 
 	public function __construct(
 		/**
