@@ -8,7 +8,10 @@ use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\LoginStepBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
+use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
+use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
+use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 
 require 'vendor/autoload.php';
 
@@ -16,8 +19,8 @@ require 'vendor/autoload.php';
 //die();
 //BlueprintBuilder::schema()->getProperties()->steps->items->anyOf[0]->oneOf[] = WPCLIStepBuilder::schema();
 
-$blueprint = new BlueprintBuilder();
-$blueprint
+$builder = new BlueprintBuilder();
+$builder
 	->setPreferredVersions(
 		( new BlueprintPreferredVersionsBuilder() )
 			->setPhp( '7.4' )
@@ -33,13 +36,40 @@ $blueprint
 			->setStep( "login" )
 			->setUsername( "admin" )
 			->setPassword( "password" ),
-		( ( new WPCLIStepBuilder() )->setCommand( 2 ) ),
+		( ( new UnzipStepBuilder() )
+			->setZipFile(
+				( new UrlReferenceBuilder() )->setUrl( 'https://example.com/wordpress.zip' )
+			) )
+			->setExtractToPath( "/wordpress" ),
 	] );
+$blueprint = $builder->toDataObject();
 
 // No exception on exporting valid data
 // {"landingPage":"\/wp-admin","preferredVersions":{"php":"7.4","wp":"5.3"},"steps":[{"progress":{"weight":3,"caption":"Logging in"},"step":"login","username":"admin","password":"password"}]}%
 $jsonData = ( new BlueprintSerializer() )->toJson( $blueprint );
 echo $jsonData . "\n";
+
+// Find all the resources in the blueprint
+function findResources( $jsonData, &$resources, $path = '' ) {
+	if ( $jsonData instanceof FileReferenceInterface ) {
+		$resources[ $path ] = $jsonData;
+	} elseif ( is_object( $jsonData ) ) {
+		foreach ( get_object_vars( $jsonData ) as $key => $value ) {
+			findResources( $value, $resources, $path . '->' . $key );
+		}
+	} elseif ( is_array( $jsonData ) ) {
+		foreach ( $jsonData as $k => $v ) {
+			findResources( $v, $resources, $path . '[' . $k . ']' );
+		}
+	} else {
+		return $jsonData;
+	}
+}
+
+$resources = [];
+findResources( $blueprint, $resources );
+print_r( $resources );
+die( 'xx' );
 
 //try {
 $importedBlueprint = ( new BlueprintDeserializer() )->fromJson( $jsonData );
@@ -60,7 +90,7 @@ print_r( $importedBlueprint );
 //}
 
 // Setting invalid value (integer instead of string)
-$blueprint->preferredVersions->php = 123;
+$builder->preferredVersions->php = 123;
 
 // Exception: String expected, 123 received
 //$jsonData = \WordPress\Blueprints\Model\Blueprint::export( $blueprint );

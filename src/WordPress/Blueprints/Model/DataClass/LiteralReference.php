@@ -8,7 +8,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class LiteralReference
+class LiteralReference implements FileReferenceInterface
 {
     /** @var string Identifies the file resource as a literal file */
     public $resource = 'literal';

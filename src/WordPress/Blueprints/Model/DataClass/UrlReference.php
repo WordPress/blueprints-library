@@ -8,7 +8,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class UrlReference
+class UrlReference implements FileReferenceInterface
 {
     /** @var string Identifies the file resource as a URL */
     public $resource = 'url';

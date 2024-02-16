@@ -4,8 +4,9 @@ use Swaggest\JsonSchema\Schema;
 
 require __DIR__ . '/../../../../vendor/autoload.php';
 
-$blueprintSchema = file_get_contents( __DIR__ . '/../schema.json' );
-$schema          = Schema::import( json_decode( $blueprintSchema ) );
+$blueprintSchema = json_decode( file_get_contents( __DIR__ . '/../schema.json' ) );
+
+$schema = Schema::import( $blueprintSchema );
 
 $targetPath = __DIR__ . '/../Model';
 if ( ! file_exists( $targetPath ) ) {
@@ -89,8 +90,28 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 	}
 );
 
+// Add a FileReference interface
+// I didn't find any way of getting those information from $schema,
+// so here's a native extraction of all the FileReference classes
+$fileReferences       = $blueprintSchema->definitions->FileReference;
+$fileReferenceClasses = [];
+foreach ( $fileReferences->anyOf as $name => $property ) {
+	$parts                         = explode( '/', $property->{'$ref'} );
+	$fileReferenceClasses[ $name ] = end( $parts );
+}
+$fileReferenceInterface = ( new \Swaggest\PhpCodeBuilder\PhpInterface() )
+	->setName( 'FileReferenceInterface' )
+	->setNamespace( $dataClassNs );
+$app->addClass( $fileReferenceInterface );
+
 $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCallback(
-	function ( \Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema ) use ( $app, $builderNs, $dataClassNs ) {
+	function ( \Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema ) use (
+		$app,
+		$builderNs,
+		$dataClassNs,
+		$fileReferenceInterface,
+		$fileReferenceClasses
+	) {
 		$dataClass = new \Swaggest\PhpCodeBuilder\PhpClass();
 		// Remove the "Builder" suffix from the class name
 		$dataClassName = substr( $class->getName(), 0, - 7 );
@@ -99,6 +120,9 @@ $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookC
 		// Add all the properties from the builder class to the data class
 		foreach ( $class->getProperties() as $property ) {
 			$dataClass->addProperty( $property );
+		}
+		if ( in_array( $dataClassName, $fileReferenceClasses ) ) {
+			$dataClass->addImplements( $fileReferenceInterface );
 		}
 
 		// ...and remove them from the builder class – they will be inherited

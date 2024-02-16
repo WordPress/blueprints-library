@@ -8,7 +8,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class CoreThemeReference
+class CoreThemeReference implements FileReferenceInterface
 {
     /** @var string Identifies the file resource as a WordPress Core theme */
     public $resource = 'wordpress.org/themes';

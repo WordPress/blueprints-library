@@ -8,11 +8,5 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class CorePluginReference implements FileReferenceInterface
-{
-    /** @var string Identifies the file resource as a WordPress Core plugin */
-    public $resource = 'wordpress.org/plugins';
-
-    /** @var string The slug of the WordPress Core plugin */
-    public $slug;
+interface FileReferenceInterface {
 }
