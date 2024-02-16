@@ -3,10 +3,10 @@
 require 'vendor/autoload.php';
 
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Steps\Unzip\UnzipStep;
 use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
-use WordPress\Blueprints\Steps\WriteFile\WriteFileStep;
+use WordPress\Blueprints\Steps\UnzipStepHandler;
 use WordPress\Blueprints\Steps\WriteFile\WriteFileStepInput;
+use WordPress\Blueprints\Steps\WriteFileHandler;
 
 $urls = [
 	'https://wordpress.org/latest.zip'                                       => 'outdir',
@@ -24,7 +24,7 @@ foreach ( $urls as $url => $target_path ) {
 	$fp = $container['data_source.url']->stream( $url );
 	if ( str_ends_with( $url, '.zip' ) ) {
 		$steps[] = function () use ( $fp, $target_path ) {
-			$step = new UnzipStep();
+			$step = new UnzipStepHandler();
 			$step->execute(
 				new UnzipStepInput( $fp, $target_path )
 			);
@@ -32,7 +32,7 @@ foreach ( $urls as $url => $target_path ) {
 		};
 	} else {
 		$steps[] = function () use ( $fp, $target_path ) {
-			$step = new WriteFileStep();
+			$step = new WriteFileHandler();
 			$step->execute(
 				new WriteFileStepInput( $fp, $target_path )
 			);

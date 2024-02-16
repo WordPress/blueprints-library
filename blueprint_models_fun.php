@@ -68,6 +68,8 @@ function findResources( $jsonData, &$resources, $path = '' ) {
 
 $resources = [];
 findResources( $blueprint, $resources );
+
+print_r( $blueprint );
 print_r( $resources );
 die( 'xx' );
 

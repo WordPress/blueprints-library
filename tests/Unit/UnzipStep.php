@@ -1,12 +1,12 @@
 <?php
 
-use \WordPress\Blueprints\Steps\Unzip\UnzipStep;
 use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
+use WordPress\Blueprints\Steps\UnzipStepHandler;
 
 it( "Should unzip a ZIP file", function () {
 	try {
 		$fp   = fopen( __DIR__ . "/test.zip", "rb" );
-		$step = new UnzipStep( new UnzipStepInput( $fp, __DIR__ . "/test" ) );
+		$step = new UnzipStepHandler( new UnzipStepInput( $fp, __DIR__ . "/test" ) );
 		$step->execute();
 
 		expect( file_exists( __DIR__ . "/test/TEST" ) )->toBeTrue();
