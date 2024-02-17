@@ -1,16 +1,18 @@
 <?php
 
+use Swaggest\JsonDiff\JsonPointer;
 use Swaggest\JsonSchema\InvalidValue;
+use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Map;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
 use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 use WordPress\Blueprints\Model\DataClass\LiteralReference;
@@ -47,9 +49,11 @@ function registerBlueprintStepHandler( $stepHandlerClass, array $details = [] ) 
 	$stepMeta[ $details['slug'] ] = $details;
 }
 
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\UnzipStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\WriteFileHandler::class );
-
+registerBlueprintStepHandler( \WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\WriteFileStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunPHPStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\SetSiteOptionsStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunWordPressInstallerStepHandler::class );
 
 $builder = new BlueprintBuilder();
 $builder
@@ -67,20 +71,31 @@ $builder
 	] )
 	->setLandingPage( "/wp-admin" )
 	->setSteps( [
-		( new WriteFileStepBuilder() )
-			->setContinueOnError( true )
-//			->setPath( __DIR__ . '/test.txt' )
-			->setPath( '/wordpress.txt' )
-			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
-		( ( new UnzipStepBuilder() )
-			->setZipFile(
-				'https://wordpress.org/latest.zip'
-//				( new UrlReferenceBuilder() )->setUrl( 'https://wordpress.org/latest.zip' )
-			) )
-			->setExtractToPath( __DIR__ . '/outdir2' ),
-		( new WriteFileStepBuilder() )
-			->setPath( __DIR__ . '/outdir2/test.zip' )
-			->setData( 'https://wordpress.org/latest.zip' ),
+//		( new \WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder() )->setOptions(
+//			( new WordPressInstallationOptionsBuilder() )
+//				->setAdminUsername( 'admin' )
+//				->setAdminPassword( 'password' )
+//		),
+//		( new \WordPress\Blueprints\Model\Builder\RunPHPStepBuilder() )
+//			->setCode( '<?php echo "A"; ' ),
+		( new \WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder() )
+			->setOptions( (object) [
+				'blogname' => 'My Playground Blog',
+			] ),
+//		( new WriteFileStepBuilder() )
+//			->setContinueOnError( true )
+////			->setPath( __DIR__ . '/test.txt' )
+//			->setPath( '/wordpress.txt' )
+//			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
+//		( ( new UnzipStepBuilder() )
+//			->setZipFile(
+//				'https://wordpress.org/latest.zip'
+////				( new UrlReferenceBuilder() )->setUrl( 'https://wordpress.org/latest.zip' )
+//			) )
+//			->setExtractToPath( __DIR__ . '/outdir2' ),
+//		( new WriteFileStepBuilder() )
+//			->setPath( __DIR__ . '/outdir2/test.zip' )
+//			->setData( 'https://wordpress.org/latest.zip' ),
 	] );
 
 function replaceUrlsWithResourceObjects( $jsonData ) {
@@ -108,18 +123,147 @@ function replaceUrlsWithResourceObjects( $jsonData ) {
 	}
 }
 
+function get_subschema( $schema, $pointer ) {
+	if ( $pointer[0] === '#' ) {
+		$pointer = substr( $pointer, 1 );
+	}
+	if ( $pointer[0] !== '/' ) {
+		$pointer = substr( $pointer, 1 );
+	}
+	$path      = explode( '/', substr( $pointer, 1 ) );
+	$subSchema = json_decode( file_get_contents( __DIR__ . '/src/WordPress/Blueprints/schema.json' ) );
+	foreach ( $path as $key ) {
+		if ( is_numeric( $key ) && ! property_exists( $subSchema, $key ) ) {
+			$subSchema = $subSchema->anyOf[ $key ];
+		} else {
+			$subSchema = $subSchema->$key;
+		}
+	}
+
+	return $subSchema;
+}
+
+/**
+ * Narrows down ambiguous anyOf errors using the discriminator property.
+ *
+ * When one of the `anyOf` inputs doesn't match the schema, Swaggest\JsonSchema will return as many errors,
+ * as there are `anyOf` options. Sometimes that means 26 errors to sieve through. For example:
+ *
+ * ```
+ *  No valid results for oneOf {
+ *  0: Enum failed, enum: ["a"], data: "f" at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[0]
+ *  1: Enum failed, enum: ["b"], data: "f" at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[1]
+ *  2: No valid results for anyOf {
+ *  0: Enum failed, enum: ["c"], data: "f" at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[2]->$ref[#/cde]->anyOf[0]
+ *  1: Enum failed, enum: ["d"], data: "f" at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[2]->$ref[#/cde]->anyOf[1]
+ *  2: Enum failed, enum: ["e"], data: "f" at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[2]->$ref[#/cde]->anyOf[2]
+ *  } at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo->oneOf[2]->$ref[#/cde]
+ *  } at #->properties:root->patternProperties[^[a-zA-Z0-9_]+$]:zoo
+ * ```
+ *
+ * It's highly impractical to reason about that much output, so we narrow down the error to the specific `anyOf` option that failed.
+ *
+ * This function uses the discriminator property to find the specific `anyOf` option that failed.
+ * For example, if the data looks like this:
+ *
+ * ```
+ * {
+ *     "steps": [
+ *          { "step": "activatePlugin", "plugin": null },
+ *       ]
+ * }
+ * ```
+ *
+ * And the schema looks like this:
+ *
+ * ```
+ * "StepDefinition": {
+ *     "type": "object",
+ *     "discriminator": {
+ *         "propertyName": "step"
+ *     },
+ *     "oneOf": [
+ *         { "$ref": "#/definitions/ActivatePluginStep" },
+ *         { "$ref": "#/definitions/ActivateThemeStep" },
+ * ```
+ *
+ * This function will go through all the errors reported by Swaggest\JsonSchema and find the one associated
+ * with the `ActivatePluginStep` definition, since its `step` property is set to `activatePlugin`.
+ *
+ * @param InvalidValue $e
+ *
+ * @return \Swaggest\JsonSchema\Exception\Error|void|null
+ */
+function getSpecificAnyOfError( InvalidValue $e ) {
+	// Narrows down ambiguous anyOf errors.
+	// from – find the actual definition that failed
+	// using the discriminator property.
+	//// Swaggest\JsonSchema unfortunately
+	// won't attempt to narrow down the error to the specific anyOf option
+	// that failed.
+	$schema    = json_decode( file_get_contents( __DIR__ . '/src/WordPress/Blueprints/schema.json' ) );
+	$subSchema = get_subschema( $schema, $e->getSchemaPointer() );
+
+	if ( property_exists( $subSchema, '$ref' ) ) {
+		$discriminatedDefinition = get_subschema( $schema, $subSchema->{'$ref'} );
+		if ( property_exists( $discriminatedDefinition, 'discriminator' ) ) {
+			$discriminatorField = $discriminatedDefinition->discriminator->propertyName;
+			$discriminatorValue = $e->data->$discriminatorField;
+
+			foreach ( $discriminatedDefinition->oneOf as $discriminatorOption ) {
+				if ( property_exists( $discriminatorOption, '$ref' ) ) {
+					$optionDefinition         = get_subschema( $schema, $discriminatorOption->{'$ref'} );
+					$optionDiscriminatorValue = $optionDefinition->properties->{$discriminatorField}->const;
+					if ( $optionDiscriminatorValue === $discriminatorValue ) {
+						return findSubErrorForSpecificAnyOfOption( $e->inspect(), $discriminatorOption->{'$ref'} );
+					}
+				}
+			}
+		}
+	}
+}
+
+function findSubErrorForSpecificAnyOfOption( \Swaggest\JsonSchema\Exception\Error $e, string $anyOfRef ) {
+	if ( $anyOfRef[0] === '#' ) {
+		$anyOfRef = substr( $anyOfRef, 1 );
+	}
+	if ( $e->schemaPointers ) {
+		foreach ( $e->schemaPointers as $pointer ) {
+			if ( str_starts_with( $pointer, $anyOfRef ) ) {
+				return $e;
+			}
+		}
+	}
+	if ( ! $e->subErrors ) {
+		return;
+	}
+	foreach ( $e->subErrors as $subError ) {
+		$subError = findSubErrorForSpecificAnyOfOption( $subError, $anyOfRef );
+		if ( $subError !== null ) {
+			return $subError;
+		}
+	}
+}
+
 replaceUrlsWithResourceObjects( $builder );
+
 try {
 	$builder->validate();
-} catch ( InvalidValue $e ) {
-	// Nice and granular error information
-	print_r( [
-		"dataPointer"   => $e->getDataPointer(),
-		"schemaPointer" => $e->getSchemaPointer(),
-		"Message"       => $e->getMessage(),
-		"Data"          => $e->data,
-		"Constraint"    => $e->constraint,
-	] );
+} catch ( InvalidValue $rootError ) {
+	$errorReport = [
+		"dataPointer"   => $rootError->getDataPointer(),
+		"schemaPointer" => $rootError->getSchemaPointer(),
+		"Message"       => $rootError->getMessage(),
+		"Data"          => $rootError->data,
+		"Constraint"    => $rootError->constraint,
+	];
+
+	$specificError = getSpecificAnyOfError( $rootError );
+	if ( $specificError ) {
+		$errorReport['Message'] = $specificError->error;
+	}
+
+	print_r( $errorReport );
 	die();
 }
 
@@ -167,16 +311,22 @@ foreach ( $resources as $path => $resourceDeclaration ) {
 }
 
 print_r( $resources );
+$runtime = new \WordPress\Blueprints\Runtime\NativePHPRuntime();
+$context = new \WordPress\Blueprints\Context\ExecutionContext(
+	$runtime,
+	__DIR__ . '/outdir/wordpress'
+);
 
 $compiledSteps = [];
 foreach ( $blueprint->steps as $step ) {
 	if ( empty( $stepMeta[ $step->step ] ) ) {
 		throw new \InvalidArgumentException( "No handler for step {$step->step}" );
 	}
-	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $stepMeta, $resourceMap ) {
-		$handler = $stepMeta[ $step->step ]['factory']();
-		$handler->setResourceMap( $resourceMap );
-
+	$handler = $stepMeta[ $step->step ]['factory']();
+	/** @var $handler \WordPress\Blueprints\StepHandler\BaseStepHandler */
+	$handler->setResourceMap( $resourceMap );
+	$handler->setContext( $context );
+	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $stepMeta, $handler, $resourceMap ) {
 		return $handler->execute( $step, $progressTracker );
 	};
 }
