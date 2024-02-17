@@ -31,13 +31,10 @@ class WPCLIStepBuilder extends WPCLIStep implements ClassStructureContract
         $properties->step->description = "The step identifier.";
         $properties->step->const = "wp-cli";
         $properties->command = new Schema();
-        $properties->command->anyOf[0] = Schema::string();
-        $propertiesCommandAnyOf1 = Schema::arr();
-        $propertiesCommandAnyOf1->items = Schema::string();
-        $properties->command->anyOf[1] = $propertiesCommandAnyOf1;
+        $propertiesCommandAnyOf0 = Schema::arr();
+        $propertiesCommandAnyOf0->items = Schema::string();
+        $properties->command->anyOf[0] = $propertiesCommandAnyOf0;
         $properties->command->description = "The WP CLI command to run.";
-        $properties->wpCliPath = Schema::string();
-        $properties->wpCliPath->description = "wp-cli.phar path";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
@@ -84,25 +81,13 @@ class WPCLIStepBuilder extends WPCLIStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|string[]|array $command The WP CLI command to run.
+     * @param string[]|array $command The WP CLI command to run.
      * @return $this
      * @codeCoverageIgnoreStart
      */
     public function setCommand($command)
     {
         $this->command = $command;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param string $wpCliPath wp-cli.phar path
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setWpCliPath($wpCliPath)
-    {
-        $this->wpCliPath = $wpCliPath;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -114,7 +99,6 @@ class WPCLIStepBuilder extends WPCLIStep implements ClassStructureContract
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->command = $this->recursiveJsonSerialize($this->command);
-        $dataObject->wpCliPath = $this->recursiveJsonSerialize($this->wpCliPath);
         return $dataObject;
     }
 

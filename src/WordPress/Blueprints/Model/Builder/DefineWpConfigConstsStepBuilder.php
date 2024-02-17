@@ -19,10 +19,6 @@ class DefineWpConfigConstsStepBuilder extends DefineWpConfigConstsStep implement
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
-    const REWRITE_WP_CONFIG = 'rewrite-wp-config';
-
-    const DEFINE_BEFORE_RUN = 'define-before-run';
-
     /**
      * @param Properties|static $properties
      * @param Schema $ownerSchema
@@ -36,13 +32,6 @@ class DefineWpConfigConstsStepBuilder extends DefineWpConfigConstsStep implement
         $properties->consts = Schema::object();
         $properties->consts->additionalProperties = new Schema();
         $properties->consts->description = "The constants to define";
-        $properties->method = Schema::string();
-        $properties->method->enum = array(
-            self::REWRITE_WP_CONFIG,
-            self::DEFINE_BEFORE_RUN,
-        );
-        $properties->method->description = "The method of defining the constants. Possible values are:\n\n- rewrite-wp-config: Default. Rewrites the wp-config.php file to                      explicitly call define() with the requested                      name and value. This method alters the file                      on the disk, but it doesn't conflict with                      existing define() calls in wp-config.php.\n- define-before-run: Defines the constant before running the requested                      script. It doesn't alter any files on the disk, but                      constants defined this way may conflict with existing                      define() calls in wp-config.php.";
-        $properties->virtualize = Schema::boolean();
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
@@ -100,33 +89,6 @@ class DefineWpConfigConstsStepBuilder extends DefineWpConfigConstsStep implement
     }
     /** @codeCoverageIgnoreEnd */
 
-    /**
-     * @param string $method The method of defining the constants. Possible values are:
-     * 
-     * - rewrite-wp-config: Default. Rewrites the wp-config.php file to                      explicitly call define() with the requested                      name and value. This method alters the file                      on the disk, but it doesn't conflict with                      existing define() calls in wp-config.php.
-     * - define-before-run: Defines the constant before running the requested                      script. It doesn't alter any files on the disk, but                      constants defined this way may conflict with existing                      define() calls in wp-config.php.
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setMethod($method)
-    {
-        $this->method = $method;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param bool $virtualize
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setVirtualize($virtualize)
-    {
-        $this->virtualize = $virtualize;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
     function toDataObject()
     {
         $dataObject = new DefineWpConfigConstsStep();
@@ -134,8 +96,6 @@ class DefineWpConfigConstsStepBuilder extends DefineWpConfigConstsStep implement
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->consts = $this->recursiveJsonSerialize($this->consts);
-        $dataObject->method = $this->recursiveJsonSerialize($this->method);
-        $dataObject->virtualize = $this->recursiveJsonSerialize($this->virtualize);
         return $dataObject;
     }
 

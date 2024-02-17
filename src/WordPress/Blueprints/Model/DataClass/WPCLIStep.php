@@ -20,9 +20,6 @@ class WPCLIStep
     /** @var string The step identifier. */
     public $step = 'wp-cli';
 
-    /** @var string|string[]|array The WP CLI command to run. */
+    /** @var string[]|array The WP CLI command to run. */
     public $command;
-
-    /** @var string wp-cli.phar path */
-    public $wpCliPath;
 }

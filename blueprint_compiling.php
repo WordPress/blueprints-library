@@ -5,7 +5,8 @@ use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Map;
+use WordPress\Blueprints\Model\Builder\InstallPluginOptionsBuilder;
+use WordPress\Blueprints\ResourceManager;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
@@ -52,8 +53,22 @@ function registerBlueprintStepHandler( $stepHandlerClass, array $details = [] ) 
 registerBlueprintStepHandler( \WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler::class );
 registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\WriteFileStepHandler::class );
 registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunPHPStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\DefineWpConfigConstsStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\EnableMultisiteStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\DefineSiteUrlStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RmDirStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RmStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\MvStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\CpStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\WPCLIStepHandler::class );
 registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\SetSiteOptionsStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ActivatePluginStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ActivateThemeStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\InstallPluginStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\InstallThemeStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ImportFileStepHandler::class );
 registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunWordPressInstallerStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunSQLStepHandler::class );
 
 $builder = new BlueprintBuilder();
 $builder
@@ -76,17 +91,47 @@ $builder
 //				->setAdminUsername( 'admin' )
 //				->setAdminPassword( 'password' )
 //		),
-//		( new \WordPress\Blueprints\Model\Builder\RunPHPStepBuilder() )
-//			->setCode( '<?php echo "A"; ' ),
+		( new \WordPress\Blueprints\Model\Builder\RunPHPStepBuilder() )
+			->setCode( '<?php echo "A"; ' ),
 		( new \WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder() )
 			->setOptions( (object) [
 				'blogname' => 'My Playground Blog',
 			] ),
-//		( new WriteFileStepBuilder() )
-//			->setContinueOnError( true )
-////			->setPath( __DIR__ . '/test.txt' )
-//			->setPath( '/wordpress.txt' )
-//			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
+		( new \WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder() )
+			->setConsts( (object) [
+				'WP_DEBUG'         => true,
+				'WP_DEBUG_LOG'     => true,
+				'WP_DEBUG_DISPLAY' => true,
+				'WP_CACHE'         => true,
+			] ),
+		( new \WordPress\Blueprints\Model\Builder\ActivatePluginStepBuilder() )
+			->setSlug( 'hello-dolly' ),
+//		( new \WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder() )
+//			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/hello-dolly.zip' )
+//			->setOptions( ( new InstallPluginOptionsBuilder() )->setActivate( true ) ),
+//		( new \WordPress\Blueprints\Model\Builder\InstallThemeStepBuilder() )
+//			->setThemeZipFile( 'https://downloads.wordpress.org/theme/pendant.zip' )
+//			->setOptions( ( new \WordPress\Blueprints\Model\Builder\InstallThemeStepOptionsBuilder() )->setActivate( true ) ),
+//		( new \WordPress\Blueprints\Model\Builder\ImportFileStepBuilder() )
+//			->setFile( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' ),
+//		( new \WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder() )
+//			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip' )
+//			->setOptions( ( new InstallPluginOptionsBuilder() )->setActivate( true ) ),
+		( new \WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder() )
+			->setSiteUrl( 'http://localhost:8080' ),
+//		( new \WordPress\Blueprints\Model\Builder\RunSQLStepBuilder() )
+//			->setSql( ( new LiteralReferenceBuilder() )->setName( 'file.sql' )->setContents(
+//				<<<'SQL'
+//CREATE TABLE `tmp_table` ( id INT );
+//INSERT INTO `tmp_table` VALUES (1);
+//INSERT INTO `tmp_table` VALUES (2);
+//SQL
+//
+//			) ),
+		( new WriteFileStepBuilder() )
+			->setContinueOnError( true )
+			->setPath( 'wordpress.txt' )
+			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
 //		( ( new UnzipStepBuilder() )
 //			->setZipFile(
 //				'https://wordpress.org/latest.zip'
@@ -134,7 +179,12 @@ function get_subschema( $schema, $pointer ) {
 	$subSchema = json_decode( file_get_contents( __DIR__ . '/src/WordPress/Blueprints/schema.json' ) );
 	foreach ( $path as $key ) {
 		if ( is_numeric( $key ) && ! property_exists( $subSchema, $key ) ) {
-			$subSchema = $subSchema->anyOf[ $key ];
+			foreach ( $subSchema->anyOf as $v ) {
+				if ( is_object( $v ) && property_exists( $v, '$ref' ) ) {
+					$subSchema = $v;
+					break;
+				}
+			}
 		} else {
 			$subSchema = $subSchema->$key;
 		}
@@ -294,7 +344,7 @@ findResources( $blueprint, $resources );
 
 $container = ContainerBuilder::build( 'native' );
 
-$resourceMap = new Map();
+$resourceMap = new ResourceManager();
 foreach ( $resources as $path => $resourceDeclaration ) {
 	if ( $resourceDeclaration instanceof LiteralReference ) {
 		$fp = fopen( "php://temp", 'r+' );
@@ -311,9 +361,7 @@ foreach ( $resources as $path => $resourceDeclaration ) {
 }
 
 print_r( $resources );
-$runtime = new \WordPress\Blueprints\Runtime\NativePHPRuntime();
-$context = new \WordPress\Blueprints\Context\ExecutionContext(
-	$runtime,
+$runtime = new \WordPress\Blueprints\Runtime\NativePHPRuntime(
 	__DIR__ . '/outdir/wordpress'
 );
 
@@ -325,7 +373,7 @@ foreach ( $blueprint->steps as $step ) {
 	$handler = $stepMeta[ $step->step ]['factory']();
 	/** @var $handler \WordPress\Blueprints\StepHandler\BaseStepHandler */
 	$handler->setResourceMap( $resourceMap );
-	$handler->setContext( $context );
+	$handler->setRuntime( $runtime );
 	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $stepMeta, $handler, $resourceMap ) {
 		return $handler->execute( $step, $progressTracker );
 	};

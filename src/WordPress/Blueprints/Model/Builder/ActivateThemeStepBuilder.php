@@ -29,13 +29,13 @@ class ActivateThemeStepBuilder extends ActivateThemeStep implements ClassStructu
         $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "activateTheme";
-        $properties->themeFolderName = Schema::string();
-        $properties->themeFolderName->description = "The name of the theme folder inside wp-content/themes/";
+        $properties->slug = Schema::string();
+        $properties->slug->description = "Theme slug, like 'twentytwentythree'.";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
             self::names()->step,
-            self::names()->themeFolderName,
+            self::names()->slug,
         );
         $ownerSchema->setFromRef('#/definitions/ActivateThemeStep');
     }
@@ -77,13 +77,13 @@ class ActivateThemeStepBuilder extends ActivateThemeStep implements ClassStructu
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $themeFolderName The name of the theme folder inside wp-content/themes/
+     * @param string $slug Theme slug, like 'twentytwentythree'.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setThemeFolderName($themeFolderName)
+    public function setSlug($slug)
     {
-        $this->themeFolderName = $themeFolderName;
+        $this->slug = $slug;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -94,7 +94,7 @@ class ActivateThemeStepBuilder extends ActivateThemeStep implements ClassStructu
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->themeFolderName = $this->recursiveJsonSerialize($this->themeFolderName);
+        $dataObject->slug = $this->recursiveJsonSerialize($this->slug);
         return $dataObject;
     }
 

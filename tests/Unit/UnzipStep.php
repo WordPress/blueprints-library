@@ -1,7 +1,7 @@
 <?php
 
+use WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler;
 use WordPress\Blueprints\StepHandler\Unzip\UnzipStepInput;
-use WordPress\Blueprints\StepHandler\UnzipStepHandler;
 
 it( "Should unzip a ZIP file", function () {
 	try {

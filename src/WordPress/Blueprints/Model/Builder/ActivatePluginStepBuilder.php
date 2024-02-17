@@ -29,14 +29,12 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
         $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
         $properties->step->const = "activatePlugin";
-        $properties->pluginPath = Schema::string();
-        $properties->pluginPath->description = "Path to the plugin directory as absolute path (/wordpress/wp-content/plugins/plugin-name); or the plugin entry file relative to the plugins directory (plugin-name/plugin-name.php).";
-        $properties->pluginName = Schema::string();
-        $properties->pluginName->description = "Optional. Plugin name to display in the progress bar.";
+        $properties->slug = Schema::string();
+        $properties->slug->description = "Plugin slug, like 'gutenberg' or 'hello-dolly'.";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
-            self::names()->pluginPath,
+            self::names()->slug,
             self::names()->step,
         );
         $ownerSchema->setFromRef('#/definitions/ActivatePluginStep');
@@ -79,25 +77,13 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $pluginPath Path to the plugin directory as absolute path (/wordpress/wp-content/plugins/plugin-name); or the plugin entry file relative to the plugins directory (plugin-name/plugin-name.php).
+     * @param string $slug Plugin slug, like 'gutenberg' or 'hello-dolly'.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPluginPath($pluginPath)
+    public function setSlug($slug)
     {
-        $this->pluginPath = $pluginPath;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param string $pluginName Optional. Plugin name to display in the progress bar.
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setPluginName($pluginName)
-    {
-        $this->pluginName = $pluginName;
+        $this->slug = $slug;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -108,8 +94,7 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->pluginPath = $this->recursiveJsonSerialize($this->pluginPath);
-        $dataObject->pluginName = $this->recursiveJsonSerialize($this->pluginName);
+        $dataObject->slug = $this->recursiveJsonSerialize($this->slug);
         return $dataObject;
     }
 

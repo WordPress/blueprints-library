@@ -3,8 +3,8 @@
 require 'vendor/autoload.php';
 
 use WordPress\Blueprints\ContainerBuilder;
+use WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler;
 use WordPress\Blueprints\StepHandler\Unzip\UnzipStepInput;
-use WordPress\Blueprints\StepHandler\UnzipStepHandler;
 use WordPress\Blueprints\StepHandler\WriteFile\WriteFileStepInput;
 use WordPress\Blueprints\StepHandler\WriteFileHandler;
 

@@ -48,10 +48,6 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->plugins->items->anyOf[1] = $propertiesPluginsItemsAnyOf1;
         $properties->plugins->description = "WordPress plugins to install and activate";
         $properties->siteOptions = BlueprintSiteOptionsBuilder::schema();
-        $properties->login = new Schema();
-        $properties->login->anyOf[0] = Schema::boolean();
-        $properties->login->anyOf[1] = LoginDetailsBuilder::schema();
-        $properties->login->description = "User to log in as. If true, logs the user in as admin/password.";
         $properties->phpExtensionBundles = Schema::arr();
         $properties->phpExtensionBundles->items = Schema::string();
         $properties->phpExtensionBundles->items->const = "kitchen-sink";
@@ -67,25 +63,19 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $propertiesStepsItemsAnyOf0->oneOf[4] = DefineSiteUrlStepBuilder::schema();
         $propertiesStepsItemsAnyOf0->oneOf[5] = EnableMultisiteStepBuilder::schema();
         $propertiesStepsItemsAnyOf0->oneOf[6] = ImportFileStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[7] = ImportWordPressFilesStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[8] = InstallPluginStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[9] = InstallThemeStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[10] = LoginStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[11] = MkdirStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[12] = MvStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[13] = PHPRequestStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[14] = RmStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[15] = RmDirStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[16] = RunPHPStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[17] = RunPHPWithOptionsStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[18] = RunWordPressInstallerStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[19] = RunSQLStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[20] = SetPHPIniEntryStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[21] = SetSiteOptionsStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[22] = UnzipStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[23] = UpdateUserMetaStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[24] = WriteFileStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[25] = WPCLIStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[7] = InstallPluginStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[8] = InstallThemeStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[9] = MkdirStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[10] = MvStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[11] = RmStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[12] = RmDirStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[13] = RunPHPStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[14] = RunWordPressInstallerStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[15] = RunSQLStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[16] = SetSiteOptionsStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[17] = UnzipStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[18] = WriteFileStepBuilder::schema();
+        $propertiesStepsItemsAnyOf0->oneOf[19] = WPCLIStepBuilder::schema();
         $propertiesStepsItemsAnyOf0->required = array(
             self::names()->step,
         );
@@ -192,18 +182,6 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param bool|LoginDetailsBuilder $login User to log in as. If true, logs the user in as admin/password.
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setLogin($login)
-    {
-        $this->login = $login;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
      * @param string[]|array $phpExtensionBundles The PHP extensions to use.
      * @return $this
      * @codeCoverageIgnoreStart
@@ -216,7 +194,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|ImportWordPressFilesStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|LoginStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|PHPRequestStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunPHPWithOptionsStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetPHPIniEntryStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|UpdateUserMetaStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|string[]|mixed[]|bool[]|null[]|array $steps The steps to run after every other operation in this Blueprint was executed.
+     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|string[]|mixed[]|bool[]|null[]|array $steps The steps to run after every other operation in this Blueprint was executed.
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -249,7 +227,6 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $dataObject->constants = $this->recursiveJsonSerialize($this->constants);
         $dataObject->plugins = $this->recursiveJsonSerialize($this->plugins);
         $dataObject->siteOptions = $this->recursiveJsonSerialize($this->siteOptions);
-        $dataObject->login = $this->recursiveJsonSerialize($this->login);
         $dataObject->phpExtensionBundles = $this->recursiveJsonSerialize($this->phpExtensionBundles);
         $dataObject->steps = $this->recursiveJsonSerialize($this->steps);
         $dataObject->schema = $this->recursiveJsonSerialize($this->schema);

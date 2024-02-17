@@ -20,6 +20,6 @@ class ActivateThemeStep
     /** @var string */
     public $step = 'activateTheme';
 
-    /** @var string The name of the theme folder inside wp-content/themes/ */
-    public $themeFolderName;
+    /** @var string Theme slug, like 'twentytwentythree'. */
+    public $slug;
 }

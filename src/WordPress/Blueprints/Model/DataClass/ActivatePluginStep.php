@@ -20,9 +20,6 @@ class ActivatePluginStep
     /** @var string */
     public $step = 'activatePlugin';
 
-    /** @var string Path to the plugin directory as absolute path (/wordpress/wp-content/plugins/plugin-name); or the plugin entry file relative to the plugins directory (plugin-name/plugin-name.php). */
-    public $pluginPath;
-
-    /** @var string Optional. Plugin name to display in the progress bar. */
-    public $pluginName;
+    /** @var string Plugin slug, like 'gutenberg' or 'hello-dolly'. */
+    public $slug;
 }

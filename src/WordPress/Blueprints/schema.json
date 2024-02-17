@@ -79,17 +79,6 @@
 					"description": "WordPress site options to define",
 					"deprecated": "This experimental option will change without warning.\nUse `steps` instead."
 				},
-				"login": {
-					"anyOf": [
-						{
-							"type": "boolean"
-						},
-						{
-							"$ref": "#/definitions/LoginDetails"
-						}
-					],
-					"description": "User to log in as. If true, logs the user in as admin/password."
-				},
 				"phpExtensionBundles": {
 					"type": "array",
 					"items": {
@@ -271,22 +260,6 @@
 			"type": "string",
 			"const": "kitchen-sink"
 		},
-		"LoginDetails": {
-			"type": "object",
-			"properties": {
-				"username": {
-					"type": "string"
-				},
-				"password": {
-					"type": "string"
-				}
-			},
-			"required": [
-				"username",
-				"password"
-			],
-			"additionalProperties": false
-		},
 		"Progress": {
 			"type": "object",
 			"properties": {
@@ -313,17 +286,13 @@
 					"type": "string",
 					"const": "activatePlugin"
 				},
-				"pluginPath": {
+				"slug": {
 					"type": "string",
-					"description": "Path to the plugin directory as absolute path (/wordpress/wp-content/plugins/plugin-name); or the plugin entry file relative to the plugins directory (plugin-name/plugin-name.php)."
-				},
-				"pluginName": {
-					"type": "string",
-					"description": "Optional. Plugin name to display in the progress bar."
+					"description": "Plugin slug, like 'gutenberg' or 'hello-dolly'."
 				}
 			},
 			"required": [
-				"pluginPath",
+				"slug",
 				"step"
 			]
 		},
@@ -341,14 +310,14 @@
 					"type": "string",
 					"const": "activateTheme"
 				},
-				"themeFolderName": {
+				"slug": {
 					"type": "string",
-					"description": "The name of the theme folder inside wp-content/themes/"
+					"description": "Theme slug, like 'twentytwentythree'."
 				}
 			},
 			"required": [
 				"step",
-				"themeFolderName"
+				"slug"
 			]
 		},
 		"CpStep": {
@@ -398,18 +367,6 @@
 					"type": "object",
 					"additionalProperties": {},
 					"description": "The constants to define"
-				},
-				"method": {
-					"type": "string",
-					"enum": [
-						"rewrite-wp-config",
-						"define-before-run"
-					],
-					"description": "The method of defining the constants. Possible values are:\n\n- rewrite-wp-config: Default. Rewrites the wp-config.php file to                      explicitly call define() with the requested                      name and value. This method alters the file                      on the disk, but it doesn't conflict with                      existing define() calls in wp-config.php.\n- define-before-run: Defines the constant before running the requested                      script. It doesn't alter any files on the disk, but                      constants defined this way may conflict with existing                      define() calls in wp-config.php."
-				},
-				"virtualize": {
-					"type": "boolean",
-					"deprecated": "This option is noop and will be removed in a future version.\nThis option is only kept in here to avoid breaking Blueprint schema validation\nfor existing apps using this option."
 				}
 			},
 			"required": [
@@ -484,34 +441,6 @@
 				"step"
 			]
 		},
-		"ImportWordPressFilesStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "importWordPressFiles"
-				},
-				"wordPressFilesZip": {
-					"$ref": "#/definitions/FileReference",
-					"description": "The zip file containing the top-level WordPress files and directories."
-				},
-				"pathInZip": {
-					"type": "string",
-					"description": "The path inside the zip file where the WordPress files are."
-				}
-			},
-			"required": [
-				"step",
-				"wordPressFilesZip"
-			]
-		},
 		"InstallPluginStep": {
 			"type": "object",
 			"additionalProperties": false,
@@ -577,33 +506,6 @@
 				"themeZipFile"
 			]
 		},
-		"LoginStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "login"
-				},
-				"username": {
-					"type": "string",
-					"description": "The user to log in as. Defaults to 'admin'."
-				},
-				"password": {
-					"type": "string",
-					"description": "The password to log in with. Defaults to 'password'."
-				}
-			},
-			"required": [
-				"step"
-			]
-		},
 		"MkdirStep": {
 			"type": "object",
 			"additionalProperties": false,
@@ -655,30 +557,6 @@
 				"fromPath",
 				"step",
 				"toPath"
-			]
-		},
-		"PHPRequestStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "request"
-				},
-				"request": {
-					"$ref": "#/definitions/PHPRequest",
-					"description": "Request details (See /wordpress-playground/api/universal/interface/PHPRequest)"
-				}
-			},
-			"required": [
-				"request",
-				"step"
 			]
 		},
 		"RmStep": {
@@ -754,30 +632,6 @@
 				"step"
 			]
 		},
-		"RunPHPWithOptionsStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "runPHPWithOptions"
-				},
-				"options": {
-					"$ref": "#/definitions/PHPRunOptions",
-					"description": "Run options (See /wordpress-playground/api/universal/interface/PHPRunOptions)"
-				}
-			},
-			"required": [
-				"options",
-				"step"
-			]
-		},
 		"RunWordPressInstallerStep": {
 			"type": "object",
 			"additionalProperties": false,
@@ -824,35 +678,6 @@
 			"required": [
 				"sql",
 				"step"
-			]
-		},
-		"SetPHPIniEntryStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "setPhpIniEntry"
-				},
-				"key": {
-					"type": "string",
-					"description": "Entry name e.g. \"display_errors\""
-				},
-				"value": {
-					"type": "string",
-					"description": "Entry value as a string e.g. \"1\""
-				}
-			},
-			"required": [
-				"key",
-				"step",
-				"value"
 			]
 		},
 		"SetSiteOptionsStep": {
@@ -914,36 +739,6 @@
 				"step"
 			]
 		},
-		"UpdateUserMetaStep": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"progress": {
-					"$ref": "#/definitions/Progress"
-				},
-				"continueOnError": {
-					"type": "boolean"
-				},
-				"step": {
-					"type": "string",
-					"const": "updateUserMeta"
-				},
-				"meta": {
-					"type": "object",
-					"additionalProperties": {},
-					"description": "An object of user meta values to set, e.g. { \"first_name\": \"John\" }"
-				},
-				"userId": {
-					"type": "number",
-					"description": "User ID"
-				}
-			},
-			"required": [
-				"meta",
-				"step",
-				"userId"
-			]
-		},
 		"WriteFileStep": {
 			"type": "object",
 			"additionalProperties": false,
@@ -998,9 +793,6 @@
 				"command": {
 					"anyOf": [
 						{
-							"type": "string"
-						},
-						{
 							"type": "array",
 							"items": {
 								"type": "string"
@@ -1008,10 +800,6 @@
 						}
 					],
 					"description": "The WP CLI command to run."
-				},
-				"wpCliPath": {
-					"type": "string",
-					"description": "wp-cli.phar path"
 				}
 			},
 			"required": [
@@ -1050,25 +838,16 @@
 					"$ref": "#/definitions/ImportFileStep"
 				},
 				{
-					"$ref": "#/definitions/ImportWordPressFilesStep"
-				},
-				{
 					"$ref": "#/definitions/InstallPluginStep"
 				},
 				{
 					"$ref": "#/definitions/InstallThemeStep"
 				},
 				{
-					"$ref": "#/definitions/LoginStep"
-				},
-				{
 					"$ref": "#/definitions/MkdirStep"
 				},
 				{
 					"$ref": "#/definitions/MvStep"
-				},
-				{
-					"$ref": "#/definitions/PHPRequestStep"
 				},
 				{
 					"$ref": "#/definitions/RmStep"
@@ -1080,25 +859,16 @@
 					"$ref": "#/definitions/RunPHPStep"
 				},
 				{
-					"$ref": "#/definitions/RunPHPWithOptionsStep"
-				},
-				{
 					"$ref": "#/definitions/RunWordPressInstallerStep"
 				},
 				{
 					"$ref": "#/definitions/RunSQLStep"
 				},
 				{
-					"$ref": "#/definitions/SetPHPIniEntryStep"
-				},
-				{
 					"$ref": "#/definitions/SetSiteOptionsStep"
 				},
 				{
 					"$ref": "#/definitions/UnzipStep"
-				},
-				{
-					"$ref": "#/definitions/UpdateUserMetaStep"
 				},
 				{
 					"$ref": "#/definitions/WriteFileStep"
@@ -1118,68 +888,6 @@
 			},
 			"additionalProperties": false
 		},
-		"PHPRequest": {
-			"type": "object",
-			"properties": {
-				"method": {
-					"$ref": "#/definitions/HTTPMethod",
-					"description": "Request method. Default: `GET`."
-				},
-				"url": {
-					"type": "string",
-					"description": "Request path or absolute URL."
-				},
-				"headers": {
-					"$ref": "#/definitions/PHPRequestHeaders",
-					"description": "Request headers."
-				},
-				"files": {
-					"type": "object",
-					"additionalProperties": {
-						"type": "object",
-						"properties": {
-							"size": {
-								"type": "number"
-							},
-							"type": {
-								"type": "string"
-							},
-							"lastModified": {
-								"type": "number"
-							},
-							"name": {
-								"type": "string"
-							},
-							"webkitRelativePath": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"lastModified",
-							"name",
-							"size",
-							"type",
-							"webkitRelativePath"
-						],
-						"additionalProperties": false
-					},
-					"description": "Uploaded files"
-				},
-				"body": {
-					"type": "string",
-					"description": "Request body without the files."
-				},
-				"formData": {
-					"type": "object",
-					"additionalProperties": {},
-					"description": "Form data. If set, the request body will be ignored and the content-type header will be set to `application/x-www-form-urlencoded`."
-				}
-			},
-			"required": [
-				"url"
-			],
-			"additionalProperties": false
-		},
 		"HTTPMethod": {
 			"type": "string",
 			"enum": [
@@ -1191,57 +899,6 @@
 				"PUT",
 				"DELETE"
 			]
-		},
-		"PHPRequestHeaders": {
-			"type": "object",
-			"additionalProperties": {
-				"type": "string"
-			}
-		},
-		"PHPRunOptions": {
-			"type": "object",
-			"properties": {
-				"relativeUri": {
-					"type": "string",
-					"description": "Request path following the domain:port part."
-				},
-				"scriptPath": {
-					"type": "string",
-					"description": "Path of the .php file to execute."
-				},
-				"protocol": {
-					"type": "string",
-					"description": "Request protocol."
-				},
-				"method": {
-					"$ref": "#/definitions/HTTPMethod",
-					"description": "Request method. Default: `GET`."
-				},
-				"headers": {
-					"$ref": "#/definitions/PHPRequestHeaders",
-					"description": "Request headers."
-				},
-				"body": {
-					"type": "string",
-					"description": "Request body without the files."
-				},
-				"fileInfos": {
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/FileInfo"
-					},
-					"description": "Uploaded files."
-				},
-				"code": {
-					"type": "string",
-					"description": "The code snippet to eval instead of a php file."
-				},
-				"throwOnError": {
-					"type": "boolean",
-					"description": "Whether to throw an error if the PHP process exits with a non-zero code or outputs to stderr."
-				}
-			},
-			"additionalProperties": false
 		},
 		"FileInfo": {
 			"type": "object",
