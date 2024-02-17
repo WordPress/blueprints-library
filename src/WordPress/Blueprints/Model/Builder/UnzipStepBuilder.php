@@ -31,11 +31,11 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $properties->step->const = "unzip";
         $properties->zipFile = new Schema();
         $properties->zipFile->anyOf[0] = Schema::string();
-        $properties->zipFile->anyOf[1] = VFSReferenceBuilder::schema();
-        $properties->zipFile->anyOf[2] = LiteralReferenceBuilder::schema();
-        $properties->zipFile->anyOf[3] = CoreThemeReferenceBuilder::schema();
-        $properties->zipFile->anyOf[4] = CorePluginReferenceBuilder::schema();
-        $properties->zipFile->anyOf[5] = UrlReferenceBuilder::schema();
+        $properties->zipFile->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->zipFile->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->zipFile->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->zipFile->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->zipFile->anyOf[5] = UrlResourceBuilder::schema();
         $properties->zipFile->setFromRef('#/definitions/FileReference');
         $properties->zipPath = Schema::string();
         $properties->zipPath->description = "The path of the zip file to extract";
@@ -87,7 +87,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $zipFile
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $zipFile
      * @return $this
      * @codeCoverageIgnoreStart
      */

@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\CorePluginReference;
+use WordPress\Blueprints\Model\DataClass\UrlResource;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/CorePluginReference
+ * Built from #/definitions/UrlResource
  */
-class CorePluginReferenceBuilder extends CorePluginReference implements ClassStructureContract
+class UrlResourceBuilder extends UrlResource implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -26,21 +26,23 @@ class CorePluginReferenceBuilder extends CorePluginReference implements ClassStr
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->resource = Schema::string();
-        $properties->resource->description = "Identifies the file resource as a WordPress Core plugin";
-        $properties->resource->const = "wordpress.org/plugins";
-        $properties->slug = Schema::string();
-        $properties->slug->description = "The slug of the WordPress Core plugin";
+        $properties->resource->description = "Identifies the file resource as a URL";
+        $properties->resource->const = "url";
+        $properties->url = Schema::string();
+        $properties->url->description = "The URL of the file";
+        $properties->caption = Schema::string();
+        $properties->caption->description = "Optional caption for displaying a progress message";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
             self::names()->resource,
-            self::names()->slug,
+            self::names()->url,
         );
-        $ownerSchema->setFromRef('#/definitions/CorePluginReference');
+        $ownerSchema->setFromRef('#/definitions/UrlResource');
     }
 
     /**
-     * @param string $resource Identifies the file resource as a WordPress Core plugin
+     * @param string $resource Identifies the file resource as a URL
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -52,22 +54,35 @@ class CorePluginReferenceBuilder extends CorePluginReference implements ClassStr
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $slug The slug of the WordPress Core plugin
+     * @param string $url The URL of the file
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setSlug($slug)
+    public function setUrl($url)
     {
-        $this->slug = $slug;
+        $this->url = $url;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param string $caption Optional caption for displaying a progress message
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setCaption($caption)
+    {
+        $this->caption = $caption;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new CorePluginReference();
+        $dataObject = new UrlResource();
         $dataObject->resource = $this->recursiveJsonSerialize($this->resource);
-        $dataObject->slug = $this->recursiveJsonSerialize($this->slug);
+        $dataObject->url = $this->recursiveJsonSerialize($this->url);
+        $dataObject->caption = $this->recursiveJsonSerialize($this->caption);
         return $dataObject;
     }
 

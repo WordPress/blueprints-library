@@ -9,16 +9,16 @@ use WordPress\Blueprints\Model\Builder\InstallPluginOptionsBuilder;
 use WordPress\Blueprints\ResourceManager;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
-use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
+use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\LiteralReference;
-use WordPress\Blueprints\Model\DataClass\UrlReference;
-use WordPress\Blueprints\Model\DataClass\VFSReference;
+use WordPress\Blueprints\Model\DataClass\InlineResource;
+use WordPress\Blueprints\Model\DataClass\UrlResource;
+use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 
 require 'vendor/autoload.php';
@@ -131,7 +131,7 @@ $builder
 		( new WriteFileStepBuilder() )
 			->setContinueOnError( true )
 			->setPath( 'wordpress.txt' )
-			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" ) ),
+			->setData( ( new InlineResourceBuilder() )->setContents( "Data" ) ),
 //		( ( new UnzipStepBuilder() )
 //			->setZipFile(
 //				'https://wordpress.org/latest.zip'
@@ -151,11 +151,11 @@ function replaceUrlsWithResourceObjects( $jsonData ) {
 		if ( is_string( $jsonData->$key ) ) {
 			if ( $jsonData::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
 				if ( str_starts_with( $jsonData->$key, 'https://' ) ) {
-					$jsonData->$key = ( new UrlReferenceBuilder() )->setUrl( $jsonData->$key );
+					$jsonData->$key = ( new UrlResourceBuilder() )->setUrl( $jsonData->$key );
 				} elseif ( str_starts_with( $jsonData->$key, 'file://' ) || str_starts_with( $jsonData->$key, './' ) ) {
-					$jsonData->$key = ( new VFSReferenceBuilder() )->setPath( $jsonData->$key );
+					$jsonData->$key = ( new FilesystemResourceBuilder() )->setPath( $jsonData->$key );
 				} else {
-					$jsonData->$key = ( new LiteralReferenceBuilder() )->setContents( $jsonData->$key );
+					$jsonData->$key = ( new InlineResourceBuilder() )->setContents( $jsonData->$key );
 				}
 			}
 		} elseif ( is_object( $jsonData->$key ) ) {
@@ -346,13 +346,13 @@ $container = ContainerBuilder::build( 'native' );
 
 $resourceMap = new ResourceManager();
 foreach ( $resources as $path => $resourceDeclaration ) {
-	if ( $resourceDeclaration instanceof LiteralReference ) {
+	if ( $resourceDeclaration instanceof InlineResource ) {
 		$fp = fopen( "php://temp", 'r+' );
 		fwrite( $fp, $resourceDeclaration->contents );
 		rewind( $fp );
-	} elseif ( $resourceDeclaration instanceof UrlReference ) {
+	} elseif ( $resourceDeclaration instanceof UrlResource ) {
 		$fp = $container['data_source.url']->stream( $resourceDeclaration->url );
-	} elseif ( $resourceDeclaration instanceof VFSReference ) {
+	} elseif ( $resourceDeclaration instanceof FilesystemResource ) {
 		$fp = fopen( $resourceDeclaration->path, 'r' );
 	} else {
 		throw new \InvalidArgumentException( "Unknown resource type " . $resourceDeclaration->resource );

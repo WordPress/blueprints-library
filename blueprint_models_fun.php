@@ -10,7 +10,7 @@ use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\LoginStepBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 
@@ -53,7 +53,7 @@ function replaceUrlsWithResourceObjects( $jsonData ) {
 	foreach ( $jsonData::schema()->getProperties() as $key => $value ) {
 		if ( is_string( $jsonData->$key ) ) {
 			if ( $jsonData::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
-				$jsonData->$key = ( new UrlReferenceBuilder() )->setUrl( $jsonData->$key );
+				$jsonData->$key = ( new UrlResourceBuilder() )->setUrl( $jsonData->$key );
 			}
 		} elseif ( is_object( $jsonData->$key ) ) {
 			replaceUrlsWithResourceObjects( $jsonData->$key );

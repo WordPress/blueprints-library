@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\VFSReference;
+use WordPress\Blueprints\Model\DataClass\InlineResource;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/VFSReference
+ * Built from #/definitions/InlineResource
  */
-class VFSReferenceBuilder extends VFSReference implements ClassStructureContract
+class InlineResourceBuilder extends InlineResource implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -26,21 +26,21 @@ class VFSReferenceBuilder extends VFSReference implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->resource = Schema::string();
-        $properties->resource->description = "Identifies the file resource as Virtual File System (VFS)";
-        $properties->resource->const = "vfs";
-        $properties->path = Schema::string();
-        $properties->path->description = "The path to the file in the VFS";
+        $properties->resource->description = "Identifies the file resource as an inline string";
+        $properties->resource->const = "inline";
+        $properties->contents = Schema::string();
+        $properties->contents->description = "The contents of the file";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
             self::names()->resource,
-            self::names()->path,
+            self::names()->contents,
         );
-        $ownerSchema->setFromRef('#/definitions/VFSReference');
+        $ownerSchema->setFromRef('#/definitions/InlineResource');
     }
 
     /**
-     * @param string $resource Identifies the file resource as Virtual File System (VFS)
+     * @param string $resource Identifies the file resource as an inline string
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -52,22 +52,22 @@ class VFSReferenceBuilder extends VFSReference implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $path The path to the file in the VFS
+     * @param string $contents The contents of the file
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPath($path)
+    public function setContents($contents)
     {
-        $this->path = $path;
+        $this->contents = $contents;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new VFSReference();
+        $dataObject = new InlineResource();
         $dataObject->resource = $this->recursiveJsonSerialize($this->resource);
-        $dataObject->path = $this->recursiveJsonSerialize($this->path);
+        $dataObject->contents = $this->recursiveJsonSerialize($this->contents);
         return $dataObject;
     }
 

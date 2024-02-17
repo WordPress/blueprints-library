@@ -11,16 +11,17 @@ use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintFeaturesBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintSiteOptionsBuilder;
-use WordPress\Blueprints\Model\Builder\CorePluginReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\CoreThemeReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
+use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
 use WordPress\Blueprints\Model\Builder\CpStepBuilder;
 use WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder;
 use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\Builder\EnableMultisiteStepBuilder;
+use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\Builder\ImportFileStepBuilder;
+use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder;
 use WordPress\Blueprints\Model\Builder\InstallThemeStepBuilder;
-use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\MkdirStepBuilder;
 use WordPress\Blueprints\Model\Builder\MvStepBuilder;
 use WordPress\Blueprints\Model\Builder\RmDirStepBuilder;
@@ -30,8 +31,7 @@ use WordPress\Blueprints\Model\Builder\RunSQLStepBuilder;
 use WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder;
 use WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 
@@ -53,7 +53,7 @@ class Blueprint
     /** @var string[] PHP Constants to define on every request */
     public $constants;
 
-    /** @var string[]|string[]|VFSReferenceBuilder[]|LiteralReferenceBuilder[]|CoreThemeReferenceBuilder[]|CorePluginReferenceBuilder[]|UrlReferenceBuilder[]|array WordPress plugins to install and activate */
+    /** @var string[]|string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array WordPress plugins to install and activate */
     public $plugins;
 
     /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */

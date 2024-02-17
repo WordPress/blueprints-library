@@ -136,28 +136,28 @@
 					"type": "string"
 				},
 				{
-					"$ref": "#/definitions/VFSReference"
+					"$ref": "#/definitions/FilesystemResource"
 				},
 				{
-					"$ref": "#/definitions/LiteralReference"
+					"$ref": "#/definitions/InlineResource"
 				},
 				{
-					"$ref": "#/definitions/CoreThemeReference"
+					"$ref": "#/definitions/CoreThemeResource"
 				},
 				{
-					"$ref": "#/definitions/CorePluginReference"
+					"$ref": "#/definitions/CorePluginResource"
 				},
 				{
-					"$ref": "#/definitions/UrlReference"
+					"$ref": "#/definitions/UrlResource"
 				}
 			]
 		},
-		"VFSReference": {
+		"FilesystemResource": {
 			"type": "object",
 			"properties": {
 				"resource": {
 					"type": "string",
-					"const": "vfs",
+					"const": "filesystem",
 					"description": "Identifies the file resource as Virtual File System (VFS)"
 				},
 				"path": {
@@ -171,13 +171,13 @@
 			],
 			"additionalProperties": false
 		},
-		"LiteralReference": {
+		"InlineResource": {
 			"type": "object",
 			"properties": {
 				"resource": {
 					"type": "string",
-					"const": "literal",
-					"description": "Identifies the file resource as a literal file"
+					"const": "inline",
+					"description": "Identifies the file resource as an inline string"
 				},
 				"contents": {
 					"type": "string",
@@ -190,7 +190,7 @@
 			],
 			"additionalProperties": false
 		},
-		"CoreThemeReference": {
+		"CoreThemeResource": {
 			"type": "object",
 			"properties": {
 				"resource": {
@@ -209,7 +209,7 @@
 			],
 			"additionalProperties": false
 		},
-		"CorePluginReference": {
+		"CorePluginResource": {
 			"type": "object",
 			"properties": {
 				"resource": {
@@ -228,7 +228,7 @@
 			],
 			"additionalProperties": false
 		},
-		"UrlReference": {
+		"UrlResource": {
 			"type": "object",
 			"properties": {
 				"resource": {

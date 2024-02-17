@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\UrlReference;
+use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/UrlReference
+ * Built from #/definitions/FilesystemResource
  */
-class UrlReferenceBuilder extends UrlReference implements ClassStructureContract
+class FilesystemResourceBuilder extends FilesystemResource implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -26,23 +26,21 @@ class UrlReferenceBuilder extends UrlReference implements ClassStructureContract
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->resource = Schema::string();
-        $properties->resource->description = "Identifies the file resource as a URL";
-        $properties->resource->const = "url";
-        $properties->url = Schema::string();
-        $properties->url->description = "The URL of the file";
-        $properties->caption = Schema::string();
-        $properties->caption->description = "Optional caption for displaying a progress message";
+        $properties->resource->description = "Identifies the file resource as Virtual File System (VFS)";
+        $properties->resource->const = "filesystem";
+        $properties->path = Schema::string();
+        $properties->path->description = "The path to the file in the VFS";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
             self::names()->resource,
-            self::names()->url,
+            self::names()->path,
         );
-        $ownerSchema->setFromRef('#/definitions/UrlReference');
+        $ownerSchema->setFromRef('#/definitions/FilesystemResource');
     }
 
     /**
-     * @param string $resource Identifies the file resource as a URL
+     * @param string $resource Identifies the file resource as Virtual File System (VFS)
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -54,35 +52,22 @@ class UrlReferenceBuilder extends UrlReference implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $url The URL of the file
+     * @param string $path The path to the file in the VFS
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setUrl($url)
+    public function setPath($path)
     {
-        $this->url = $url;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param string $caption Optional caption for displaying a progress message
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setCaption($caption)
-    {
-        $this->caption = $caption;
+        $this->path = $path;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new UrlReference();
+        $dataObject = new FilesystemResource();
         $dataObject->resource = $this->recursiveJsonSerialize($this->resource);
-        $dataObject->url = $this->recursiveJsonSerialize($this->url);
-        $dataObject->caption = $this->recursiveJsonSerialize($this->caption);
+        $dataObject->path = $this->recursiveJsonSerialize($this->path);
         return $dataObject;
     }
 

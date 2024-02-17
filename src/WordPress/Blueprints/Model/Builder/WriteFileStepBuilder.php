@@ -34,11 +34,11 @@ class WriteFileStepBuilder extends WriteFileStep implements ClassStructureContra
         $properties->data = new Schema();
         $propertiesDataAnyOf0 = new Schema();
         $propertiesDataAnyOf0->anyOf[0] = Schema::string();
-        $propertiesDataAnyOf0->anyOf[1] = VFSReferenceBuilder::schema();
-        $propertiesDataAnyOf0->anyOf[2] = LiteralReferenceBuilder::schema();
-        $propertiesDataAnyOf0->anyOf[3] = CoreThemeReferenceBuilder::schema();
-        $propertiesDataAnyOf0->anyOf[4] = CorePluginReferenceBuilder::schema();
-        $propertiesDataAnyOf0->anyOf[5] = UrlReferenceBuilder::schema();
+        $propertiesDataAnyOf0->anyOf[1] = FilesystemResourceBuilder::schema();
+        $propertiesDataAnyOf0->anyOf[2] = InlineResourceBuilder::schema();
+        $propertiesDataAnyOf0->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $propertiesDataAnyOf0->anyOf[4] = CorePluginResourceBuilder::schema();
+        $propertiesDataAnyOf0->anyOf[5] = UrlResourceBuilder::schema();
         $propertiesDataAnyOf0->setFromRef('#/definitions/FileReference');
         $properties->data->anyOf[0] = $propertiesDataAnyOf0;
         $properties->data->anyOf[1] = Schema::string();
@@ -102,7 +102,7 @@ class WriteFileStepBuilder extends WriteFileStep implements ClassStructureContra
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder|string $data The data to write
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder|string $data The data to write
      * @return $this
      * @codeCoverageIgnoreStart
      */

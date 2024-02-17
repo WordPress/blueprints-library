@@ -39,11 +39,11 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->plugins->items->anyOf[0] = Schema::string();
         $propertiesPluginsItemsAnyOf1 = new Schema();
         $propertiesPluginsItemsAnyOf1->anyOf[0] = Schema::string();
-        $propertiesPluginsItemsAnyOf1->anyOf[1] = VFSReferenceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[2] = LiteralReferenceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[3] = CoreThemeReferenceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[4] = CorePluginReferenceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[5] = UrlReferenceBuilder::schema();
+        $propertiesPluginsItemsAnyOf1->anyOf[1] = FilesystemResourceBuilder::schema();
+        $propertiesPluginsItemsAnyOf1->anyOf[2] = InlineResourceBuilder::schema();
+        $propertiesPluginsItemsAnyOf1->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $propertiesPluginsItemsAnyOf1->anyOf[4] = CorePluginResourceBuilder::schema();
+        $propertiesPluginsItemsAnyOf1->anyOf[5] = UrlResourceBuilder::schema();
         $propertiesPluginsItemsAnyOf1->setFromRef('#/definitions/FileReference');
         $properties->plugins->items->anyOf[1] = $propertiesPluginsItemsAnyOf1;
         $properties->plugins->description = "WordPress plugins to install and activate";
@@ -158,7 +158,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string[]|string[]|VFSReferenceBuilder[]|LiteralReferenceBuilder[]|CoreThemeReferenceBuilder[]|CorePluginReferenceBuilder[]|UrlReferenceBuilder[]|array $plugins WordPress plugins to install and activate
+     * @param string[]|string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array $plugins WordPress plugins to install and activate
      * @return $this
      * @codeCoverageIgnoreStart
      */

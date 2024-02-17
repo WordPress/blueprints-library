@@ -31,11 +31,11 @@ class ImportFileStepBuilder extends ImportFileStep implements ClassStructureCont
         $properties->step->const = "importFile";
         $properties->file = new Schema();
         $properties->file->anyOf[0] = Schema::string();
-        $properties->file->anyOf[1] = VFSReferenceBuilder::schema();
-        $properties->file->anyOf[2] = LiteralReferenceBuilder::schema();
-        $properties->file->anyOf[3] = CoreThemeReferenceBuilder::schema();
-        $properties->file->anyOf[4] = CorePluginReferenceBuilder::schema();
-        $properties->file->anyOf[5] = UrlReferenceBuilder::schema();
+        $properties->file->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->file->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->file->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->file->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->file->anyOf[5] = UrlResourceBuilder::schema();
         $properties->file->setFromRef('#/definitions/FileReference');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
@@ -83,7 +83,7 @@ class ImportFileStepBuilder extends ImportFileStep implements ClassStructureCont
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $file
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $file
      * @return $this
      * @codeCoverageIgnoreStart
      */

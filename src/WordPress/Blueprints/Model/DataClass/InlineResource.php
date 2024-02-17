@@ -8,10 +8,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class LiteralReference implements FileReferenceInterface
+class InlineResource implements FileReferenceInterface
 {
-    /** @var string Identifies the file resource as a literal file */
-    public $resource = 'literal';
+    /** @var string Identifies the file resource as an inline string */
+    public $resource = 'inline';
 
     /** @var string The contents of the file */
     public $contents;

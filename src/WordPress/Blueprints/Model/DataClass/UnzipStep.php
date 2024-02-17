@@ -6,12 +6,12 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-use WordPress\Blueprints\Model\Builder\CorePluginReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\CoreThemeReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
+use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
+use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
+use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
-use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
 class UnzipStep
@@ -25,7 +25,7 @@ class UnzipStep
     /** @var string */
     public $step = 'unzip';
 
-    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
     public $zipFile;
 
     /** @var string The path of the zip file to extract */

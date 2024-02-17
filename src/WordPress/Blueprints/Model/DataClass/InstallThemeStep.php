@@ -6,13 +6,13 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-use WordPress\Blueprints\Model\Builder\CorePluginReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\CoreThemeReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
+use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
+use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
+use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\InstallThemeStepOptionsBuilder;
-use WordPress\Blueprints\Model\Builder\LiteralReferenceBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
-use WordPress\Blueprints\Model\Builder\UrlReferenceBuilder;
-use WordPress\Blueprints\Model\Builder\VFSReferenceBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
 class InstallThemeStep
@@ -26,7 +26,7 @@ class InstallThemeStep
     /** @var string The step identifier. */
     public $step = 'installTheme';
 
-    /** @var string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder */
+    /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
     public $themeZipFile;
 
     /** @var InstallThemeStepOptionsBuilder Optional installation options. */

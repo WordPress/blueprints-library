@@ -32,11 +32,11 @@ class InstallThemeStepBuilder extends InstallThemeStep implements ClassStructure
         $properties->step->const = "installTheme";
         $properties->themeZipFile = new Schema();
         $properties->themeZipFile->anyOf[0] = Schema::string();
-        $properties->themeZipFile->anyOf[1] = VFSReferenceBuilder::schema();
-        $properties->themeZipFile->anyOf[2] = LiteralReferenceBuilder::schema();
-        $properties->themeZipFile->anyOf[3] = CoreThemeReferenceBuilder::schema();
-        $properties->themeZipFile->anyOf[4] = CorePluginReferenceBuilder::schema();
-        $properties->themeZipFile->anyOf[5] = UrlReferenceBuilder::schema();
+        $properties->themeZipFile->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->themeZipFile->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->themeZipFile->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->themeZipFile->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->themeZipFile->anyOf[5] = UrlResourceBuilder::schema();
         $properties->themeZipFile->setFromRef('#/definitions/FileReference');
         $properties->options = InstallThemeStepOptionsBuilder::schema();
         $ownerSchema->type = Schema::OBJECT;
@@ -85,7 +85,7 @@ class InstallThemeStepBuilder extends InstallThemeStep implements ClassStructure
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|VFSReferenceBuilder|LiteralReferenceBuilder|CoreThemeReferenceBuilder|CorePluginReferenceBuilder|UrlReferenceBuilder $themeZipFile
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $themeZipFile
      * @return $this
      * @codeCoverageIgnoreStart
      */
