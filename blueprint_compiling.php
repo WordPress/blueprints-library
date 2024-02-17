@@ -344,9 +344,10 @@ findResources( $blueprint, $resources );
 
 $container = ContainerBuilder::build( 'native' );
 
+// @TODO: $container['resource.manager']->enqueue($resources);
+// then, remove this {{{
 $resourceMap = new ResourceManager();
 foreach ( $resources as $path => $resourceDeclaration ) {
-	// @TODO: $container['resource.manager']->enqueue($resourceDeclaration);
 	if ( $resourceDeclaration instanceof InlineResource ) {
 		$fp = fopen( "php://temp", 'r+' );
 		fwrite( $fp, $resourceDeclaration->contents );
@@ -360,6 +361,7 @@ foreach ( $resources as $path => $resourceDeclaration ) {
 	}
 	$resourceMap[ $resourceDeclaration ] = $fp;
 }
+// }}}
 
 print_r( $resources );
 $runtime = new \WordPress\Blueprints\Runtime\NativePHPRuntime(
