@@ -11,11 +11,14 @@ class NativePHPRuntime implements RuntimeInterface {
 	) {
 	}
 
+	// @TODO: public function getTmpDir(): string {
+	// @TODO: should this class mediate network requests?
 
 	public function getDocumentRoot(): string {
 		return $this->documentRoot;
 	}
 
+	// @TODO: Move this to a separate class
 	public function evalPhpInSubProcess(
 		$code,
 		?array $env = null,
@@ -38,6 +41,7 @@ class NativePHPRuntime implements RuntimeInterface {
 		);
 	}
 
+	// @TODO: Move this to a separate class
 	public function runShellCommand(
 		array $command,
 		?string $cwd = null,
