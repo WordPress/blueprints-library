@@ -179,10 +179,6 @@
 					"const": "literal",
 					"description": "Identifies the file resource as a literal file"
 				},
-				"name": {
-					"type": "string",
-					"description": "The name of the file"
-				},
 				"contents": {
 					"type": "string",
 					"description": "The contents of the file"
@@ -190,7 +186,6 @@
 			},
 			"required": [
 				"resource",
-				"name",
 				"contents"
 			],
 			"additionalProperties": false

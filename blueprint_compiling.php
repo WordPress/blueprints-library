@@ -120,7 +120,7 @@ $builder
 		( new \WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder() )
 			->setSiteUrl( 'http://localhost:8080' ),
 //		( new \WordPress\Blueprints\Model\Builder\RunSQLStepBuilder() )
-//			->setSql( ( new LiteralReferenceBuilder() )->setName( 'file.sql' )->setContents(
+//			->setSql( ( new LiteralReferenceBuilder() )->setContents(
 //				<<<'SQL'
 //CREATE TABLE `tmp_table` ( id INT );
 //INSERT INTO `tmp_table` VALUES (1);
@@ -131,7 +131,7 @@ $builder
 		( new WriteFileStepBuilder() )
 			->setContinueOnError( true )
 			->setPath( 'wordpress.txt' )
-			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" )->setName( "A" ) ),
+			->setData( ( new LiteralReferenceBuilder() )->setContents( "Data" ) ),
 //		( ( new UnzipStepBuilder() )
 //			->setZipFile(
 //				'https://wordpress.org/latest.zip'
@@ -155,7 +155,7 @@ function replaceUrlsWithResourceObjects( $jsonData ) {
 				} elseif ( str_starts_with( $jsonData->$key, 'file://' ) || str_starts_with( $jsonData->$key, './' ) ) {
 					$jsonData->$key = ( new VFSReferenceBuilder() )->setPath( $jsonData->$key );
 				} else {
-					$jsonData->$key = ( new LiteralReferenceBuilder() )->setName( "literal" )->setContents( $jsonData->$key );
+					$jsonData->$key = ( new LiteralReferenceBuilder() )->setContents( $jsonData->$key );
 				}
 			}
 		} elseif ( is_object( $jsonData->$key ) ) {

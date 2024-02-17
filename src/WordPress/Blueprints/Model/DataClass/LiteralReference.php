@@ -13,9 +13,6 @@ class LiteralReference implements FileReferenceInterface
     /** @var string Identifies the file resource as a literal file */
     public $resource = 'literal';
 
-    /** @var string The name of the file */
-    public $name;
-
     /** @var string The contents of the file */
     public $contents;
 }

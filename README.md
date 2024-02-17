@@ -12,6 +12,18 @@ Run tests with
 vendor/bin/pest
 ```
 
+Regenerate models from JSON schema with
+
+```shell
+ php src/WordPress/Blueprints/bin/autogenerate_models.php
+```
+
+Run a Blueprint with
+
+```shell
+php blueprint_compiling.php
+```
+
 Setup WordPress with SQLite using asynchronous resource fetching as follows:
 
 ```shell

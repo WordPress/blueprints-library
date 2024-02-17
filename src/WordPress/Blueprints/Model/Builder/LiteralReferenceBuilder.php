@@ -28,15 +28,12 @@ class LiteralReferenceBuilder extends LiteralReference implements ClassStructure
         $properties->resource = Schema::string();
         $properties->resource->description = "Identifies the file resource as a literal file";
         $properties->resource->const = "literal";
-        $properties->name = Schema::string();
-        $properties->name->description = "The name of the file";
         $properties->contents = Schema::string();
         $properties->contents->description = "The contents of the file";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
             self::names()->resource,
-            self::names()->name,
             self::names()->contents,
         );
         $ownerSchema->setFromRef('#/definitions/LiteralReference');
@@ -50,18 +47,6 @@ class LiteralReferenceBuilder extends LiteralReference implements ClassStructure
     public function setResource($resource)
     {
         $this->resource = $resource;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param string $name The name of the file
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -82,7 +67,6 @@ class LiteralReferenceBuilder extends LiteralReference implements ClassStructure
     {
         $dataObject = new LiteralReference();
         $dataObject->resource = $this->recursiveJsonSerialize($this->resource);
-        $dataObject->name = $this->recursiveJsonSerialize($this->name);
         $dataObject->contents = $this->recursiveJsonSerialize($this->contents);
         return $dataObject;
     }
