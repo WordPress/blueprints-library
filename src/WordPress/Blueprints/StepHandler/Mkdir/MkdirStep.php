@@ -1,8 +1,8 @@
 <?php
 
-namespace WordPress\Blueprints\Steps\Mkdir;
+namespace WordPress\Blueprints\StepHandler\Mkdir;
 
-use WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\StepHandler\BaseStep;
 
 class MkdirStep extends BaseStep {
 	public function __construct(

@@ -1,8 +1,8 @@
 <?php
 
-namespace WordPress\Blueprints\Steps\Cp;
+namespace WordPress\Blueprints\StepHandler\Cp;
 
-use WordPress\Blueprints\Steps\BaseStep;
+use WordPress\Blueprints\StepHandler\BaseStep;
 
 class CpStep extends BaseStep {
 	public function __construct(

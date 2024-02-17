@@ -47,8 +47,8 @@ function registerBlueprintStepHandler( $stepHandlerClass, array $details = [] ) 
 	$stepMeta[ $details['slug'] ] = $details;
 }
 
-registerBlueprintStepHandler( WordPress\Blueprints\Steps\UnzipStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\Steps\WriteFileHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\UnzipStepHandler::class );
+registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\WriteFileHandler::class );
 
 
 $builder = new BlueprintBuilder();

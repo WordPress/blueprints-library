@@ -14,6 +14,7 @@ if ( ! file_exists( $targetPath ) ) {
 }
 $dataClassNs = 'WordPress\\Blueprints\\Model\\DataClass';
 $builderNs   = 'WordPress\\Blueprints\\Model\\Builder';
+$handlerNs   = 'WordPress\\Blueprints\\StepHandler';
 
 /**
  * Same as \Swaggest\PhpCodeBuilder\App\PhpApp. but does not
@@ -25,17 +26,30 @@ $builderNs   = 'WordPress\\Blueprints\\Model\\Builder';
  */
 class CarefulPhpApp extends \Swaggest\PhpCodeBuilder\App\PhpApp {
 	protected $psr4Namespaces = [];
+	protected $directoriesToClear = [];
 
-	public function setNamespaceRoot( $namespace, $relativePath = './src/' ) {
+	public function setNamespaceRoot( $namespace, $relativePath = './src/', $clear = true ) {
 		$relativePath                       = rtrim( $relativePath, '/' ) . '/';
 		$this->psr4Namespaces[ $namespace ] = $relativePath;
 		parent::setNamespaceRoot( $namespace, $relativePath );
 
+		if ( $clear ) {
+			$this->directoriesToClear[] = $relativePath;
+		}
+
 		return $this;
 	}
 
+	public function generatedClassExists( $rootPath, $namespace, $className ) {
+		$namespacePath = $this->psr4Namespaces[ $namespace ];
+		$rootPath      = rtrim( $rootPath, '/' ) . '/';
+		$classPath     = $rootPath . $namespacePath . $className . '.php';
+
+		return file_exists( $classPath );
+	}
+
 	public function store( $path ) {
-		foreach ( $this->psr4Namespaces as $namespace => $relativePath ) {
+		foreach ( $this->directoriesToClear as $relativePath ) {
 			$dir = realpath( $path . $relativePath );
 			foreach ( glob( $dir . '/*.php' ) as $oldFile ) {
 				unlink( $oldFile );
@@ -58,6 +72,7 @@ class CarefulPhpApp extends \Swaggest\PhpCodeBuilder\App\PhpApp {
 $app = new CarefulPhpApp();
 $app->setNamespaceRoot( $dataClassNs, './DataClass' );
 $app->setNamespaceRoot( $builderNs, './Builder' );
+$app->setNamespaceRoot( $handlerNs, '../StepHandler' );
 
 $builder                          = new \Swaggest\PhpCodeBuilder\JsonSchema\PhpBuilder();
 $builder->buildSetters            = true;
@@ -109,8 +124,10 @@ $app->addClass( $fileReferenceInterface );
 $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCallback(
 	function ( \Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema ) use (
 		$app,
+		$targetPath,
 		$builderNs,
 		$dataClassNs,
+		$handlerNs,
 		$fileReferenceInterface,
 		$fileReferenceClasses
 	) {
@@ -170,6 +187,26 @@ METHOD
 		$class->addImplements( ( new \Swaggest\PhpCodeBuilder\PhpInterface() )->setName( '\\Swaggest\\JsonSchema\\Structure\\ClassStructureContract' ) );
 
 		$app->addClass( $dataClass );
+
+		$handlerClassName = $dataClassName . 'Handler';
+		// Create a handler class if it's missing
+		if ( ! $app->generatedClassExists( $targetPath, $handlerNs, $handlerClassName ) ) {
+			$baseStepHandlerClass = new \Swaggest\PhpCodeBuilder\PhpClass();
+			$baseStepHandlerClass->setNamespace( 'WordPress\\Blueprints\\StepHandler' );
+			$baseStepHandlerClass->setName( 'BaseStepHandler' );
+
+			$handlerClass = new \Swaggest\PhpCodeBuilder\PhpClass();
+			$handlerClass->setNamespace( $handlerNs );
+			$handlerClass->setExtends( $baseStepHandlerClass );
+			$handlerClass->setName( $handlerClassName );
+			$execute = new \Swaggest\PhpCodeBuilder\PhpFunction( 'execute' );
+			$execute->setBody( '' );
+			$input = new \Swaggest\PhpCodeBuilder\PhpNamedVar( 'input' );
+			$input->setType( $dataClass );
+			$execute->addArgument( $input );
+			$handlerClass->addMethod( $execute );
+			$app->addClass( $handlerClass );
+		}
 	}
 );
 

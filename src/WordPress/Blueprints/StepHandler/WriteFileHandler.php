@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\Steps;
+namespace WordPress\Blueprints\StepHandler;
 
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Progress\Tracker;

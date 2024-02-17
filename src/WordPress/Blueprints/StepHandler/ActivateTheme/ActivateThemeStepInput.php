@@ -1,8 +1,8 @@
 <?php
 
-namespace WordPress\Blueprints\Steps\ActivateTheme;
+namespace WordPress\Blueprints\StepHandler\ActivateTheme;
 
-use WordPress\Blueprints\Steps\BaseStepInput;
+use WordPress\Blueprints\StepHandler\BaseStepInput;
 
 class ActivateThemeStepInput extends BaseStepInput {
 

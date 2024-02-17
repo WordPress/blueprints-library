@@ -1,11 +1,11 @@
 <?php
 
-namespace WordPress\Blueprints\Steps\ActivateTheme;
+namespace WordPress\Blueprints\StepHandler\ActivateTheme;
 
-use WordPress\Blueprints\Steps\BaseStep;
-use WordPress\Blueprints\Steps\ActivateTheme\ActivateThemeStepInput;
-use WordPress\Blueprints\Steps\ActivateTheme\ProgressCaptionEvent;
-use function WordPress\Blueprints\Steps\ActivateTheme\run_php_file;
+use WordPress\Blueprints\StepHandler\BaseStep;
+use WordPress\Blueprints\StepHandler\ActivateTheme\ActivateThemeStepInput;
+use WordPress\Blueprints\StepHandler\ActivateTheme\ProgressCaptionEvent;
+use function WordPress\Blueprints\StepHandler\ActivateTheme\run_php_file;
 
 require_once __DIR__ . '/Utils.php';
 

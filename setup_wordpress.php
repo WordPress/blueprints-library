@@ -3,10 +3,10 @@
 require 'vendor/autoload.php';
 
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Steps\Unzip\UnzipStepInput;
-use WordPress\Blueprints\Steps\UnzipStepHandler;
-use WordPress\Blueprints\Steps\WriteFile\WriteFileStepInput;
-use WordPress\Blueprints\Steps\WriteFileHandler;
+use WordPress\Blueprints\StepHandler\Unzip\UnzipStepInput;
+use WordPress\Blueprints\StepHandler\UnzipStepHandler;
+use WordPress\Blueprints\StepHandler\WriteFile\WriteFileStepInput;
+use WordPress\Blueprints\StepHandler\WriteFileHandler;
 
 $urls = [
 	'https://wordpress.org/latest.zip'                                       => 'outdir',

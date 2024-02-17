@@ -4,7 +4,7 @@ namespace WordPress\Blueprints;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use WordPress\Blueprints\Resources\Resource;
-use WordPress\Blueprints\Steps\UnzipStepHandler;
+use WordPress\Blueprints\StepHandler\UnzipStepHandler;
 
 class CompiledStep {
 	public function __construct( public object $step, public array $resources ) {
