@@ -346,7 +346,7 @@ $container = ContainerBuilder::build( 'native' );
 
 $resourceMap = new ResourceManager();
 foreach ( $resources as $path => $resourceDeclaration ) {
-	// $container['resource.manager']->stream($resourceDeclaration);
+	// @TODO: $container['resource.manager']->enqueue($resourceDeclaration);
 	if ( $resourceDeclaration instanceof InlineResource ) {
 		$fp = fopen( "php://temp", 'r+' );
 		fwrite( $fp, $resourceDeclaration->contents );
