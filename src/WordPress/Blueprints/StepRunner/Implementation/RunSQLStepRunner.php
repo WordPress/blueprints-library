@@ -3,18 +3,18 @@
  * @file
  */
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\RunSQLStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class RunSQLStepHandler extends BaseStepHandler {
+class RunSQLStepRunner extends BaseStepRunner {
 	/**
 	 * @param RunSQLStep $input
 	 */
-	function execute(
+	function run(
 		RunSQLStep $input,
 		Tracker $progress = null
 	) {

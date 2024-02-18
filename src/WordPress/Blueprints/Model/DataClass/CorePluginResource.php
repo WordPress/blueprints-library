@@ -10,6 +10,8 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class CorePluginResource implements FileReferenceInterface
 {
+    const SLUG = 'wordpress.org/plugins';
+
     /** @var string Identifies the file resource as a WordPress Core plugin */
     public $resource = 'wordpress.org/plugins';
 

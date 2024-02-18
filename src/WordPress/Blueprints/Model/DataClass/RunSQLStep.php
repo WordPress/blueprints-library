@@ -14,8 +14,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class RunSQLStep
+class RunSQLStep implements StepInterface
 {
+    const SLUG = 'runSql';
+
     /** @var ProgressBuilder */
     public $progress;
 

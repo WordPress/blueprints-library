@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class ActivateThemeStep
+class ActivateThemeStep implements StepInterface
 {
+    const SLUG = 'activateTheme';
+
     /** @var ProgressBuilder */
     public $progress;
 

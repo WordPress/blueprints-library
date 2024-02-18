@@ -10,6 +10,8 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class CoreThemeResource implements FileReferenceInterface
 {
+    const SLUG = 'wordpress.org/themes';
+
     /** @var string Identifies the file resource as a WordPress Core theme */
     public $resource = 'wordpress.org/themes';
 

@@ -10,6 +10,8 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class InlineResource implements FileReferenceInterface
 {
+    const SLUG = 'inline';
+
     /** @var string Identifies the file resource as an inline string */
     public $resource = 'inline';
 

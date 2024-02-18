@@ -10,6 +10,8 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class FilesystemResource implements FileReferenceInterface
 {
+    const SLUG = 'filesystem';
+
     /** @var string Identifies the file resource as Virtual File System (VFS) */
     public $resource = 'filesystem';
 

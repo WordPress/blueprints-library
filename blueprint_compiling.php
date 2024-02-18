@@ -1,74 +1,22 @@
 <?php
 
-use Swaggest\JsonDiff\JsonPointer;
 use Swaggest\JsonSchema\InvalidValue;
-use Swaggest\JsonSchema\Schema;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Model\Builder\InstallPluginOptionsBuilder;
 use WordPress\Blueprints\ResourceManager;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
-use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
-use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\InlineResource;
-use WordPress\Blueprints\Model\DataClass\UrlResource;
-use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 
 require 'vendor/autoload.php';
 
-$stepMeta = [];
-function registerBlueprintStepHandler( $stepHandlerClass, array $details = [] ) {
-	global $stepMeta;
+$builder   = new ContainerBuilder();
+$container = $builder->build( 'native' );
 
-	if ( empty( $details['model'] ) ) {
-		// Get the type of the first parameter of the execute method
-		$reflection = new \ReflectionMethod( $stepHandlerClass, 'execute' );
-		$parameters = $reflection->getParameters();
-		if ( $parameters[0] ) {
-			$details['model'] = $parameters[0]->getType()->getName();
-		}
-	}
-	if ( empty( $details['model'] ) || ! class_exists( $details['model'] ) ) {
-		throw new \InvalidArgumentException( "Could not determine input class for $stepHandlerClass" );
-	}
-
-	$details['slug'] = $details['slug'] ?? ( new \ReflectionClass( $details['model'] ) )->getProperty( 'step' )->getDefaultValue();
-
-	if ( empty( $details['factory'] ) ) {
-		$details['factory'] = function () use ( $stepHandlerClass ) {
-			return new $stepHandlerClass();
-		};
-	}
-
-	$stepMeta[ $details['slug'] ] = $details;
-}
-
-registerBlueprintStepHandler( \WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\WriteFileStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunPHPStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\DefineWpConfigConstsStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\EnableMultisiteStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\DefineSiteUrlStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RmDirStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RmStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\MvStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\CpStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\WPCLIStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\SetSiteOptionsStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ActivatePluginStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ActivateThemeStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\InstallPluginStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\InstallThemeStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\ImportFileStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunWordPressInstallerStepHandler::class );
-registerBlueprintStepHandler( WordPress\Blueprints\StepHandler\Implementation\RunSQLStepHandler::class );
+$resourceResolver = $container['resource.resolver'];
 
 $builder = new BlueprintBuilder();
 $builder
@@ -144,19 +92,18 @@ $builder
 	] );
 
 function replaceUrlsWithResourceObjects( $jsonData ) {
+	global $resourceResolver;
 	if ( ! ( $jsonData instanceof ClassStructureContract ) || $jsonData instanceof WriteFileStep ) {
 		return;
 	}
 	foreach ( $jsonData::schema()->getProperties() as $key => $value ) {
 		if ( is_string( $jsonData->$key ) ) {
 			if ( $jsonData::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
-				if ( str_starts_with( $jsonData->$key, 'https://' ) ) {
-					$jsonData->$key = ( new UrlResourceBuilder() )->setUrl( $jsonData->$key );
-				} elseif ( str_starts_with( $jsonData->$key, 'file://' ) || str_starts_with( $jsonData->$key, './' ) ) {
-					$jsonData->$key = ( new FilesystemResourceBuilder() )->setPath( $jsonData->$key );
-				} else {
-					$jsonData->$key = ( new InlineResourceBuilder() )->setContents( $jsonData->$key );
+				$resource = $resourceResolver->parseUrl( $jsonData->$key );
+				if ( false === $resource ) {
+					throw new \InvalidArgumentException( "Could not parse resource {$jsonData->$key}" );
 				}
+				$jsonData->$key = $resource;
 			}
 		} elseif ( is_object( $jsonData->$key ) ) {
 			replaceUrlsWithResourceObjects( $jsonData->$key );
@@ -342,72 +289,68 @@ function findResources( $jsonData, &$resources, $path = '' ) {
 $resources = [];
 findResources( $blueprint, $resources );
 
-$container = ContainerBuilder::build( 'native' );
 
 // @TODO: $container['resource.manager']->enqueue($resources);
-// then, remove this {{{
 $resourceMap = new ResourceManager();
-foreach ( $resources as $path => $resourceDeclaration ) {
-	if ( $resourceDeclaration instanceof InlineResource ) {
-		$fp = fopen( "php://temp", 'r+' );
-		fwrite( $fp, $resourceDeclaration->contents );
-		rewind( $fp );
-	} elseif ( $resourceDeclaration instanceof UrlResource ) {
-		$fp = $container['data_source.url']->stream( $resourceDeclaration->url );
-	} elseif ( $resourceDeclaration instanceof FilesystemResource ) {
-		$fp = fopen( $resourceDeclaration->path, 'r' );
-	} else {
-		throw new \InvalidArgumentException( "Unknown resource type " . $resourceDeclaration->resource );
-	}
-	$resourceMap[ $resourceDeclaration ] = $fp;
+foreach ( $resources as $resourceDeclaration ) {
+	$resourceMap[ $resourceDeclaration ] = $resourceResolver->stream( $resourceDeclaration );
 }
-// }}}
 
 print_r( $resources );
 $runtime = new \WordPress\Blueprints\Runtime\NativePHPRuntime(
 	__DIR__ . '/outdir/wordpress'
 );
 
+
+interface StepResult {
+
+}
+
+class StepSuccess implements StepResult {
+
+	public function __construct( public \WordPress\Blueprints\Model\DataClass\StepInterface $step, public $result ) {
+	}
+}
+
+class StepFailure extends \WordPress\Blueprints\BlueprintException implements StepResult {
+
+	public function __construct(
+		public \WordPress\Blueprints\Model\DataClass\StepInterface $step,
+		\Exception $cause
+	) {
+		parent::__construct( "Error when executing step $step->step", 0, $cause );
+	}
+}
+
+class BlueprintExecutionException extends \WordPress\Blueprints\BlueprintException {
+}
+
+// Compile, ensure all the runners may be created and configured
 $compiledSteps = [];
 foreach ( $blueprint->steps as $step ) {
-	if ( empty( $stepMeta[ $step->step ] ) ) {
-		throw new \InvalidArgumentException( "No handler for step {$step->step}" );
-	}
-	$handler = $stepMeta[ $step->step ]['factory']();
-	/** @var $handler \WordPress\Blueprints\StepHandler\BaseStepHandler */
-	$handler->setResourceMap( $resourceMap );
-	$handler->setRuntime( $runtime );
-	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $stepMeta, $handler, $resourceMap ) {
-		return $handler->execute( $step, $progressTracker );
+	$runner = $container['step.runner_factory']( $step->step );
+	/** @var $runner \WordPress\Blueprints\StepRunner\BaseStepRunner */
+	$runner->setResourceMap( $resourceMap );
+	$runner->setRuntime( $runtime );
+	$compiledSteps[] = function ( $progressTracker = null ) use ( $step, $runner, $resourceMap ) {
+		return $runner->run( $step, $progressTracker );
 	};
 }
 
-class StepResult {
-
-}
-
-class StepSuccess extends StepResult {
-
-	public function __construct( public $step, public $result ) {
-	}
-}
-
-class StepFailure extends StepResult {
-
-	public function __construct( public $step, public \Exception $exception ) {
-	}
-}
-
+// Run, store results
 $results = [];
 foreach ( $compiledSteps as $k => $runStep ) {
 	$step = $blueprint->steps[ $k ];
 	try {
 		$results[ $k ] = new StepSuccess( $step, $runStep() );
 	} catch ( \Exception $e ) {
-		if ( $step->continueOnError === true ) {
-			$results[ $k ] = new StepFailure( $step, $e );
-		} else {
-			throw $e;
+		$results[ $k ] = new StepFailure( $step, $e );
+		if ( $step->continueOnError !== true ) {
+			throw new BlueprintExecutionException(
+				"Error when executing step $step->step (number $k on the list)",
+				0,
+				$results[ $k ]
+			);
 		}
 	}
 }

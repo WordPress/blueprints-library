@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class EnableMultisiteStep
+class EnableMultisiteStep implements StepInterface
 {
+    const SLUG = 'enableMultisite';
+
     /** @var ProgressBuilder */
     public $progress;
 

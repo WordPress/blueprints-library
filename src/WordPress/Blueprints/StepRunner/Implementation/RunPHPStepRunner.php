@@ -1,13 +1,13 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\RunPHPStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class RunPHPStepHandler extends BaseStepHandler {
-	function execute( RunPHPStep $input, Tracker $tracker = null ) {
+class RunPHPStepRunner extends BaseStepRunner {
+	function run( RunPHPStep $input, Tracker $tracker ) {
 		$tracker?->setCaption( "Running custom PHP code" );
 
 		return $this->getRuntime()->evalPhpInSubProcess( $input->code );

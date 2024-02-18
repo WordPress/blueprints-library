@@ -14,8 +14,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class UnzipStep
+class UnzipStep implements StepInterface
 {
+    const SLUG = 'unzip';
+
     /** @var ProgressBuilder */
     public $progress;
 

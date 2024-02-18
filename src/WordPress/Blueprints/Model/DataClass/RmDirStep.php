@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class RmDirStep
+class RmDirStep implements StepInterface
 {
+    const SLUG = 'rmdir';
+
     /** @var ProgressBuilder */
     public $progress;
 

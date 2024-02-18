@@ -4,7 +4,7 @@ namespace WordPress\Blueprints;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use WordPress\Blueprints\Resources\Resource;
-use WordPress\Blueprints\StepHandler\Implementation\UnzipStepHandler;
+use WordPress\Blueprints\StepRunner\Implementation\UnzipStepRunner;
 
 class CompiledStep {
 	public function __construct( public object $step, public array $resources ) {
@@ -40,9 +40,9 @@ class CompiledBlueprint {
 		$this->events = new EventDispatcher();
 	}
 
-	public function execute() {
+	public function run() {
 		foreach ( $this->steps as $step ) {
-			$step->step->execute();
+			$step->step->run();
 		}
 	}
 
@@ -85,7 +85,7 @@ class Compiler {
 
 		$args = $stepJson;
 		unset( $args['step'] );
-		$resourceArgs = $this->getStepResourceArgs( UnzipStepHandler::getInputClass() );
+		$resourceArgs = $this->getStepResourceArgs( UnzipStepRunner::getInputClass() );
 		foreach ( $resourceArgs as $resourceArgName ) {
 			$arg         = $args[ $resourceArgName ];
 			$resources[] = $args[ $resourceArgName ] = $this->compileResource( $arg );

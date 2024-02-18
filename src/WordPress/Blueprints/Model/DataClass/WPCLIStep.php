@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class WPCLIStep
+class WPCLIStep implements StepInterface
 {
+    const SLUG = 'wp-cli';
+
     /** @var ProgressBuilder */
     public $progress;
 

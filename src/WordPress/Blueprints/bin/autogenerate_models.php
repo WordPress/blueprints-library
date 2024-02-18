@@ -14,7 +14,7 @@ if ( ! file_exists( $targetPath ) ) {
 }
 $dataClassNs = 'WordPress\\Blueprints\\Model\\DataClass';
 $builderNs   = 'WordPress\\Blueprints\\Model\\Builder';
-$handlerNs   = 'WordPress\\Blueprints\\StepHandler\\Implementation';
+$handlerNs   = 'WordPress\\Blueprints\\StepRunner\\Implementation';
 
 /**
  * Same as \Swaggest\PhpCodeBuilder\App\PhpApp. but does not
@@ -103,7 +103,7 @@ class CarefulPhpApp extends \Swaggest\PhpCodeBuilder\App\PhpApp {
 $app = new CarefulPhpApp();
 $app->setNamespaceRoot( $dataClassNs, './Model/DataClass', $clear = true );
 $app->setNamespaceRoot( $builderNs, './Model/Builder', $clear = true );
-$app->setNamespaceRoot( $handlerNs, './StepHandler/Implementation' );
+$app->setNamespaceRoot( $handlerNs, './StepRunner/Implementation' );
 
 $builder                          = new \Swaggest\PhpCodeBuilder\JsonSchema\PhpBuilder();
 $builder->buildSetters            = true;
@@ -136,21 +136,34 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 	}
 );
 
-// Add a FileReference interface
+// Make all FileReference and StepDefinition models share a
+// common interface.
 // I didn't find any way of getting those information from $schema,
-// so here's a native extraction of all the FileReference classes
-$fileReferences       = $blueprintSchema->definitions->FileReference;
-$fileReferenceClasses = [];
-foreach ( $fileReferences->anyOf as $name => $property ) {
-	if ( $property->{'$ref'} ) {
-		$parts                         = explode( '/', $property->{'$ref'} );
-		$fileReferenceClasses[ $name ] = end( $parts );
+// so here's a native extraction of all the relevant classes.
+$interfaces = [
+	'FileReference'  => [
+		'interfaceName' => 'FileReferenceInterface',
+	],
+	'StepDefinition' => [
+		'interfaceName' => 'StepInterface',
+	],
+];
+foreach ( $interfaces as $definitionName => $details ) {
+	$schemaDefinition                              = $blueprintSchema->definitions->{$definitionName};
+	$interfaces[ $definitionName ]['implementers'] = [];
+	$relatedRefs                                   = property_exists( $schemaDefinition,
+		'anyOf' ) ? $schemaDefinition->anyOf : $schemaDefinition->oneOf;
+	foreach ( $relatedRefs as $name => $property ) {
+		if ( $property->{'$ref'} ) {
+			$parts                                           = explode( '/', $property->{'$ref'} );
+			$interfaces[ $definitionName ]['implementers'][] = end( $parts );
+		}
 	}
+	$interfaces[ $definitionName ]['interface'] = ( new \Swaggest\PhpCodeBuilder\PhpInterface() )
+		->setName( $details['interfaceName'] )
+		->setNamespace( $dataClassNs );
+	$app->addClass( $interfaces[ $definitionName ]['interface'] );
 }
-$fileReferenceInterface = ( new \Swaggest\PhpCodeBuilder\PhpInterface() )
-	->setName( 'FileReferenceInterface' )
-	->setNamespace( $dataClassNs );
-$app->addClass( $fileReferenceInterface );
 
 $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCallback(
 	function ( \Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema ) use (
@@ -159,20 +172,23 @@ $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookC
 		$builderNs,
 		$dataClassNs,
 		$handlerNs,
-		$fileReferenceInterface,
-		$fileReferenceClasses
+		$interfaces,
 	) {
 		$dataClass = new \Swaggest\PhpCodeBuilder\PhpClass();
 		// Remove the "Builder" suffix from the class name
 		$dataClassName = substr( $class->getName(), 0, - 7 );
 		$dataClass->setName( $dataClassName );
 		$dataClass->setNamespace( $dataClassNs );
+		// Add the relevant interfaces, like StepDefinitionInterface
+		foreach ( $interfaces as $details ) {
+			if ( in_array( $dataClassName, $details['implementers'] ) ) {
+				$dataClass->addImplements( $details['interface'] );
+			}
+		}
+
 		// Add all the properties from the builder class to the data class
 		foreach ( $class->getProperties() as $property ) {
 			$dataClass->addProperty( $property );
-		}
-		if ( in_array( $dataClassName, $fileReferenceClasses ) ) {
-			$dataClass->addImplements( $fileReferenceInterface );
 		}
 
 		// ...and remove them from the builder class – they will be inherited
@@ -186,9 +202,16 @@ $builder->classPreparedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookC
 		foreach ( $dataClass->getProperties() as $property ) {
 			$name = $property->getNamedVar()->getName();
 			if ( $schemaProperties->$name && $schemaProperties->$name->const ) {
+				if (
+					( str_ends_with( $dataClassName, 'Step' ) && $name === 'step' )
+					|| ( str_ends_with( $dataClassName, 'Resource' ) && $name === 'resource' )
+				) {
+					$const = new \Swaggest\PhpCodeBuilder\PhpConstant( 'SLUG', $schemaProperties->$name->const );
+					$dataClass->addConstant( $const );
+				}
 				$property->getNamedVar()->setDefault( $schemaProperties->$name->const );
 			}
-		};
+		}
 
 		// Add a toDataObject method to the builder class that will return a new instance of the data class
 		$toDataObjectBody = "\$dataObject = new $dataClassName();\n";
@@ -225,13 +248,13 @@ METHOD
 			str_ends_with( $dataClassName, 'Step' ) &&
 			! $app->generatedClassExists( $targetPath, $handlerNs, $handlerClassName )
 		) {
-			$baseStepHandlerClass = new \Swaggest\PhpCodeBuilder\PhpClass();
-			$baseStepHandlerClass->setNamespace( 'WordPress\\Blueprints\\StepHandler' );
-			$baseStepHandlerClass->setName( 'BaseStepHandler' );
+			$baseStepRunnerClass = new \Swaggest\PhpCodeBuilder\PhpClass();
+			$baseStepRunnerClass->setNamespace( 'WordPress\\Blueprints\\StepRunner' );
+			$baseStepRunnerClass->setName( 'BaseStepRunner' );
 
 			$handlerClass = new \Swaggest\PhpCodeBuilder\PhpClass();
 			$handlerClass->setNamespace( $handlerNs );
-			$handlerClass->setExtends( $baseStepHandlerClass );
+			$handlerClass->setExtends( $baseStepRunnerClass );
 			$handlerClass->setName( $handlerClassName );
 			$execute = new \Swaggest\PhpCodeBuilder\PhpFunction( 'execute' );
 			$execute->setBody( '' );

@@ -1,18 +1,18 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmDirStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
-use function WordPress\Blueprints\StepHandler\setCaption;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
+use function WordPress\Blueprints\StepRunner\setCaption;
 
 
-class RmDirStepHandler extends BaseStepHandler {
+class RmDirStepRunner extends BaseStepRunner {
 
-	function execute( RmDirStep $input ) {
+	function run( RmDirStep $input ) {
 		try {
 			$fs = new Filesystem();
 			$fs->remove( $input->path );

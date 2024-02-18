@@ -1,16 +1,16 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\RmStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class RmStepHandler extends BaseStepHandler {
+class RmStepRunner extends BaseStepRunner {
 	/**
 	 * @param RmStep $input
 	 */
-	function execute( RmStep $input ) {
+	function run( RmStep $input ) {
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
 		$success = unlink( $input->path );
 		if ( ! $success ) {

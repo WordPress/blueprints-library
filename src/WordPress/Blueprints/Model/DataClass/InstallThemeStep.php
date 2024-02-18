@@ -15,8 +15,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class InstallThemeStep
+class InstallThemeStep implements StepInterface
 {
+    const SLUG = 'installTheme';
+
     /** @var ProgressBuilder */
     public $progress;
 

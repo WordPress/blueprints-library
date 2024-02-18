@@ -1,16 +1,16 @@
 <?php
 
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\ImportFileStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class ImportFileStepHandler extends BaseStepHandler {
+class ImportFileStepRunner extends BaseStepRunner {
 
-	function execute( ImportFileStep $input, Tracker $tracker = null ) {
+	function run( ImportFileStep $input, Tracker $tracker ) {
 		$tracker?->setCaption( $input->progress->caption ?? "Importing starter content" );
 
 		// @TODO: Install the wordpress-importer plugin if it's not already installed

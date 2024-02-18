@@ -1,13 +1,13 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class DefineWpConfigConstsStepHandler extends BaseStepHandler {
+class DefineWpConfigConstsStepRunner extends BaseStepRunner {
 
-	function execute( DefineWpConfigConstsStep $input ) {
+	function run( DefineWpConfigConstsStep $input ) {
 		$functions = file_get_contents( __DIR__ . '/DefineWpConfigConsts/functions.php' );
 
 		return $this->getRuntime()->evalPhpInSubProcess(

@@ -1,14 +1,14 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class MkdirStepHandler extends BaseStepHandler {
+class MkdirStepRunner extends BaseStepRunner {
 
-	function execute( MkdirStep $input ) {
+	function run( MkdirStep $input ) {
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
 		$success = mkdir( $input->path );
 		if ( ! $success ) {

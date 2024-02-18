@@ -1,15 +1,15 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\EnableMultisiteStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class EnableMultisiteStepHandler extends BaseStepHandler {
+class EnableMultisiteStepRunner extends BaseStepRunner {
 	/**
 	 * @param EnableMultisiteStep $input
 	 */
-	function execute( EnableMultisiteStep $input ) {
+	function run( EnableMultisiteStep $input ) {
 		throw new \LogicException( 'Not implemented yet' );
 
 		// @TODO:

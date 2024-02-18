@@ -14,8 +14,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class ImportFileStep
+class ImportFileStep implements StepInterface
 {
+    const SLUG = 'importFile';
+
     /** @var ProgressBuilder */
     public $progress;
 

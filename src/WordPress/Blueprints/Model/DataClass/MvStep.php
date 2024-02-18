@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class MvStep
+class MvStep implements StepInterface
 {
+    const SLUG = 'mv';
+
     /** @var ProgressBuilder */
     public $progress;
 

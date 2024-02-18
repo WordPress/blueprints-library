@@ -10,8 +10,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 
 
-class RunWordPressInstallerStep
+class RunWordPressInstallerStep implements StepInterface
 {
+    const SLUG = 'runWpInstallationWizard';
+
     /** @var ProgressBuilder */
     public $progress;
 

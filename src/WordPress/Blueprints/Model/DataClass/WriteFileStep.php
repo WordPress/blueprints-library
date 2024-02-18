@@ -14,8 +14,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class WriteFileStep
+class WriteFileStep implements StepInterface
 {
+    const SLUG = 'writeFile';
+
     /** @var ProgressBuilder */
     public $progress;
 

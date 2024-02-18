@@ -1,23 +1,23 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class DefineSiteUrlStepHandler extends BaseStepHandler {
+class DefineSiteUrlStepRunner extends BaseStepRunner {
 
-	function execute( DefineSiteUrlStep $input ) {
+	function run( DefineSiteUrlStep $input ) {
 		// @TODO: Don't manually construct the step object like this.
 		//        There may be more required fields in the future.
 		//        Instead, either remove this step, move the const-setting
 		//        logic to another class with crisply defined dependencies,
 		//        or provide a method similar to:
-		//        $executionContext->createStepHandler( DefineWpConfigConstsStepHandler::class )
-		$defineConstsHandler = new DefineWpConfigConstsStepHandler();
+		//        $executionContext->createStepRunner( DefineWpConfigConstsStepRunner::class )
+		$defineConstsHandler = new DefineWpConfigConstsStepRunner();
 		$defineConstsHandler->setRuntime( $this->getRuntime() );
-		$defineConstsHandler->execute( ( new DefineWpConfigConstsStepBuilder() )
+		$defineConstsHandler->run( ( new DefineWpConfigConstsStepBuilder() )
 			->setConsts( [ 'WP_HOME' => $input->siteUrl, 'WP_SITEURL' => $input->siteUrl ] )
 			->toDataObject() );
 	}

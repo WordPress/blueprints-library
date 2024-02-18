@@ -1,17 +1,17 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class SetSiteOptionsStepHandler extends BaseStepHandler {
+class SetSiteOptionsStepRunner extends BaseStepRunner {
 	/**
 	 * @param SetSiteOptionsStep $input
 	 */
-	function execute( SetSiteOptionsStep $input, Tracker $tracker = null ) {
+	function run( SetSiteOptionsStep $input, Tracker $tracker ) {
 		$tracker?->setCaption( "Setting site options" );
 
 		// Running a custom PHP script is much faster than setting each option

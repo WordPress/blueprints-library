@@ -1,15 +1,15 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class ActivatePluginStepHandler extends BaseStepHandler {
+class ActivatePluginStepRunner extends BaseStepRunner {
 
-	function execute( ActivatePluginStep $input, Tracker $tracker = null ) {
+	function run( ActivatePluginStep $input, Tracker $tracker ) {
 		$tracker?->setCaption( $input->progress->caption ?? "Activating plugin " . $input->slug );
 
 		// @TODO: Compare performance to the wp_activate_plugin.php script.

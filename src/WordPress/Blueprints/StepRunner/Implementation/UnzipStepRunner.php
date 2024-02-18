@@ -1,15 +1,15 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 use function WordPress\Zip\zip_extract_to;
 
-class UnzipStepHandler extends BaseStepHandler {
+class UnzipStepRunner extends BaseStepRunner {
 
-	public function execute(
+	public function run(
 		UnzipStep $input,
 		Tracker $progress = null
 	) {

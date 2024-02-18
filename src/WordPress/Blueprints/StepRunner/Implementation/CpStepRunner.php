@@ -1,16 +1,16 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\CpStep;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
-class CpStepHandler extends BaseStepHandler {
+class CpStepRunner extends BaseStepRunner {
 	/**
 	 * @param CpStep $input
 	 */
-	function execute( CpStep $input ) {
+	function run( CpStep $input ) {
 		// @TODO: Treat the input paths as relative path to the document root (unless it's absolute)
 		$success = copy( $input->fromPath, $input->toPath );
 		if ( ! $success ) {

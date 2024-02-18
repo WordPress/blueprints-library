@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class SetSiteOptionsStep
+class SetSiteOptionsStep implements StepInterface
 {
+    const SLUG = 'setSiteOptions';
+
     /** @var ProgressBuilder */
     public $progress;
 

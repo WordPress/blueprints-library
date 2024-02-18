@@ -1,13 +1,13 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class RunWordPressInstallerStepHandler extends BaseStepHandler {
-	function execute( RunWordPressInstallerStep $input, Tracker $tracker = null ) {
+class RunWordPressInstallerStepRunner extends BaseStepRunner {
+	function run( RunWordPressInstallerStep $input, Tracker $tracker ) {
 		$tracker?->setCaption( "Setting site options" );
 
 		return $this->getRuntime()->runShellCommand(

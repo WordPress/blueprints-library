@@ -1,13 +1,13 @@
 <?php
 
-namespace WordPress\Blueprints\StepHandler\Implementation;
+namespace WordPress\Blueprints\StepRunner\Implementation;
 
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepHandler\BaseStepHandler;
+use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
-class WriteFileStepHandler extends BaseStepHandler {
-	public function execute(
+class WriteFileStepRunner extends BaseStepRunner {
+	public function run(
 		WriteFileStep $input,
 		Tracker $progress = null
 	) {

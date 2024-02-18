@@ -15,8 +15,10 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class InstallPluginStep
+class InstallPluginStep implements StepInterface
 {
+    const SLUG = 'installPlugin';
+
     /** @var ProgressBuilder */
     public $progress;
 

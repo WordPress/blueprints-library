@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class DefineWpConfigConstsStep
+class DefineWpConfigConstsStep implements StepInterface
 {
+    const SLUG = 'defineWpConfigConsts';
+
     /** @var ProgressBuilder */
     public $progress;
 

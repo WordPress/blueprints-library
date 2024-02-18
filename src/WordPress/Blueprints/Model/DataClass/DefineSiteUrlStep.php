@@ -9,8 +9,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class DefineSiteUrlStep
+class DefineSiteUrlStep implements StepInterface
 {
+    const SLUG = 'defineSiteUrl';
+
     /** @var ProgressBuilder */
     public $progress;
 
