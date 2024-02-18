@@ -1,13 +1,11 @@
 <?php
 
-namespace WordPress\Blueprints;
+namespace WordPress\Blueprints\Resource;
 
 use Symfony\Component\Filesystem\Filesystem;
-use function Playground\temp_path;
 
-class ResourceManager implements \ArrayAccess {
+class ResourceMap implements \ArrayAccess {
 	private array $pairs = [];
-
 	private Filesystem $fs;
 
 	public function __construct() {
@@ -50,16 +48,5 @@ class ResourceManager implements \ArrayAccess {
 		}
 	}
 
-	public function bufferToTemporaryFile( $offset, $callback, $suffix = null ) {
-		$fp   = $this[ $offset ];
-		$path = $this->fs->tempnam( sys_get_temp_dir(), 'resource', $suffix );
-		$this->fs->dumpFile( $path, $fp );
-
-		try {
-			return $callback( $path );
-		} finally {
-			$this->fs->remove( $path );
-		}
-	}
 
 }

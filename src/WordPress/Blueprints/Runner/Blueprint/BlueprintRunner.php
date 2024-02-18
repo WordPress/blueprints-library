@@ -7,16 +7,30 @@ use WordPress\Blueprints\Compile\CompiledBlueprint;
 use WordPress\Blueprints\Compile\CompiledStep;
 use WordPress\Blueprints\Compile\StepSuccess;
 use WordPress\Blueprints\Progress\Tracker;
+use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 class BlueprintRunner {
 
 	public readonly EventDispatcher $events;
 
-	public function __construct() {
+	public function __construct(
+		protected RuntimeInterface $runtime,
+		protected $resourceManagerFactory,
+	) {
 		$this->events = new EventDispatcher();
 	}
 
 	public function run( CompiledBlueprint $blueprint ) {
+		$resourceManagerFactory = $this->resourceManagerFactory;
+		$resourceManager        = $resourceManagerFactory();
+		$resourceManager->enqueue(
+			$blueprint->compiledResources
+		);
+		foreach ( $blueprint->compiledSteps as $compiledStep ) {
+			$compiledStep->runner->setRuntime( $this->runtime );
+			$compiledStep->runner->setResourceManager( $resourceManager );
+		}
+
 		// Run, store results
 		$results = [];
 		foreach ( $blueprint->compiledSteps as $k => $compiledStep ) {

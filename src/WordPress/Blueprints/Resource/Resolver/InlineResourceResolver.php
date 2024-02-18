@@ -1,10 +1,9 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceResolver;
+namespace WordPress\Blueprints\Resource\Resolver;
 
 use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\InlineResource;
 
 class InlineResourceResolver implements ResourceResolverInterface {

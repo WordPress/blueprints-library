@@ -2,12 +2,12 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\ResourceManager;
+use WordPress\Blueprints\Resource\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 interface StepRunnerInterface {
 
-	function setResourceMap( ResourceManager $map );
+	function setResourceManager( ResourceManager $map );
 
 	function setRuntime( RuntimeInterface $runtime ): void;
 

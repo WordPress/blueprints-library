@@ -30,10 +30,11 @@ use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WPCLIStep;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
-use WordPress\Blueprints\ResourceResolver\FilesystemResourceResolver;
-use WordPress\Blueprints\ResourceResolver\InlineResourceResolver;
-use WordPress\Blueprints\ResourceResolver\ResourceResolverCollection;
-use WordPress\Blueprints\ResourceResolver\UrlResourceResolver;
+use WordPress\Blueprints\Resource\Resolver\FilesystemResourceResolver;
+use WordPress\Blueprints\Resource\Resolver\InlineResourceResolver;
+use WordPress\Blueprints\Resource\Resolver\ResourceResolverCollection;
+use WordPress\Blueprints\Resource\Resolver\UrlResourceResolver;
+use WordPress\Blueprints\Resource\ResourceManager;
 use WordPress\Blueprints\Runner\Blueprint\BlueprintRunner;
 use WordPress\Blueprints\Runner\Step\ActivatePluginStepRunner;
 use WordPress\Blueprints\Runner\Step\ActivateThemeStepRunner;
@@ -109,14 +110,24 @@ class ContainerBuilder {
 		};
 
 		$container['blueprint.runner'] = function ( $c ) {
-			return new BlueprintRunner();
+			return new BlueprintRunner(
+				$c['runtime'],
+				function () use ( $c ) {
+					return $c['blueprint.resource_manager'];
+				}
+			);
+		};
+
+		$container['blueprint.resource_manager'] = function ( $c ) {
+			return new ResourceManager(
+				$c['resource.resolver']
+			);
 		};
 
 		$container['blueprint.compiler'] = function ( $c ) {
 			return new BlueprintCompiler(
-				$c['runtime'],
 				$c['step.runner_factory'],
-				$c['resource.resolver'],
+
 			);
 		};
 
@@ -213,6 +224,12 @@ class ContainerBuilder {
 		$container['resource.resolver'] = function ( $c ) {
 			return new ResourceResolverCollection( $c['resource.supported_resolvers'] );
 		};
+
+		$container['resource.manager'] = $container->factory( function ( $c ) {
+			return new ResourceManager(
+				$c['resource.resolver']
+			);
+		} );
 
 		$container['step.runner_factory'] = function ( $c ) {
 			return function ( $slug ) use ( $c ) {

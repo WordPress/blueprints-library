@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceResolver;
+namespace WordPress\Blueprints\Resource\Resolver;
 
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 

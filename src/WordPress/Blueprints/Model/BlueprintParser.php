@@ -6,7 +6,7 @@ use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
-use WordPress\Blueprints\ResourceResolver\ResourceResolverInterface;
+use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
 
 class BlueprintParser {
 

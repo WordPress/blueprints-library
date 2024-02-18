@@ -4,45 +4,36 @@ namespace WordPress\Blueprints\Compile;
 
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\ResourceManager;
-use WordPress\Blueprints\ResourceResolver\ResourceResolverInterface;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 class BlueprintCompiler {
 
 	public function __construct(
-		protected RuntimeInterface $runtime,
 		protected $stepRunnerFactory,
-		protected ResourceResolverInterface $resourceResolver
 	) {
 	}
 
 	public function compile( Blueprint $blueprint ): CompiledBlueprint {
-		$resourceDefinitions = $this->compileResources( $blueprint );
+		return new CompiledBlueprint(
+			$this->compileSteps( $blueprint ),
+			$this->compileResources( $blueprint )
+		);
+	}
 
-		// @TODO: $container['resource.manager']->enqueue($resources);
-		$resourceMap = new ResourceManager();
-		foreach ( $resourceDefinitions as $resourceDeclaration ) {
-			$resourceMap[ $resourceDeclaration ] = $this->resourceResolver->stream( $resourceDeclaration );
-		}
-
+	protected function compileSteps( Blueprint $blueprint ) {
 		$stepRunnerFactory = $this->stepRunnerFactory;
 		// Compile, ensure all the runners may be created and configured
 		$compiledSteps = [];
 		foreach ( $blueprint->steps as $step ) {
 			$runner = $stepRunnerFactory( $step->step );
 			/** @var $runner \WordPress\Blueprints\Runner\Step\BaseStepRunner */
-			$runner->setResourceMap( $resourceMap );
-			$runner->setRuntime( $this->runtime );
 			$compiledSteps[] = new CompiledStep(
 				$step,
 				$runner
 			);
 		}
 
-		return new CompiledBlueprint(
-			$compiledSteps
-		);
+		return $compiledSteps;
 	}
 
 	protected function compileResources( Blueprint $blueprint ) {
