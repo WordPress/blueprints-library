@@ -4,7 +4,7 @@ namespace WordPress\DataSource;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-abstract class BaseDataSource {
+abstract class BaseDataSource implements DataSourceInterface {
 
 	public EventDispatcher $events;
 
