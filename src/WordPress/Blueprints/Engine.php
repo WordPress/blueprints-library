@@ -3,7 +3,6 @@
 namespace WordPress\Blueprints;
 
 use WordPress\Blueprints\Compile\BlueprintCompiler;
-use WordPress\Blueprints\Model\BlueprintParser;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Runner\Blueprint\BlueprintRunner;
 

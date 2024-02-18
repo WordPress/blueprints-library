@@ -2,16 +2,14 @@
 
 use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
-use WordPress\Blueprints\Model\BlueprintParser;
+use WordPress\Blueprints\BlueprintParser;
 use WordPress\Blueprints\Model\BlueprintSerializer;
-use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\LoginStepBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
-use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 
 require 'vendor/autoload.php';

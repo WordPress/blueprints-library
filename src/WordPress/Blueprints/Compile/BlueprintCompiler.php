@@ -4,7 +4,6 @@ namespace WordPress\Blueprints\Compile;
 
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 class BlueprintCompiler {
 

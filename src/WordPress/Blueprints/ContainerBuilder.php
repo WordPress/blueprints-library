@@ -7,7 +7,6 @@ use Pimple\Container;
 use Symfony\Component\HttpClient\HttpClient;
 use WordPress\Blueprints\Cache\FileCache;
 use WordPress\Blueprints\Compile\BlueprintCompiler;
-use WordPress\Blueprints\Model\BlueprintParser;
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
 use WordPress\Blueprints\Model\DataClass\ActivateThemeStep;
 use WordPress\Blueprints\Model\DataClass\CpStep;

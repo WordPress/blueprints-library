@@ -1,12 +1,13 @@
 <?php
 
-namespace WordPress\Blueprints\Model;
+namespace WordPress\Blueprints;
 
 use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
+use function WordPress\Blueprints\Model\findSubErrorForSpecificAnyOfOption;
 
 class BlueprintParser {
 
