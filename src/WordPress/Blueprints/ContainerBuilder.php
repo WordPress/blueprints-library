@@ -4,16 +4,16 @@ namespace WordPress\Blueprints;
 
 use InvalidArgumentException;
 use Pimple\Container;
-use ReflectionProperty;
 use Symfony\Component\HttpClient\HttpClient;
 use WordPress\Blueprints\Cache\FileCache;
+use WordPress\Blueprints\Compile\BlueprintCompiler;
+use WordPress\Blueprints\Model\BlueprintParser;
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
 use WordPress\Blueprints\Model\DataClass\ActivateThemeStep;
 use WordPress\Blueprints\Model\DataClass\CpStep;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 use WordPress\Blueprints\Model\DataClass\EnableMultisiteStep;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\ImportFileStep;
 use WordPress\Blueprints\Model\DataClass\InlineResource;
@@ -26,7 +26,6 @@ use WordPress\Blueprints\Model\DataClass\RunPHPStep;
 use WordPress\Blueprints\Model\DataClass\RunSQLStep;
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
-use WordPress\Blueprints\Model\DataClass\StepInterface;
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WPCLIStep;
@@ -34,28 +33,29 @@ use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\ResourceResolver\FilesystemResourceResolver;
 use WordPress\Blueprints\ResourceResolver\InlineResourceResolver;
 use WordPress\Blueprints\ResourceResolver\ResourceResolverCollection;
-use WordPress\Blueprints\ResourceResolver\ResourceResolverInterface;
 use WordPress\Blueprints\ResourceResolver\UrlResourceResolver;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\ActivatePluginStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\ActivateThemeStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\CpStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\DefineSiteUrlStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\DefineWpConfigConstsStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\EnableMultisiteStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\ImportFileStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\InstallPluginStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\InstallThemeStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\MvStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\RmDirStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\RmStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\RunPHPStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\RunSQLStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\RunWordPressInstallerStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\SetSiteOptionsStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\UnzipStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\WPCLIStepRunner;
-use WordPress\Blueprints\StepRunner\Implementation\WriteFileStepRunner;
+use WordPress\Blueprints\Runner\Blueprint\BlueprintRunner;
+use WordPress\Blueprints\Runner\Step\ActivatePluginStepRunner;
+use WordPress\Blueprints\Runner\Step\ActivateThemeStepRunner;
+use WordPress\Blueprints\Runner\Step\CpStepRunner;
+use WordPress\Blueprints\Runner\Step\DefineSiteUrlStepRunner;
+use WordPress\Blueprints\Runner\Step\DefineWpConfigConstsStepRunner;
+use WordPress\Blueprints\Runner\Step\EnableMultisiteStepRunner;
+use WordPress\Blueprints\Runner\Step\ImportFileStepRunner;
+use WordPress\Blueprints\Runner\Step\InstallPluginStepRunner;
+use WordPress\Blueprints\Runner\Step\InstallThemeStepRunner;
+use WordPress\Blueprints\Runner\Step\MvStepRunner;
+use WordPress\Blueprints\Runner\Step\RmDirStepRunner;
+use WordPress\Blueprints\Runner\Step\RmStepRunner;
+use WordPress\Blueprints\Runner\Step\RunPHPStepRunner;
+use WordPress\Blueprints\Runner\Step\RunSQLStepRunner;
+use WordPress\Blueprints\Runner\Step\RunWordPressInstallerStepRunner;
+use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
+use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
+use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
+use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
+use WordPress\Blueprints\Runtime\NativePHPRuntime;
+use WordPress\Blueprints\Runtime\RuntimeInterface;
 use WordPress\DataSource\FileSource;
 use WordPress\DataSource\ProgressEvent;
 use WordPress\DataSource\UrlSource;
@@ -78,52 +78,58 @@ class ContainerBuilder {
 	}
 
 
-	public function build( $runtime ) {
-		if ( ! in_array( $runtime, self::RUNTIMES ) ) {
-			throw new InvalidArgumentException( 'Invalid runtime' );
-		}
-		$container = $this->container;
+	public function build( RuntimeInterface $runtime ) {
+		$container            = $this->container;
+		$container['runtime'] = function () use ( $runtime ) {
+			return $runtime;
+		};
 
-		switch ( $runtime ) {
-			case self::RUNTIME_NATIVE:
-				$container['downloads_cache']   = function ( $c ) {
-					return new FileCache();
+		if ( $runtime instanceof NativePHPRuntime ) {
+			$container['downloads_cache']   = function ( $c ) {
+				return new FileCache();
+			};
+			$container['http_client']       = function ( $c ) {
+				return HttpClient::create();
+			};
+			$container['progress_reporter'] = function ( $c ) {
+				return function ( ProgressEvent $event ) {
+					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
 				};
-				$container['http_client']       = function ( $c ) {
-					return HttpClient::create();
-				};
-				$container['progress_reporter'] = function ( $c ) {
-					return function ( ProgressEvent $event ) {
-						echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-					};
-				};
-				break;
-			case self::RUNTIME_PLAYGROUND:
-				$container['downloads_cache']   = function ( $c ) {
-					// @TODO
-				};
-				$container['http_client']       = function ( $c ) {
-					// @TODO
-				};
-				$container['progress_reporter'] = function ( $c ) {
-					// @TODO
-					// post_message_to_js();
-				};
-				break;
-			case self::RUNTIME_WP_NOW:
-				$container['downloads_cache']   = function ( $c ) {
-					return new FileCache( '/cache' );
-				};
-				$container['http_client']       = function ( $c ) {
-					// @TODO
-				};
-				$container['progress_reporter'] = function ( $c ) {
-					// @TODO
-					// post_message_to_js ? Or use the same progress bar as the
-					// the native runtime?
-				};
-				break;
+			};
+		} else {
+			throw new InvalidArgumentException( "Not implemented yet" );
 		}
+
+		$container['blueprint.engine'] = function ( $c ) {
+			return new Engine(
+				$c['blueprint.parser'],
+				$c['blueprint.compiler'],
+				$c['blueprint.runner'],
+			);
+		};
+
+		$container['blueprint.runner'] = function ( $c ) {
+			return new BlueprintRunner();
+		};
+
+		$container['blueprint.compiler'] = function ( $c ) {
+			return new BlueprintCompiler(
+				$c['runtime'],
+				$c['step.runner_factory'],
+				$c['resource.resolver'],
+			);
+		};
+
+		$container['blueprint.json_schema'] = function () {
+			return json_decode( file_get_contents( __DIR__ . '/schema.json' ) );
+		};
+
+		$container['blueprint.parser'] = function ( $c ) {
+			return new BlueprintParser(
+				$c['resource.resolver'],
+				$c['blueprint.json_schema']
+			);
+		};
 
 		$container[ "step.runner." . UnzipStep::SLUG ]                 = function () {
 			return new UnzipStepRunner();

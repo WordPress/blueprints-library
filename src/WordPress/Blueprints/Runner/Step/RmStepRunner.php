@@ -1,9 +1,8 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\RmStep;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
 class RmStepRunner extends BaseStepRunner {

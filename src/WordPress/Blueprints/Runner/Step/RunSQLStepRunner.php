@@ -3,11 +3,10 @@
  * @file
  */
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\RunSQLStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
 class RunSQLStepRunner extends BaseStepRunner {

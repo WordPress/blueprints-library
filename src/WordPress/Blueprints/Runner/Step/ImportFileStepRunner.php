@@ -1,11 +1,10 @@
 <?php
 
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\ImportFileStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
 class ImportFileStepRunner extends BaseStepRunner {

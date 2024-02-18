@@ -1,12 +1,11 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmDirStep;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 use function WordPress\Blueprints\StepRunner\setCaption;
 
 

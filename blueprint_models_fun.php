@@ -2,7 +2,7 @@
 
 use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
-use WordPress\Blueprints\Model\BlueprintDeserializer;
+use WordPress\Blueprints\Model\BlueprintParser;
 use WordPress\Blueprints\Model\BlueprintSerializer;
 use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
@@ -105,7 +105,7 @@ print_r( $resources );
 die( 'xx' );
 
 //try {
-$importedBlueprint = ( new BlueprintDeserializer() )->fromJson( $jsonData );
+$importedBlueprint = ( new BlueprintParser() )->fromJson( $jsonData );
 print_r( $importedBlueprint );
 //} catch ( \Swaggest\JsonSchema\Exception\LogicException $e ) {
 //	// Nice and granular error information
@@ -169,7 +169,7 @@ $invalidJson = (object) [
 	],
 ];
 try {
-	$importedBlueprint = ( new BlueprintDeserializer() )->fromObject( $invalidJson );
+	$importedBlueprint = ( new BlueprintParser() )->fromObject( $invalidJson );
 } catch ( InvalidValue $e ) {
 	// Nice and granular error information
 	print_r( [

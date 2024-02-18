@@ -3,12 +3,10 @@
  * @file
  */
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\ActivateThemeStep;
-use WordPress\Blueprints\Model\DataClass\StepInterface;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 
 class ActivateThemeStepRunner extends BaseStepRunner {

@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;

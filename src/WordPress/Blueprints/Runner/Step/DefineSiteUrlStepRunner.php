@@ -1,10 +1,9 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 
 class DefineSiteUrlStepRunner extends BaseStepRunner {
 

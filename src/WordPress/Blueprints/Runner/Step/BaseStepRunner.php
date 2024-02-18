@@ -1,10 +1,8 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Context\ExecutionContext;
-use WordPress\Blueprints\Model\DataClass\StepInterface;
-use WordPress\Blueprints\Progress\Tracker;
 use WordPress\Blueprints\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 

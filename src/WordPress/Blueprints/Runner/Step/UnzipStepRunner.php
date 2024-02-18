@@ -1,10 +1,9 @@
 <?php
 
-namespace WordPress\Blueprints\StepRunner\Implementation;
+namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\StepRunner\BaseStepRunner;
 use function WordPress\Zip\zip_extract_to;
 
 class UnzipStepRunner extends BaseStepRunner {
