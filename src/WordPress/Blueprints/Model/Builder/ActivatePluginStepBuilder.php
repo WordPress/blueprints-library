@@ -27,6 +27,7 @@ class ActivatePluginStepBuilder extends ActivatePluginStep implements ClassStruc
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "activatePlugin";
         $properties->slug = Schema::string();

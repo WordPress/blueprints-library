@@ -27,6 +27,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "unzip";
         $properties->zipFile = new Schema();

@@ -17,7 +17,7 @@ class SetSiteOptionsStep implements StepInterface
     public $progress;
 
     /** @var bool */
-    public $continueOnError;
+    public $continueOnError = false;
 
     /** @var string The name of the step. Must be "setSiteOptions". */
     public $step = 'setSiteOptions';

@@ -22,7 +22,7 @@ class InstallThemeStep implements StepInterface
     public $progress;
 
     /** @var bool */
-    public $continueOnError;
+    public $continueOnError = false;
 
     /** @var string The step identifier. */
     public $step = 'installTheme';

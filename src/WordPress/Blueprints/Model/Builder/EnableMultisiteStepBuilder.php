@@ -27,6 +27,7 @@ class EnableMultisiteStepBuilder extends EnableMultisiteStep implements ClassStr
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "enableMultisite";
         $ownerSchema->type = Schema::OBJECT;

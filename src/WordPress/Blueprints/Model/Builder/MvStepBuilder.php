@@ -27,6 +27,7 @@ class MvStepBuilder extends MvStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "mv";
         $properties->fromPath = Schema::string();

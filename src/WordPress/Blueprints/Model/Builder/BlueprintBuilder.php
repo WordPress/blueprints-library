@@ -71,7 +71,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->steps->items->oneOf[16] = RunSQLStepBuilder::schema();
         $properties->steps->items->oneOf[17] = SetSiteOptionsStepBuilder::schema();
         $properties->steps->items->oneOf[18] = UnzipStepBuilder::schema();
-        $properties->steps->items->oneOf[19] = InitializeWordPressStepBuilder::schema();
+        $properties->steps->items->oneOf[19] = DownloadWordPressStepBuilder::schema();
         $properties->steps->items->oneOf[20] = InstallSqliteIntegrationStepBuilder::schema();
         $properties->steps->items->oneOf[21] = WriteFileStepBuilder::schema();
         $properties->steps->items->oneOf[22] = WPCLIStepBuilder::schema();
@@ -80,6 +80,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         );
         $properties->steps->items->setFromRef('#/definitions/StepDefinition');
         $properties->steps->description = "The steps to run after every other operation in this Blueprint was executed.";
+        $properties->steps->default = [];
         $properties->schema = Schema::string();
         $ownerSchema->addPropertyMapping('$schema', self::names()->schema);
         $ownerSchema->type = Schema::OBJECT;
@@ -172,7 +173,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|EvalPHPCallbackStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|InitializeWordPressStepBuilder[]|InstallSqliteIntegrationStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array $steps The steps to run after every other operation in this Blueprint was executed.
+     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|EvalPHPCallbackStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|DownloadWordPressStepBuilder[]|InstallSqliteIntegrationStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array $steps The steps to run after every other operation in this Blueprint was executed.
      * @return $this
      * @codeCoverageIgnoreStart
      */

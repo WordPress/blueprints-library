@@ -12,6 +12,7 @@ use WordPress\Blueprints\Model\DataClass\ActivateThemeStep;
 use WordPress\Blueprints\Model\DataClass\CpStep;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
 use WordPress\Blueprints\Model\DataClass\EnableMultisiteStep;
 use WordPress\Blueprints\Model\DataClass\EvalPHPCallbackStep;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
@@ -58,7 +59,7 @@ use WordPress\Blueprints\Runner\Step\RunSQLStepRunner;
 use WordPress\Blueprints\Runner\Step\RunWordPressInstallerStepRunner;
 use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
-use WordPress\Blueprints\Runner\Step\InitializeWordPressStepRunner;
+use WordPress\Blueprints\Runner\Step\DownloadWordPressStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
@@ -199,8 +200,8 @@ class ContainerBuilder {
 		$container[ "step.runner." . InstallSqliteIntegrationStep::SLUG ] = function () {
 			return new InstallSqliteIntegrationStepRunner();
 		};
-		$container[ "step.runner." . InitializeWordPressStep::SLUG ] = function () {
-			return new InitializeWordPressStepRunner();
+		$container[ "step.runner." . DownloadWordPressStep::SLUG ] = function () {
+			return new DownloadWordPressStepRunner();
 		};
 		$container[ "step.runner." . ImportFileStep::SLUG ] = function () {
 			return new ImportFileStepRunner();

@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\InitializeWordPressStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/InitializeWordPressStep
+ * Built from #/definitions/DownloadWordPressStep
  */
-class InitializeWordPressStepBuilder extends InitializeWordPressStep implements ClassStructureContract
+class DownloadWordPressStepBuilder extends DownloadWordPressStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -27,8 +27,9 @@ class InitializeWordPressStepBuilder extends InitializeWordPressStep implements 
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
-        $properties->step->const = "initializeWordPress";
+        $properties->step->const = "downloadWordPress";
         $properties->wordPressZip = new Schema();
         $properties->wordPressZip->anyOf[0] = Schema::string();
         $properties->wordPressZip->anyOf[1] = FilesystemResourceBuilder::schema();
@@ -43,7 +44,7 @@ class InitializeWordPressStepBuilder extends InitializeWordPressStep implements 
             self::names()->wordPressZip,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/InitializeWordPressStep');
+        $ownerSchema->setFromRef('#/definitions/DownloadWordPressStep');
     }
 
     /**
@@ -96,7 +97,7 @@ class InitializeWordPressStepBuilder extends InitializeWordPressStep implements 
 
     function toDataObject()
     {
-        $dataObject = new InitializeWordPressStep();
+        $dataObject = new DownloadWordPressStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);

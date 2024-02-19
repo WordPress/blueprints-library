@@ -17,7 +17,7 @@ class RmStep implements StepInterface
     public $progress;
 
     /** @var bool */
-    public $continueOnError;
+    public $continueOnError = false;
 
     /** @var string */
     public $step = 'rm';

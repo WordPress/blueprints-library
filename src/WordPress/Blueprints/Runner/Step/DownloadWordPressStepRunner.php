@@ -2,13 +2,13 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\Model\DataClass\InitializeWordPressStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
 use WordPress\Blueprints\Progress\Tracker;
 
-class InitializeWordPressStepRunner extends InstallAssetStepRunner {
+class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 
 	public function run(
-		InitializeWordPressStep $input,
+		DownloadWordPressStep $input,
 		Tracker $progress = null
 	) {
 		$progress?->set( 10, 'Extracting WordPress...' );

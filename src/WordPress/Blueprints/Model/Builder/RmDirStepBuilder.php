@@ -27,6 +27,7 @@ class RmDirStepBuilder extends RmDirStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "rmdir";
         $properties->path = Schema::string();

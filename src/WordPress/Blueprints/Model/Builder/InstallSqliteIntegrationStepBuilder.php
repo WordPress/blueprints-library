@@ -27,6 +27,7 @@ class InstallSqliteIntegrationStepBuilder extends InstallSqliteIntegrationStep i
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "installSqliteIntegration";
         $properties->sqlitePluginZip = new Schema();

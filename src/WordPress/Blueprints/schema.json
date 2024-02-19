@@ -73,7 +73,8 @@
           "items": {
             "$ref": "#/definitions/StepDefinition"
           },
-          "description": "The steps to run after every other operation in this Blueprint was executed."
+          "description": "The steps to run after every other operation in this Blueprint was executed.",
+          "default": []
         },
         "$schema": {
           "type": "string"
@@ -226,7 +227,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -250,7 +252,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -274,7 +277,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -303,7 +307,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -328,7 +333,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -352,7 +358,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -371,7 +378,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -395,7 +403,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -425,7 +434,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -455,7 +465,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -479,7 +490,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -508,7 +520,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -532,7 +545,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -556,7 +570,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -582,7 +597,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -606,7 +622,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -629,7 +646,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -654,7 +672,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -680,7 +699,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -701,7 +721,7 @@
         "step"
       ]
     },
-    "InitializeWordPressStep": {
+    "DownloadWordPressStep": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -709,11 +729,12 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
-          "const": "initializeWordPress"
+          "const": "downloadWordPress"
         },
         "wordPressZip": {
           "$ref": "#/definitions/FileReference",
@@ -733,7 +754,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -757,7 +779,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -793,7 +816,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -884,7 +908,7 @@
           "$ref": "#/definitions/UnzipStep"
         },
         {
-          "$ref": "#/definitions/InitializeWordPressStep"
+          "$ref": "#/definitions/DownloadWordPressStep"
         },
         {
           "$ref": "#/definitions/InstallSqliteIntegrationStep"

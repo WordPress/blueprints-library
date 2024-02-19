@@ -27,6 +27,7 @@ class DefineSiteUrlStepBuilder extends DefineSiteUrlStep implements ClassStructu
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "defineSiteUrl";
         $properties->siteUrl = Schema::string();

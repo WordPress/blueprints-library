@@ -14,18 +14,18 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class InitializeWordPressStep implements StepInterface
+class DownloadWordPressStep implements StepInterface
 {
-    const SLUG = 'initializeWordPress';
+    const SLUG = 'downloadWordPress';
 
     /** @var ProgressBuilder */
     public $progress;
 
     /** @var bool */
-    public $continueOnError;
+    public $continueOnError = false;
 
     /** @var string */
-    public $step = 'initializeWordPress';
+    public $step = 'downloadWordPress';
 
     /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
     public $wordPressZip;

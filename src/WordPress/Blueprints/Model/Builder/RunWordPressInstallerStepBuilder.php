@@ -27,6 +27,7 @@ class RunWordPressInstallerStepBuilder extends RunWordPressInstallerStep impleme
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "runWpInstallationWizard";
         $properties->options = WordPressInstallationOptionsBuilder::schema();
