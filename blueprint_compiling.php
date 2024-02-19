@@ -7,10 +7,7 @@ use WordPress\Blueprints\Runtime\NativePHPRuntime;
 require 'vendor/autoload.php';
 
 $composer = BlueprintComposer::create()
-	->downloadWordPress()
-	->downloadWpCli()
-	->useSqlite()
-	->runInstallationWizard()
+	->withWordPressVersion( 'https://wordpress.org/latest.zip' )
 	->withSiteOptions( [
 		'blogname' => 'My Playground Blog',
 	] )
@@ -21,7 +18,6 @@ $composer = BlueprintComposer::create()
 		'WP_CACHE'         => true,
 	] )
 	->withPlugins( [
-		'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
 		'https://downloads.wordpress.org/plugin/hello-dolly.zip',
 		'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
 	] )
@@ -35,9 +31,6 @@ $composer = BlueprintComposer::create()
 		SQL
 	)
 	->withFile( 'wordpress.txt', 'Data' );
-
-echo json_encode( $composer->getBuilder()->toDataObject(), JSON_PRETTY_PRINT );
-die();
 
 $c = ( new ContainerBuilder() )->build(
 	new NativePHPRuntime(

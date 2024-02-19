@@ -34,23 +34,28 @@
         "constants": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
           },
+          "default": {},
           "description": "PHP Constants to define on every request",
           "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
         },
         "plugins": {
           "type": "array",
           "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "$ref": "#/definitions/FileReference"
-              }
-            ]
+            "$ref": "#/definitions/FileReference"
           },
+          "default": [],
           "description": "WordPress plugins to install and activate",
           "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
         },
@@ -65,6 +70,7 @@
               "description": "The site title"
             }
           },
+          "default": {},
           "description": "WordPress site options to define",
           "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
         },

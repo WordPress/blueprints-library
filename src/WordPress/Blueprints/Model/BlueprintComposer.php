@@ -36,33 +36,36 @@ class BlueprintComposer {
 		return $this->builder;
 	}
 
+	public function withWordPressVersion( $v ) {
+		$this->builder->setWpVersion( $v );
+
+		return $this;
+	}
+
 	public function withSiteOptions( array $options ) {
-		return $this->addStep(
-			( new SetSiteOptionsStepBuilder() )
-				->setOptions( (object) $options )
-		);
+		$this->builder->setSiteOptions( (object) $options );
+
+		return $this;
 	}
 
 	public function withWpConfigConstants( array $constants ) {
-		return $this->addStep(
-			( new DefineWpConfigConstsStepBuilder() )
-				->setConsts( (object) $constants )
-		);
+		$this->builder->setConstants( (object) $constants );
+
+		return $this;
 	}
 
 	public function withPlugins( $pluginZips ) {
-		foreach ( $pluginZips as $pluginZip ) {
-			$this->withPlugin( $pluginZip );
-		}
+		$this->builder->setPlugins(
+			array_merge( $this->builder->plugins, $pluginZips )
+		);
 
 		return $this;
 	}
 
 	public function withPlugin( $pluginZip ) {
-		return $this->addStep(
-			( new InstallPluginStepBuilder() )
-				->setPluginZipFile( $pluginZip )
-		);
+		$this->withPlugins( [ $pluginZip ] );
+
+		return $this;
 	}
 
 	public function withThemes( $themeZips ) {
@@ -84,6 +87,7 @@ class BlueprintComposer {
 		if ( ! is_array( $wxrs ) ) {
 			$wxrs = [ $wxrs ];
 		}
+		$this->withPlugin( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip' );
 		foreach ( $wxrs as $wxr ) {
 			$this->addStep(
 				( new ImportFileStepBuilder() )

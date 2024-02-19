@@ -32,6 +32,7 @@ class BlueprintSiteOptionsBuilder extends BlueprintSiteOptions implements ClassS
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = Schema::string();
         $ownerSchema->description = "WordPress site options to define";
+        $ownerSchema->default = (object)[];
     }
 
     /**

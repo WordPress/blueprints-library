@@ -52,11 +52,11 @@ class Blueprint
     /** @var string The preferred WordPress version to use. If not specified, the latest supported version will be used */
     public $wpVersion;
 
-    /** @var string[] PHP Constants to define on every request */
+    /** @var string[]|float[]|bool[] PHP Constants to define on every request */
     public $constants;
 
-    /** @var string[]|string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array WordPress plugins to install and activate */
-    public $plugins;
+    /** @var string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array WordPress plugins to install and activate */
+    public $plugins = [];
 
     /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */
     public $siteOptions;

@@ -106,8 +106,17 @@ class BlueprintParser {
 			} elseif ( is_object( $builder->$key ) ) {
 				$this->replaceUrlsWithFileReferenceDataObjects( $builder->$key );
 			} elseif ( is_array( $builder->$key ) ) {
+				$arrayOfFileReferences = $builder::schema()->getProperty( $key )->items->getFromRef() == '#/definitions/FileReference';
 				foreach ( $builder->$key as $k => $v ) {
-					$this->replaceUrlsWithFileReferenceDataObjects( $v );
+					if ( $arrayOfFileReferences ) {
+						$resource = $this->resourceResolver->parseUrl( $v );
+						if ( false === $resource ) {
+							throw new \InvalidArgumentException( "Could not parse resource {$v}" );
+						}
+						$builder->$key[ $k ] = $resource;
+					} else {
+						$this->replaceUrlsWithFileReferenceDataObjects( $v );
+					}
 				}
 			}
 		}
@@ -164,10 +173,10 @@ class BlueprintParser {
 	 *
 	 * @return \Swaggest\JsonSchema\Exception\Error|void|null
 	 */
-	function getSpecificAnyOfError( InvalidValue $e ): \Throwable|null {
+	function getSpecificAnyOfError( InvalidValue $e ) {
 		$subSchema = $this->getSubschema( $e->getSchemaPointer() );
 
-		if ( property_exists( $subSchema, '$ref' ) ) {
+		if ( $subSchema && property_exists( $subSchema, '$ref' ) ) {
 			$discriminatedDefinition = $this->getSubschema( $subSchema->{'$ref'} );
 			if ( property_exists( $discriminatedDefinition, 'discriminator' ) ) {
 				$discriminatorField = $discriminatedDefinition->discriminator->propertyName;

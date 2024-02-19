@@ -34,21 +34,23 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->wpVersion = Schema::string();
         $properties->wpVersion->description = "The preferred WordPress version to use. If not specified, the latest supported version will be used";
         $properties->constants = Schema::object();
-        $properties->constants->additionalProperties = Schema::string();
+        $properties->constants->additionalProperties = new Schema();
+        $properties->constants->additionalProperties->anyOf[0] = Schema::string();
+        $properties->constants->additionalProperties->anyOf[1] = Schema::number();
+        $properties->constants->additionalProperties->anyOf[2] = Schema::boolean();
         $properties->constants->description = "PHP Constants to define on every request";
+        $properties->constants->default = (object)[];
         $properties->plugins = Schema::arr();
         $properties->plugins->items = new Schema();
         $properties->plugins->items->anyOf[0] = Schema::string();
-        $propertiesPluginsItemsAnyOf1 = new Schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[0] = Schema::string();
-        $propertiesPluginsItemsAnyOf1->anyOf[1] = FilesystemResourceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[2] = InlineResourceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[3] = CoreThemeResourceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[4] = CorePluginResourceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->anyOf[5] = UrlResourceBuilder::schema();
-        $propertiesPluginsItemsAnyOf1->setFromRef('#/definitions/FileReference');
-        $properties->plugins->items->anyOf[1] = $propertiesPluginsItemsAnyOf1;
+        $properties->plugins->items->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->plugins->items->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->plugins->items->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->plugins->items->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->plugins->items->anyOf[5] = UrlResourceBuilder::schema();
+        $properties->plugins->items->setFromRef('#/definitions/FileReference');
         $properties->plugins->description = "WordPress plugins to install and activate";
+        $properties->plugins->default = [];
         $properties->siteOptions = BlueprintSiteOptionsBuilder::schema();
         $properties->steps = Schema::arr();
         $properties->steps->items = Schema::object();
@@ -137,7 +139,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string[] $constants PHP Constants to define on every request
+     * @param string[]|float[]|bool[] $constants PHP Constants to define on every request
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -149,7 +151,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string[]|string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array $plugins WordPress plugins to install and activate
+     * @param string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array $plugins WordPress plugins to install and activate
      * @return $this
      * @codeCoverageIgnoreStart
      */
