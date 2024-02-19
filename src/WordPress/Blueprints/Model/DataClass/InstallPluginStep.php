@@ -10,7 +10,6 @@ use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
 use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
 use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\Builder\InstallPluginOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
@@ -31,6 +30,6 @@ class InstallPluginStep implements StepInterface
     /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
     public $pluginZipFile;
 
-    /** @var InstallPluginOptionsBuilder */
-    public $options;
+    /** @var bool Whether to activate the plugin after installing it. */
+    public $activate = true;
 }

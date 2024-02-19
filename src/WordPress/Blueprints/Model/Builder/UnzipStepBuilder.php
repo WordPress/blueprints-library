@@ -41,6 +41,10 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $properties->zipPath->description = "The path of the zip file to extract";
         $properties->extractToPath = Schema::string();
         $properties->extractToPath->description = "The path to extract the zip file to";
+        $properties->pathInZip = Schema::arr();
+        $properties->pathInZip->items = Schema::string();
+        $properties->pathInZip->description = "The path to extract from the zip file. The first item in the array will be tried, and if it doesn't exist, the next item will be tried, and so on.";
+        $properties->pathInZip->default = [];
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
@@ -122,6 +126,18 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     }
     /** @codeCoverageIgnoreEnd */
 
+    /**
+     * @param string[]|array $pathInZip The path to extract from the zip file. The first item in the array will be tried, and if it doesn't exist, the next item will be tried, and so on.
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setPathInZip($pathInZip)
+    {
+        $this->pathInZip = $pathInZip;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
     function toDataObject()
     {
         $dataObject = new UnzipStep();
@@ -131,6 +147,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $dataObject->zipFile = $this->recursiveJsonSerialize($this->zipFile);
         $dataObject->zipPath = $this->recursiveJsonSerialize($this->zipPath);
         $dataObject->extractToPath = $this->recursiveJsonSerialize($this->extractToPath);
+        $dataObject->pathInZip = $this->recursiveJsonSerialize($this->pathInZip);
         return $dataObject;
     }
 

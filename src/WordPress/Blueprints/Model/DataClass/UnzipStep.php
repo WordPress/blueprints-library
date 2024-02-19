@@ -35,4 +35,7 @@ class UnzipStep implements StepInterface
 
     /** @var string The path to extract the zip file to */
     public $extractToPath;
+
+    /** @var string[]|array The path to extract from the zip file. The first item in the array will be tried, and if it doesn't exist, the next item will be tried, and so on. */
+    public $pathInZip = [];
 }

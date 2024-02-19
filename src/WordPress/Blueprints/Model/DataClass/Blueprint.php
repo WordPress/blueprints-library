@@ -8,8 +8,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 use WordPress\Blueprints\Model\Builder\ActivatePluginStepBuilder;
 use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintFeaturesBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
+use WordPress\Blueprints\Model\Builder\BlueprintOnBootBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintSiteOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
 use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
@@ -38,17 +37,17 @@ use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 
 class Blueprint
 {
-    /** @var string The URL to navigate to after the blueprint has been run. */
-    public $landingPage;
-
     /** @var string Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what. */
     public $description;
 
-    /** @var BlueprintPreferredVersionsBuilder The preferred PHP and WordPress versions to use. */
-    public $preferredVersions;
+    /** @var mixed Slot for runtime–specific options, schema must be provided by the runtime. */
+    public $runtime;
 
-    /** @var BlueprintFeaturesBuilder */
-    public $features;
+    /** @var BlueprintOnBootBuilder */
+    public $onBoot;
+
+    /** @var string The preferred WordPress version to use. If not specified, the latest supported version will be used */
+    public $wpVersion;
 
     /** @var string[] PHP Constants to define on every request */
     public $constants;
@@ -59,10 +58,7 @@ class Blueprint
     /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */
     public $siteOptions;
 
-    /** @var string[]|array The PHP extensions to use. */
-    public $phpExtensionBundles;
-
-    /** @var ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|string[]|mixed[]|bool[]|null[]|array The steps to run after every other operation in this Blueprint was executed. */
+    /** @var ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array The steps to run after every other operation in this Blueprint was executed. */
     public $steps;
 
     /** @var string */

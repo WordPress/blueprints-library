@@ -25,12 +25,14 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
      */
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
-        $properties->landingPage = Schema::string();
-        $properties->landingPage->description = "The URL to navigate to after the blueprint has been run.";
         $properties->description = Schema::string();
         $properties->description->description = "Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what.";
-        $properties->preferredVersions = BlueprintPreferredVersionsBuilder::schema();
-        $properties->features = BlueprintFeaturesBuilder::schema();
+        $properties->runtime = Schema::object();
+        $properties->runtime->additionalProperties = true;
+        $properties->runtime->description = "Slot for runtime–specific options, schema must be provided by the runtime.";
+        $properties->onBoot = BlueprintOnBootBuilder::schema();
+        $properties->wpVersion = Schema::string();
+        $properties->wpVersion->description = "The preferred WordPress version to use. If not specified, the latest supported version will be used";
         $properties->constants = Schema::object();
         $properties->constants->additionalProperties = Schema::string();
         $properties->constants->description = "PHP Constants to define on every request";
@@ -48,47 +50,32 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->plugins->items->anyOf[1] = $propertiesPluginsItemsAnyOf1;
         $properties->plugins->description = "WordPress plugins to install and activate";
         $properties->siteOptions = BlueprintSiteOptionsBuilder::schema();
-        $properties->phpExtensionBundles = Schema::arr();
-        $properties->phpExtensionBundles->items = Schema::string();
-        $properties->phpExtensionBundles->items->const = "kitchen-sink";
-        $properties->phpExtensionBundles->items->setFromRef('#/definitions/SupportedPHPExtensionBundle');
-        $properties->phpExtensionBundles->description = "The PHP extensions to use.";
         $properties->steps = Schema::arr();
-        $properties->steps->items = new Schema();
-        $propertiesStepsItemsAnyOf0 = Schema::object();
-        $propertiesStepsItemsAnyOf0->oneOf[0] = ActivatePluginStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[1] = ActivateThemeStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[2] = CpStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[3] = DefineWpConfigConstsStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[4] = DefineSiteUrlStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[5] = EnableMultisiteStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[6] = ImportFileStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[7] = InstallPluginStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[8] = InstallThemeStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[9] = MkdirStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[10] = MvStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[11] = RmStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[12] = RmDirStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[13] = RunPHPStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[14] = RunWordPressInstallerStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[15] = RunSQLStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[16] = SetSiteOptionsStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[17] = UnzipStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[18] = WriteFileStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->oneOf[19] = WPCLIStepBuilder::schema();
-        $propertiesStepsItemsAnyOf0->required = array(
+        $properties->steps->items = Schema::object();
+        $properties->steps->items->oneOf[0] = ActivatePluginStepBuilder::schema();
+        $properties->steps->items->oneOf[1] = ActivateThemeStepBuilder::schema();
+        $properties->steps->items->oneOf[2] = CpStepBuilder::schema();
+        $properties->steps->items->oneOf[3] = DefineWpConfigConstsStepBuilder::schema();
+        $properties->steps->items->oneOf[4] = DefineSiteUrlStepBuilder::schema();
+        $properties->steps->items->oneOf[5] = EnableMultisiteStepBuilder::schema();
+        $properties->steps->items->oneOf[6] = ImportFileStepBuilder::schema();
+        $properties->steps->items->oneOf[7] = InstallPluginStepBuilder::schema();
+        $properties->steps->items->oneOf[8] = InstallThemeStepBuilder::schema();
+        $properties->steps->items->oneOf[9] = MkdirStepBuilder::schema();
+        $properties->steps->items->oneOf[10] = MvStepBuilder::schema();
+        $properties->steps->items->oneOf[11] = RmStepBuilder::schema();
+        $properties->steps->items->oneOf[12] = RmDirStepBuilder::schema();
+        $properties->steps->items->oneOf[13] = RunPHPStepBuilder::schema();
+        $properties->steps->items->oneOf[14] = RunWordPressInstallerStepBuilder::schema();
+        $properties->steps->items->oneOf[15] = RunSQLStepBuilder::schema();
+        $properties->steps->items->oneOf[16] = SetSiteOptionsStepBuilder::schema();
+        $properties->steps->items->oneOf[17] = UnzipStepBuilder::schema();
+        $properties->steps->items->oneOf[18] = WriteFileStepBuilder::schema();
+        $properties->steps->items->oneOf[19] = WPCLIStepBuilder::schema();
+        $properties->steps->items->required = array(
             self::names()->step,
         );
-        $propertiesStepsItemsAnyOf0->setFromRef('#/definitions/StepDefinition');
-        $properties->steps->items->anyOf[0] = $propertiesStepsItemsAnyOf0;
-        $properties->steps->items->anyOf[1] = Schema::string();
-        $propertiesStepsItemsAnyOf2 = new Schema();
-        $propertiesStepsItemsAnyOf2->not = new Schema();
-        $properties->steps->items->anyOf[2] = $propertiesStepsItemsAnyOf2;
-        $propertiesStepsItemsAnyOf3 = Schema::boolean();
-        $propertiesStepsItemsAnyOf3->const = false;
-        $properties->steps->items->anyOf[3] = $propertiesStepsItemsAnyOf3;
-        $properties->steps->items->anyOf[4] = Schema::null();
+        $properties->steps->items->setFromRef('#/definitions/StepDefinition');
         $properties->steps->description = "The steps to run after every other operation in this Blueprint was executed.";
         $properties->schema = Schema::string();
         $ownerSchema->addPropertyMapping('$schema', self::names()->schema);
@@ -96,18 +83,6 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $ownerSchema->additionalProperties = false;
         $ownerSchema->setFromRef('#/definitions/Blueprint');
     }
-
-    /**
-     * @param string $landingPage The URL to navigate to after the blueprint has been run.
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setLandingPage($landingPage)
-    {
-        $this->landingPage = $landingPage;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
 
     /**
      * @param string $description Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what.
@@ -122,25 +97,37 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param BlueprintPreferredVersionsBuilder $preferredVersions The preferred PHP and WordPress versions to use.
+     * @param mixed $runtime Slot for runtime–specific options, schema must be provided by the runtime.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPreferredVersions(BlueprintPreferredVersionsBuilder $preferredVersions)
+    public function setRuntime($runtime)
     {
-        $this->preferredVersions = $preferredVersions;
+        $this->runtime = $runtime;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param BlueprintFeaturesBuilder $features
+     * @param BlueprintOnBootBuilder $onBoot
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setFeatures(BlueprintFeaturesBuilder $features)
+    public function setOnBoot(BlueprintOnBootBuilder $onBoot)
     {
-        $this->features = $features;
+        $this->onBoot = $onBoot;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param string $wpVersion The preferred WordPress version to use. If not specified, the latest supported version will be used
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setWpVersion($wpVersion)
+    {
+        $this->wpVersion = $wpVersion;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -182,19 +169,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string[]|array $phpExtensionBundles The PHP extensions to use.
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setPhpExtensionBundles($phpExtensionBundles)
-    {
-        $this->phpExtensionBundles = $phpExtensionBundles;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|string[]|mixed[]|bool[]|null[]|array $steps The steps to run after every other operation in this Blueprint was executed.
+     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array $steps The steps to run after every other operation in this Blueprint was executed.
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -220,14 +195,13 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     function toDataObject()
     {
         $dataObject = new Blueprint();
-        $dataObject->landingPage = $this->recursiveJsonSerialize($this->landingPage);
         $dataObject->description = $this->recursiveJsonSerialize($this->description);
-        $dataObject->preferredVersions = $this->recursiveJsonSerialize($this->preferredVersions);
-        $dataObject->features = $this->recursiveJsonSerialize($this->features);
+        $dataObject->runtime = $this->recursiveJsonSerialize($this->runtime);
+        $dataObject->onBoot = $this->recursiveJsonSerialize($this->onBoot);
+        $dataObject->wpVersion = $this->recursiveJsonSerialize($this->wpVersion);
         $dataObject->constants = $this->recursiveJsonSerialize($this->constants);
         $dataObject->plugins = $this->recursiveJsonSerialize($this->plugins);
         $dataObject->siteOptions = $this->recursiveJsonSerialize($this->siteOptions);
-        $dataObject->phpExtensionBundles = $this->recursiveJsonSerialize($this->phpExtensionBundles);
         $dataObject->steps = $this->recursiveJsonSerialize($this->steps);
         $dataObject->schema = $this->recursiveJsonSerialize($this->schema);
         return $dataObject;

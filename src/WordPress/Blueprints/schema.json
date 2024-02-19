@@ -5,42 +5,31 @@
 		"Blueprint": {
 			"type": "object",
 			"properties": {
-				"landingPage": {
-					"type": "string",
-					"description": "The URL to navigate to after the blueprint has been run."
-				},
 				"description": {
 					"type": "string",
 					"description": "Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what."
 				},
-				"preferredVersions": {
+				"runtime": {
 					"type": "object",
-					"properties": {
-						"php": {
-							"type": "string",
-							"description": "The preferred PHP version to use. If not specified, the latest supported version will be used"
-						},
-						"wp": {
-							"type": "string",
-							"description": "The preferred WordPress version to use. If not specified, the latest supported version will be used"
-						}
-					},
-					"required": [
-						"php",
-						"wp"
-					],
-					"additionalProperties": false,
-					"description": "The preferred PHP and WordPress versions to use."
+					"additionalProperties": true,
+					"description": "Slot for runtime–specific options, schema must be provided by the runtime."
 				},
-				"features": {
+				"onBoot": {
 					"type": "object",
 					"properties": {
-						"networking": {
-							"type": "boolean",
-							"description": "Should boot with support for network request via wp_safe_remote_get?"
+						"openUrl": {
+							"type": "string",
+							"description": "The URL to navigate to after the blueprint has been run."
+						},
+						"login": {
+							"type": "boolean"
 						}
 					},
 					"additionalProperties": false
+				},
+				"wpVersion": {
+					"type": "string",
+					"description": "The preferred WordPress version to use. If not specified, the latest supported version will be used"
 				},
 				"constants": {
 					"type": "object",
@@ -79,34 +68,10 @@
 					"description": "WordPress site options to define",
 					"deprecated": "This experimental option will change without warning.\nUse `steps` instead."
 				},
-				"phpExtensionBundles": {
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/SupportedPHPExtensionBundle"
-					},
-					"description": "The PHP extensions to use."
-				},
 				"steps": {
 					"type": "array",
 					"items": {
-						"anyOf": [
-							{
-								"$ref": "#/definitions/StepDefinition"
-							},
-							{
-								"type": "string"
-							},
-							{
-								"not": {}
-							},
-							{
-								"type": "boolean",
-								"const": false
-							},
-							{
-								"type": "null"
-							}
-						]
+						"$ref": "#/definitions/StepDefinition"
 					},
 					"description": "The steps to run after every other operation in this Blueprint was executed."
 				},
@@ -115,20 +80,6 @@
 				}
 			},
 			"additionalProperties": false
-		},
-		"SupportedPHPVersion": {
-			"type": "string",
-			"enum": [
-				"8.3",
-				"8.2",
-				"8.1",
-				"8.0",
-				"7.4",
-				"7.3",
-				"7.2",
-				"7.1",
-				"7.0"
-			]
 		},
 		"FileReference": {
 			"anyOf": [
@@ -455,9 +406,10 @@
 					"$ref": "#/definitions/FileReference",
 					"description": "The plugin zip file to install."
 				},
-				"options": {
-					"$ref": "#/definitions/InstallPluginOptions",
-					"description": "Optional installation options."
+				"activate": {
+					"type": "boolean",
+					"description": "Whether to activate the plugin after installing it.",
+					"default": true
 				}
 			},
 			"required": [
@@ -484,16 +436,10 @@
 					"$ref": "#/definitions/FileReference",
 					"description": "The theme zip file to install."
 				},
-				"options": {
-					"type": "object",
-					"properties": {
-						"activate": {
-							"type": "boolean",
-							"description": "Whether to activate the theme after installing it."
-						}
-					},
-					"additionalProperties": false,
-					"description": "Optional installation options."
+				"activate": {
+					"type": "boolean",
+					"description": "Whether to activate the theme after installing it.",
+					"default": true
 				}
 			},
 			"required": [
@@ -873,16 +819,6 @@
 				}
 			]
 		},
-		"InstallPluginOptions": {
-			"type": "object",
-			"properties": {
-				"activate": {
-					"type": "boolean",
-					"description": "Whether to activate the plugin after installing it."
-				}
-			},
-			"additionalProperties": false
-		},
 		"HTTPMethod": {
 			"type": "string",
 			"enum": [
@@ -959,10 +895,12 @@
 			"type": "object",
 			"properties": {
 				"adminUsername": {
-					"type": "string"
+					"type": "string",
+					"default": "admin"
 				},
 				"adminPassword": {
-					"type": "string"
+					"type": "string",
+					"default": "password"
 				}
 			},
 			"additionalProperties": false

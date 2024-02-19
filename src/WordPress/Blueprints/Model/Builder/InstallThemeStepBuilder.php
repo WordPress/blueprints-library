@@ -38,7 +38,9 @@ class InstallThemeStepBuilder extends InstallThemeStep implements ClassStructure
         $properties->themeZipFile->anyOf[4] = CorePluginResourceBuilder::schema();
         $properties->themeZipFile->anyOf[5] = UrlResourceBuilder::schema();
         $properties->themeZipFile->setFromRef('#/definitions/FileReference');
-        $properties->options = InstallThemeStepOptionsBuilder::schema();
+        $properties->activate = Schema::boolean();
+        $properties->activate->description = "Whether to activate the theme after installing it.";
+        $properties->activate->default = true;
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
@@ -97,13 +99,13 @@ class InstallThemeStepBuilder extends InstallThemeStep implements ClassStructure
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param InstallThemeStepOptionsBuilder $options Optional installation options.
+     * @param bool $activate Whether to activate the theme after installing it.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setOptions(InstallThemeStepOptionsBuilder $options)
+    public function setActivate($activate)
     {
-        $this->options = $options;
+        $this->activate = $activate;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -115,7 +117,7 @@ class InstallThemeStepBuilder extends InstallThemeStep implements ClassStructure
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->themeZipFile = $this->recursiveJsonSerialize($this->themeZipFile);
-        $dataObject->options = $this->recursiveJsonSerialize($this->options);
+        $dataObject->activate = $this->recursiveJsonSerialize($this->activate);
         return $dataObject;
     }
 

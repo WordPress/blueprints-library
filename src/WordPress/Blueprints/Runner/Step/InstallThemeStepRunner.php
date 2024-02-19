@@ -14,7 +14,7 @@ class InstallThemeStepRunner extends BaseStepRunner {
 	 * @param InstallThemeStep $input
 	 */
 	function run( InstallThemeStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( $input->progress->caption ?? "Installing theme " . $input->themeZipFile );
+		$tracker?->setCaption( $input->progress->caption ?? "Installing theme" );
 
 		// @TODO: Measure the performance. It seems slow. Perhaps that's unzipping a large file, but it could also be spawning wp-cli
 		return $this->resourceManager->bufferToTemporaryFile(
@@ -27,7 +27,7 @@ class InstallThemeStepRunner extends BaseStepRunner {
 						'theme',
 						'install',
 						$path,
-						$input->options->activate ? '--activate' : '',
+						$input->activate ? '--activate' : '',
 					]
 				);
 			},

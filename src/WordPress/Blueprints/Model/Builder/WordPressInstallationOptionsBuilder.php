@@ -26,7 +26,9 @@ class WordPressInstallationOptionsBuilder extends WordPressInstallationOptions i
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
         $properties->adminUsername = Schema::string();
+        $properties->adminUsername->default = "admin";
         $properties->adminPassword = Schema::string();
+        $properties->adminPassword->default = "password";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->setFromRef('#/definitions/WordPressInstallationOptions');

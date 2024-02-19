@@ -10,15 +10,16 @@ class WriteFileStepRunner extends BaseStepRunner {
 		WriteFileStep $input,
 		Tracker $progress = null
 	) {
+		$path = $this->getRuntime()->getDocumentRoot() . '/' . $input->path;
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
 		if ( is_string( $input->data ) ) {
-			file_put_contents( $input->path, $input->data );
+			file_put_contents( $path, $input->data );
 
 			return;
 		}
-		$fp2 = fopen( $input->path, 'w' );
+		$fp2 = fopen( $path, 'w' );
 		if ( $fp2 === false ) {
-			throw new \Exception( "Failed to open file at {$input->path}" );
+			throw new \Exception( "Failed to open file at {$path}" );
 		}
 		stream_copy_to_stream( $this->getResource( $input->data ), $fp2 );
 		fclose( $fp2 );
