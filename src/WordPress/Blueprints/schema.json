@@ -573,6 +573,31 @@
         "step"
       ]
     },
+    "EvalPHPCallbackStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "isPrivate": true,
+      "properties": {
+        "progress": {
+          "$ref": "#/definitions/Progress"
+        },
+        "continueOnError": {
+          "type": "boolean"
+        },
+        "step": {
+          "type": "string",
+          "const": "evalPHPCallback",
+          "description": "The step identifier."
+        },
+        "callback": {
+          "description": "The PHP function."
+        }
+      },
+      "required": [
+        "callback",
+        "step"
+      ]
+    },
     "RunWordPressInstallerStep": {
       "type": "object",
       "additionalProperties": false,
@@ -676,7 +701,7 @@
         "step"
       ]
     },
-    "UnzipWordPressStep": {
+    "InitializeWordPressStep": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -688,20 +713,39 @@
         },
         "step": {
           "type": "string",
-          "const": "unzipWordPress"
+          "const": "initializeWordPress"
         },
-        "zipFile": {
+        "wordPressZip": {
           "$ref": "#/definitions/FileReference",
           "description": "The zip file to extract"
-        },
-        "extractToPath": {
-          "type": "string",
-          "description": "The path to extract the zip file to"
         }
       },
       "required": [
-        "zipFile",
-        "extractToPath",
+        "wordPressZip",
+        "step"
+      ]
+    },
+    "InstallSqliteIntegrationStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "progress": {
+          "$ref": "#/definitions/Progress"
+        },
+        "continueOnError": {
+          "type": "boolean"
+        },
+        "step": {
+          "type": "string",
+          "const": "installSqliteIntegration"
+        },
+        "sqlitePluginZip": {
+          "$ref": "#/definitions/FileReference",
+          "description": "The zip file to extract"
+        }
+      },
+      "required": [
+        "sqlitePluginZip",
         "step"
       ]
     },
@@ -801,6 +845,9 @@
           "$ref": "#/definitions/EnableMultisiteStep"
         },
         {
+          "$ref": "#/definitions/EvalPHPCallbackStep"
+        },
+        {
           "$ref": "#/definitions/ImportFileStep"
         },
         {
@@ -837,7 +884,10 @@
           "$ref": "#/definitions/UnzipStep"
         },
         {
-          "$ref": "#/definitions/UnzipWordPressStep"
+          "$ref": "#/definitions/InitializeWordPressStep"
+        },
+        {
+          "$ref": "#/definitions/InstallSqliteIntegrationStep"
         },
         {
           "$ref": "#/definitions/WriteFileStep"

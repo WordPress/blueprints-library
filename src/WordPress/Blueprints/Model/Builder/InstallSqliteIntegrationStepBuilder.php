@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\UnzipWordPressStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/UnzipWordPressStep
+ * Built from #/definitions/InstallSqliteIntegrationStep
  */
-class UnzipWordPressStepBuilder extends UnzipWordPressStep implements ClassStructureContract
+class InstallSqliteIntegrationStepBuilder extends InstallSqliteIntegrationStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -28,25 +28,22 @@ class UnzipWordPressStepBuilder extends UnzipWordPressStep implements ClassStruc
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
-        $properties->step->const = "unzipWordPress";
-        $properties->zipFile = new Schema();
-        $properties->zipFile->anyOf[0] = Schema::string();
-        $properties->zipFile->anyOf[1] = FilesystemResourceBuilder::schema();
-        $properties->zipFile->anyOf[2] = InlineResourceBuilder::schema();
-        $properties->zipFile->anyOf[3] = CoreThemeResourceBuilder::schema();
-        $properties->zipFile->anyOf[4] = CorePluginResourceBuilder::schema();
-        $properties->zipFile->anyOf[5] = UrlResourceBuilder::schema();
-        $properties->zipFile->setFromRef('#/definitions/FileReference');
-        $properties->extractToPath = Schema::string();
-        $properties->extractToPath->description = "The path to extract the zip file to";
+        $properties->step->const = "installSqliteIntegration";
+        $properties->sqlitePluginZip = new Schema();
+        $properties->sqlitePluginZip->anyOf[0] = Schema::string();
+        $properties->sqlitePluginZip->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[5] = UrlResourceBuilder::schema();
+        $properties->sqlitePluginZip->setFromRef('#/definitions/FileReference');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
-            self::names()->zipFile,
-            self::names()->extractToPath,
+            self::names()->sqlitePluginZip,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/UnzipWordPressStep');
+        $ownerSchema->setFromRef('#/definitions/InstallSqliteIntegrationStep');
     }
 
     /**
@@ -86,37 +83,24 @@ class UnzipWordPressStepBuilder extends UnzipWordPressStep implements ClassStruc
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $zipFile
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $sqlitePluginZip
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setZipFile($zipFile)
+    public function setSqlitePluginZip($sqlitePluginZip)
     {
-        $this->zipFile = $zipFile;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
-     * @param string $extractToPath The path to extract the zip file to
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setExtractToPath($extractToPath)
-    {
-        $this->extractToPath = $extractToPath;
+        $this->sqlitePluginZip = $sqlitePluginZip;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new UnzipWordPressStep();
+        $dataObject = new InstallSqliteIntegrationStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->zipFile = $this->recursiveJsonSerialize($this->zipFile);
-        $dataObject->extractToPath = $this->recursiveJsonSerialize($this->extractToPath);
+        $dataObject->sqlitePluginZip = $this->recursiveJsonSerialize($this->sqlitePluginZip);
         return $dataObject;
     }
 

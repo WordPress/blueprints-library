@@ -1,23 +1,18 @@
 <?php
 
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Model\Builder\ActivatePluginStepBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
 use WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder;
 use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\Builder\ImportFileStepBuilder;
+use WordPress\Blueprints\Model\Builder\InitializeWordPressStepBuilder;
 use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\Builder\InstallPluginOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder;
+use WordPress\Blueprints\Model\Builder\InstallSqliteIntegrationStepBuilder;
 use WordPress\Blueprints\Model\Builder\InstallThemeStepBuilder;
-use WordPress\Blueprints\Model\Builder\InstallThemeStepOptionsBuilder;
-use WordPress\Blueprints\Model\Builder\RunPHPStepBuilder;
 use WordPress\Blueprints\Model\Builder\RunSQLStepBuilder;
 use WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder;
 use WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder;
-use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UnzipWordPressStepBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
@@ -33,45 +28,16 @@ $builder
 		'hello-dolly',
 	] )
 	->setSteps( [
-		( ( new UnzipWordPressStepBuilder() )
-			->setZipFile(
-				'https://wordpress.org/latest.zip'
-			) )
-			->setExtractToPath( '' ),
-		( new InstallPluginStepBuilder() )
-			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip' ),
-		( new InstallPluginStepBuilder() )
-			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/hello-dolly.zip' ),
+		( ( new InitializeWordPressStepBuilder() )
+			->setWordPressZip( 'https://wordpress.org/latest.zip' ) ),
+		( ( new InstallSqliteIntegrationStepBuilder() )
+			->setSqlitePluginZip(
+				'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip'
+			) ),
 		( new WriteFileStepBuilder() )
 			->setContinueOnError( true )
 			->setPath( 'wp-cli.phar' )
 			->setData( ( new UrlResourceBuilder() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) ),
-		( ( new UnzipStepBuilder() )
-			->setZipFile(
-				'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip'
-			) )
-			->setExtractToPath( 'wp-content/mu-plugins' ),
-		( new RunPHPStepBuilder() )
-			->setCode( <<<'SQLITE'
-<?php
-	$db = file_get_contents( 'wp-content/mu-plugins/sqlite-database-integration/db.copy' );
-	$db = str_replace(
-		"'{SQLITE_IMPLEMENTATION_FOLDER_PATH}'",
-		"__DIR__.'/mu-plugins/sqlite-database-integration/'",
-		$db
-	);
-	$db = str_replace(
-		"'{SQLITE_PLUGIN}'",
-		"__DIR__.'/mu-plugins/sqlite-database-integration/load.php'",
-		$db
-	);
-	file_put_contents( 'wp-content/db.php', $db );
-	file_put_contents( 'wp-content/mu-plugins/0-sqlite.php',
-		'<?php require_once __DIR__ . "/sqlite-database-integration/load.php"; ' );
-
-	copy( 'wp-config-sample.php', 'wp-config.php' );
-SQLITE
-			),
 		( new RunWordPressInstallerStepBuilder() )->setOptions(
 			new WordPressInstallationOptionsBuilder()
 		),

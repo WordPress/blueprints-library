@@ -142,7 +142,7 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 // I didn't find any way of getting those information from $schema,
 // so here's a native extraction of all the relevant classes.
 $interfaces = [
-	'FileReference' => [
+	'FileReference'  => [
 		'interfaceName' => 'FileReferenceInterface',
 	],
 	'StepDefinition' => [
@@ -257,7 +257,7 @@ METHOD
 			$runnerClass->setNamespace( $runnerNs );
 			$runnerClass->setExtends( $baseStepRunnerClass );
 			$runnerClass->setName( $runnerClassName );
-			$execute = new \Swaggest\PhpCodeBuilder\PhpFunction( 'execute' );
+			$execute = new \Swaggest\PhpCodeBuilder\PhpFunction( 'run' );
 			$execute->setBody( '' );
 
 			$input = new \Swaggest\PhpCodeBuilder\PhpNamedVar( 'input' );

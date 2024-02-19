@@ -14,9 +14,9 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class UnzipWordPressStep implements StepInterface
+class InitializeWordPressStep implements StepInterface
 {
-    const SLUG = 'unzipWordPress';
+    const SLUG = 'initializeWordPress';
 
     /** @var ProgressBuilder */
     public $progress;
@@ -25,11 +25,8 @@ class UnzipWordPressStep implements StepInterface
     public $continueOnError;
 
     /** @var string */
-    public $step = 'unzipWordPress';
+    public $step = 'initializeWordPress';
 
     /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
-    public $zipFile;
-
-    /** @var string The path to extract the zip file to */
-    public $extractToPath;
+    public $wordPressZip;
 }

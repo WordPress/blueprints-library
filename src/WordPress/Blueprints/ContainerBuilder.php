@@ -13,10 +13,13 @@ use WordPress\Blueprints\Model\DataClass\CpStep;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 use WordPress\Blueprints\Model\DataClass\EnableMultisiteStep;
+use WordPress\Blueprints\Model\DataClass\EvalPHPCallbackStep;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\ImportFileStep;
+use WordPress\Blueprints\Model\DataClass\InitializeWordPressStep;
 use WordPress\Blueprints\Model\DataClass\InlineResource;
 use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use WordPress\Blueprints\Model\DataClass\InstallThemeStep;
 use WordPress\Blueprints\Model\DataClass\MvStep;
 use WordPress\Blueprints\Model\DataClass\RmDirStep;
@@ -42,8 +45,10 @@ use WordPress\Blueprints\Runner\Step\CpStepRunner;
 use WordPress\Blueprints\Runner\Step\DefineSiteUrlStepRunner;
 use WordPress\Blueprints\Runner\Step\DefineWpConfigConstsStepRunner;
 use WordPress\Blueprints\Runner\Step\EnableMultisiteStepRunner;
+use WordPress\Blueprints\Runner\Step\EvalPHPCallbackStepRunner;
 use WordPress\Blueprints\Runner\Step\ImportFileStepRunner;
 use WordPress\Blueprints\Runner\Step\InstallPluginStepRunner;
+use WordPress\Blueprints\Runner\Step\InstallSqliteIntegrationStepRunner;
 use WordPress\Blueprints\Runner\Step\InstallThemeStepRunner;
 use WordPress\Blueprints\Runner\Step\MvStepRunner;
 use WordPress\Blueprints\Runner\Step\RmDirStepRunner;
@@ -53,7 +58,7 @@ use WordPress\Blueprints\Runner\Step\RunSQLStepRunner;
 use WordPress\Blueprints\Runner\Step\RunWordPressInstallerStepRunner;
 use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
-use WordPress\Blueprints\Runner\Step\UnzipWordPressStepRunner;
+use WordPress\Blueprints\Runner\Step\InitializeWordPressStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
@@ -146,9 +151,6 @@ class ContainerBuilder {
 		$container[ "step.runner." . UnzipStep::SLUG ] = function () {
 			return new UnzipStepRunner();
 		};
-		$container[ "step.runner." . UnzipWordPressStep::SLUG ] = function () {
-			return new UnzipWordPressStepRunner();
-		};
 		$container[ "step.runner." . WriteFileStep::SLUG ] = function () {
 			return new WriteFileStepRunner();
 		};
@@ -194,6 +196,12 @@ class ContainerBuilder {
 		$container[ "step.runner." . InstallThemeStep::SLUG ] = function () {
 			return new InstallThemeStepRunner();
 		};
+		$container[ "step.runner." . InstallSqliteIntegrationStep::SLUG ] = function () {
+			return new InstallSqliteIntegrationStepRunner();
+		};
+		$container[ "step.runner." . InitializeWordPressStep::SLUG ] = function () {
+			return new InitializeWordPressStepRunner();
+		};
 		$container[ "step.runner." . ImportFileStep::SLUG ] = function () {
 			return new ImportFileStepRunner();
 		};
@@ -202,6 +210,9 @@ class ContainerBuilder {
 		};
 		$container[ "step.runner." . RunSQLStep::SLUG ] = function () {
 			return new RunSQLStepRunner();
+		};
+		$container[ "step.runner." . EvalPHPCallbackStep::SLUG ] = function () {
+			return new EvalPHPCallbackStepRunner();
 		};
 		$container[ "resource.resolver." . UrlResource::SLUG ] = function ( $c ) {
 			return new UrlResourceResolver( $c['data_source.url'] );

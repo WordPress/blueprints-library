@@ -16,10 +16,13 @@ use WordPress\Blueprints\Model\Builder\CpStepBuilder;
 use WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder;
 use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\Builder\EnableMultisiteStepBuilder;
+use WordPress\Blueprints\Model\Builder\EvalPHPCallbackStepBuilder;
 use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\Builder\ImportFileStepBuilder;
+use WordPress\Blueprints\Model\Builder\InitializeWordPressStepBuilder;
 use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder;
+use WordPress\Blueprints\Model\Builder\InstallSqliteIntegrationStepBuilder;
 use WordPress\Blueprints\Model\Builder\InstallThemeStepBuilder;
 use WordPress\Blueprints\Model\Builder\MkdirStepBuilder;
 use WordPress\Blueprints\Model\Builder\MvStepBuilder;
@@ -30,7 +33,6 @@ use WordPress\Blueprints\Model\Builder\RunSQLStepBuilder;
 use WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder;
 use WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
-use WordPress\Blueprints\Model\Builder\UnzipWordPressStepBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
@@ -59,7 +61,7 @@ class Blueprint
     /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */
     public $siteOptions;
 
-    /** @var ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|UnzipWordPressStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array The steps to run after every other operation in this Blueprint was executed. */
+    /** @var ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|EvalPHPCallbackStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|InitializeWordPressStepBuilder[]|InstallSqliteIntegrationStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array The steps to run after every other operation in this Blueprint was executed. */
     public $steps;
 
     /** @var string */

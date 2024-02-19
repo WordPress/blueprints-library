@@ -14,7 +14,12 @@ class NativePHPRuntime implements RuntimeInterface {
 		protected string $documentRoot
 	) {
 		$this->fs = new Filesystem();
-		$this->fs->mkdir( $this->documentRoot );
+		if ( ! file_exists( $this->getDocumentRoot() ) ) {
+			$this->fs->mkdir( $this->getDocumentRoot() );
+		}
+		if ( ! file_exists( $this->getTempRoot() ) ) {
+			$this->fs->mkdir( $this->getTempRoot() );
+		}
 	}
 
 	// @TODO: public function getTmpDir(): string {
@@ -38,7 +43,7 @@ class NativePHPRuntime implements RuntimeInterface {
 	}
 
 	public function withTemporaryDirectory( $callback ) {
-		$path = $this->fs->tempnam( sys_get_temp_dir(), 'tmpdir' );
+		$path = $this->fs->tempnam( $this->getTempRoot(), 'tmpdir' );
 		$this->fs->remove( $path );
 		$this->fs->mkdir( $path );
 		try {
@@ -50,12 +55,20 @@ class NativePHPRuntime implements RuntimeInterface {
 	}
 
 	public function withTemporaryFile( $callback, $suffix = null ) {
-		$path = $this->fs->tempnam( sys_get_temp_dir(), 'tmpfile', $suffix );
+		$path = $this->fs->tempnam( $this->getTempRoot(), 'tmpfile', $suffix );
 		try {
 			return $callback( $path );
 		} finally {
 			$this->fs->remove( $path );
 		}
+	}
+
+	public function getTempRoot() {
+		// Store tmp files inside document root because in some runtime environments,
+		// `/tmp` may be on another filesystem and we couldn't move files across filesystems
+		// without a slow recursive copy.
+		return join_paths( $this->getDocumentRoot(), '/tmp' );
+//		return sys_get_temp_dir();
 	}
 
 	// @TODO: Move this to a separate class
