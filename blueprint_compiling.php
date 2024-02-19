@@ -17,6 +17,8 @@ use WordPress\Blueprints\Model\Builder\RunSQLStepBuilder;
 use WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder;
 use WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder;
 use WordPress\Blueprints\Model\Builder\UnzipStepBuilder;
+use WordPress\Blueprints\Model\Builder\UnzipWordPressStepBuilder;
+use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
@@ -31,34 +33,19 @@ $builder
 		'hello-dolly',
 	] )
 	->setSteps( [
-		( ( new UnzipStepBuilder() )
+		( ( new UnzipWordPressStepBuilder() )
 			->setZipFile(
 				'https://wordpress.org/latest.zip'
 			) )
 			->setExtractToPath( '' ),
-	] );
-
-$c = ( new ContainerBuilder() )->build(
-	new NativePHPRuntime(
-		__DIR__ . '/new-wp'
-	)
-);
-
-$results = $c['blueprint.engine']->runBlueprint( $builder );
-var_dump( $results );
-
-$builder = new BlueprintBuilder();
-$builder
-	->setWpVersion( '6.4' )
-	->setPlugins( [
-		'akismet',
-		'hello-dolly',
-	] )
-	->setSteps( [
+		( new InstallPluginStepBuilder() )
+			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip' ),
+		( new InstallPluginStepBuilder() )
+			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/hello-dolly.zip' ),
 		( new WriteFileStepBuilder() )
 			->setContinueOnError( true )
 			->setPath( 'wp-cli.phar' )
-			->setData( ( new \WordPress\Blueprints\Model\Builder\UrlResourceBuilder() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) ),
+			->setData( ( new UrlResourceBuilder() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) ),
 		( ( new UnzipStepBuilder() )
 			->setZipFile(
 				'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip'
@@ -110,7 +97,7 @@ SQLITE
 		( new InstallPluginStepBuilder() )
 			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip' ),
 		( new DefineSiteUrlStepBuilder() )
-			->setSiteUrl( 'http://localhost:8080' ),
+			->setSiteUrl( 'http://localhost:8081' ),
 		( new RunSQLStepBuilder() )
 			->setSql( <<<'SQL'
 CREATE TABLE `tmp_table` ( id INT );
@@ -126,7 +113,7 @@ SQL
 
 $c = ( new ContainerBuilder() )->build(
 	new NativePHPRuntime(
-		__DIR__ . '/new-wp/wordpress'
+		__DIR__ . '/new-wp'
 	)
 );
 

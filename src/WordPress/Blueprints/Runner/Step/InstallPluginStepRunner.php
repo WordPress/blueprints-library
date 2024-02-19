@@ -4,43 +4,27 @@ namespace WordPress\Blueprints\Runner\Step;
 
 use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
 use WordPress\Blueprints\Progress\Tracker;
-use function WordPress\Zip\zip_extract_to;
 
 
-class InstallPluginStepRunner extends BaseStepRunner {
+class InstallPluginStepRunner extends InstallAssetStepRunner {
 
 	function run( InstallPluginStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( $input->progress->caption ?? "Installing plugin" );
-		$toPath = $this->getRuntime()->getDocumentRoot() . '/wp-content/plugins';
+		$tracker->setCaption( $input->progress->caption ?? "Installing plugin" );
 
-		$pluginsBefore = glob( $toPath . '/*', GLOB_ONLYDIR );
-		zip_extract_to( $this->getResource( $input->pluginZipFile ), $toPath );
-		$pluginsAfter = glob( $toPath . '/*', GLOB_ONLYDIR );
-		$pluginDir    = array_values( array_diff( $pluginsAfter, $pluginsBefore ) )[0];
+		// @TODO: inject this information into this step
+		$pluginDir = 'plugin' . rand( 0, 1000 );
+		$targetPath = $this->getRuntime()->resolvePath( 'wp-content/plugins/' . $pluginDir );
+		$this->unzipAssetTo( $input->pluginZipFile, $targetPath );
 
-		$this->getRuntime()->evalPhpInSubProcess(
-			file_get_contents( __DIR__ . '/ActivatePlugin/wp_activate_plugin.php' ),
-			[
-				'PLUGIN_PATH' => $pluginDir, //$toPath . '/' . $input->pluginSlug,
-			]
-		);
-
-		// @TODO: Measure the performance. It seems slow. Perhaps that's unzipping a large file, but it could also be spawning wp-cli
-//		return $this->resourceManager->bufferToTemporaryFile(
-//			$input->pluginZipFile,
-//			function ( $path ) use ( $input ) {
-//				return $this->getRuntime()->runShellCommand(
-//					[
-//						'php',
-//						'wp-cli.phar',
-//						'plugin',
-//						'install',
-//						$path,
-//						$input->activate ? '--activate' : '',
-//					]
-//				);
-//			},
-//			'.zip'
-//		);
+		if ( $input->activate ) {
+			// Don't use wp-cli for activation as it expects a slug, and, in the general case,
+			// plugins in WordPress are identified by their path, not slug.
+			$this->getRuntime()->evalPhpInSubProcess(
+				file_get_contents( __DIR__ . '/ActivatePlugin/wp_activate_plugin.php' ),
+				[
+					'PLUGIN_PATH' => $targetPath,
+				]
+			);
+		}
 	}
 }

@@ -15,7 +15,7 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 				'wp-cli.phar',
 				'core',
 				'install',
-				'--url=http://localhost:8080',
+				'--url=http://localhost:8081',
 				'--title=Playground Site',
 				'--admin_user=' . $input->options->adminUsername,
 				'--admin_password=' . $input->options->adminPassword,

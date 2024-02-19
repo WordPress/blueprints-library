@@ -70,8 +70,9 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->steps->items->oneOf[15] = RunSQLStepBuilder::schema();
         $properties->steps->items->oneOf[16] = SetSiteOptionsStepBuilder::schema();
         $properties->steps->items->oneOf[17] = UnzipStepBuilder::schema();
-        $properties->steps->items->oneOf[18] = WriteFileStepBuilder::schema();
-        $properties->steps->items->oneOf[19] = WPCLIStepBuilder::schema();
+        $properties->steps->items->oneOf[18] = UnzipWordPressStepBuilder::schema();
+        $properties->steps->items->oneOf[19] = WriteFileStepBuilder::schema();
+        $properties->steps->items->oneOf[20] = WPCLIStepBuilder::schema();
         $properties->steps->items->required = array(
             self::names()->step,
         );
@@ -169,7 +170,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array $steps The steps to run after every other operation in this Blueprint was executed.
+     * @param ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|UnzipWordPressStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array $steps The steps to run after every other operation in this Blueprint was executed.
      * @return $this
      * @codeCoverageIgnoreStart
      */

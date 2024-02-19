@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\UnzipStep;
+use WordPress\Blueprints\Model\DataClass\UnzipWordPressStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/UnzipStep
+ * Built from #/definitions/UnzipWordPressStep
  */
-class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
+class UnzipWordPressStepBuilder extends UnzipWordPressStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -28,7 +28,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
         $properties->step = Schema::string();
-        $properties->step->const = "unzip";
+        $properties->step->const = "unzipWordPress";
         $properties->zipFile = new Schema();
         $properties->zipFile->anyOf[0] = Schema::string();
         $properties->zipFile->anyOf[1] = FilesystemResourceBuilder::schema();
@@ -46,7 +46,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
             self::names()->extractToPath,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/UnzipStep');
+        $ownerSchema->setFromRef('#/definitions/UnzipWordPressStep');
     }
 
     /**
@@ -111,7 +111,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
 
     function toDataObject()
     {
-        $dataObject = new UnzipStep();
+        $dataObject = new UnzipWordPressStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);

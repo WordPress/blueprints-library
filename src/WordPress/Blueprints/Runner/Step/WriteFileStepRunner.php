@@ -10,7 +10,7 @@ class WriteFileStepRunner extends BaseStepRunner {
 		WriteFileStep $input,
 		Tracker $progress = null
 	) {
-		$path = $this->getRuntime()->getDocumentRoot() . '/' . $input->path;
+		$path = $this->getRuntime()->resolvePath( $input->path );
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
 		if ( is_string( $input->data ) ) {
 			file_put_contents( $path, $input->data );
