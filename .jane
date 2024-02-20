@@ -1,0 +1,9 @@
+<?php
+
+return [
+    'json-schema-file' => __DIR__ . '/schema.json',
+    'root-class' => 'Blueprint',
+    'namespace' => 'WordPress\Blueprints\Generated',
+    'directory' => __DIR__ . '/generated',
+    'validation' => true,
+];
