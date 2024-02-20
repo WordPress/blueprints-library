@@ -53,14 +53,7 @@
 				"plugins": {
 					"type": "array",
 					"items": {
-						"anyOf": [
-							{
-								"type": "string"
-							},
-							{
-								"$ref": "#/definitions/FileReference"
-							}
-						]
+						"$ref": "#/definitions/FileReference"
 					},
 					"description": "WordPress plugins to install and activate",
 					"deprecated": "This experimental option will change without warning.\nUse `steps` instead."
@@ -89,24 +82,7 @@
 				"steps": {
 					"type": "array",
 					"items": {
-						"anyOf": [
-							{
-								"$ref": "#/definitions/StepDefinition"
-							},
-							{
-								"type": "string"
-							},
-							{
-								"not": {}
-							},
-							{
-								"type": "boolean",
-								"const": false
-							},
-							{
-								"type": "null"
-							}
-						]
+						"$ref": "#/definitions/StepDefinition"
 					},
 					"description": "The steps to run after every other operation in this Blueprint was executed."
 				},
@@ -135,6 +111,19 @@
 				{
 					"type": "string"
 				},
+				{
+					"$ref": "#/definitions/FileReferenceResource"
+				}
+			]
+		},
+		"FileReferenceResource": {
+			"discriminator": {
+				"propertyName": "resource"
+			},
+			"required": [
+				"resource"
+			],
+			"anyOf": [
 				{
 					"$ref": "#/definitions/FilesystemResource"
 				},
@@ -786,14 +775,10 @@
 					"description": "The step identifier."
 				},
 				"command": {
-					"anyOf": [
-						{
-							"type": "array",
-							"items": {
-								"type": "string"
-							}
-						}
-					],
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
 					"description": "The WP CLI command to run."
 				}
 			},
