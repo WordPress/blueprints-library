@@ -9,9 +9,12 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 
 
-class SetSiteOptionsStep implements StepInterface
+/**
+ * @property mixed $callback The PHP function.
+ */
+class EvalPHPCallbackStep implements StepInterface
 {
-    const SLUG = 'setSiteOptions';
+    const SLUG = 'evalPHPCallback';
 
     /** @var ProgressBuilder */
     public $progress;
@@ -19,9 +22,6 @@ class SetSiteOptionsStep implements StepInterface
     /** @var bool */
     public $continueOnError = false;
 
-    /** @var string The name of the step. Must be "setSiteOptions". */
-    public $step = 'setSiteOptions';
-
-    /** @var array The options to set on the site. */
-    public $options;
+    /** @var string The step identifier. */
+    public $step = 'evalPHPCallback';
 }

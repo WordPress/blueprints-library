@@ -27,6 +27,7 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->description = "The step identifier.";
         $properties->step->const = "installPlugin";
@@ -38,7 +39,9 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
         $properties->pluginZipFile->anyOf[4] = CorePluginResourceBuilder::schema();
         $properties->pluginZipFile->anyOf[5] = UrlResourceBuilder::schema();
         $properties->pluginZipFile->setFromRef('#/definitions/FileReference');
-        $properties->options = InstallPluginOptionsBuilder::schema();
+        $properties->activate = Schema::boolean();
+        $properties->activate->description = "Whether to activate the plugin after installing it.";
+        $properties->activate->default = true;
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
@@ -97,13 +100,13 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param InstallPluginOptionsBuilder $options
+     * @param bool $activate Whether to activate the plugin after installing it.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setOptions(InstallPluginOptionsBuilder $options)
+    public function setActivate($activate)
     {
-        $this->options = $options;
+        $this->activate = $activate;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
@@ -115,7 +118,7 @@ class InstallPluginStepBuilder extends InstallPluginStep implements ClassStructu
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->pluginZipFile = $this->recursiveJsonSerialize($this->pluginZipFile);
-        $dataObject->options = $this->recursiveJsonSerialize($this->options);
+        $dataObject->activate = $this->recursiveJsonSerialize($this->activate);
         return $dataObject;
     }
 

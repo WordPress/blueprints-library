@@ -27,6 +27,7 @@ class WPCLIStepBuilder extends WPCLIStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->description = "The step identifier.";
         $properties->step->const = "wp-cli";

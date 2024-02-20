@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\MkdirStep;
+use WordPress\Blueprints\Model\DataClass\EvalPHPCallbackStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/MkdirStep
+ * Built from #/definitions/EvalPHPCallbackStep
  */
-class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
+class EvalPHPCallbackStepBuilder extends EvalPHPCallbackStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -29,16 +29,17 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
         $properties->continueOnError = Schema::boolean();
         $properties->continueOnError->default = false;
         $properties->step = Schema::string();
-        $properties->step->const = "mkdir";
-        $properties->path = Schema::string();
-        $properties->path->description = "The path of the directory you want to create";
+        $properties->step->description = "The step identifier.";
+        $properties->step->const = "evalPHPCallback";
+        $properties->callback = new Schema();
+        $properties->callback->description = "The PHP function.";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
-            self::names()->path,
+            self::names()->callback,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/MkdirStep');
+        $ownerSchema->setFromRef('#/definitions/EvalPHPCallbackStep');
     }
 
     /**
@@ -66,7 +67,7 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $step
+     * @param string $step The step identifier.
      * @return $this
      * @codeCoverageIgnoreStart
      */
@@ -78,24 +79,24 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $path The path of the directory you want to create
+     * @param mixed $callback The PHP function.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPath($path)
+    public function setCallback($callback)
     {
-        $this->path = $path;
+        $this->callback = $callback;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new MkdirStep();
+        $dataObject = new EvalPHPCallbackStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->path = $this->recursiveJsonSerialize($this->path);
+        $dataObject->callback = $this->recursiveJsonSerialize($this->callback);
         return $dataObject;
     }
 

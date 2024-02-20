@@ -8,8 +8,11 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 
 
-class InstallPluginOptions
+class BlueprintOnBoot
 {
-    /** @var bool Whether to activate the plugin after installing it. */
-    public $activate;
+    /** @var string The URL to navigate to after the blueprint has been run. */
+    public $openUrl;
+
+    /** @var bool */
+    public $login;
 }

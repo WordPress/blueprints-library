@@ -27,6 +27,7 @@ class RmStepBuilder extends RmStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "rm";
         $properties->path = Schema::string();

@@ -27,6 +27,7 @@ class WriteFileStepBuilder extends WriteFileStep implements ClassStructureContra
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "writeFile";
         $properties->path = Schema::string();

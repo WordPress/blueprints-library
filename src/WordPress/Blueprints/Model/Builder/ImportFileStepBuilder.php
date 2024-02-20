@@ -27,6 +27,7 @@ class ImportFileStepBuilder extends ImportFileStep implements ClassStructureCont
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "importFile";
         $properties->file = new Schema();

@@ -12,11 +12,15 @@ use WordPress\Blueprints\Model\DataClass\ActivateThemeStep;
 use WordPress\Blueprints\Model\DataClass\CpStep;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
 use WordPress\Blueprints\Model\DataClass\EnableMultisiteStep;
+use WordPress\Blueprints\Model\DataClass\EvalPHPCallbackStep;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 use WordPress\Blueprints\Model\DataClass\ImportFileStep;
+use WordPress\Blueprints\Model\DataClass\InitializeWordPressStep;
 use WordPress\Blueprints\Model\DataClass\InlineResource;
 use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use WordPress\Blueprints\Model\DataClass\InstallThemeStep;
 use WordPress\Blueprints\Model\DataClass\MvStep;
 use WordPress\Blueprints\Model\DataClass\RmDirStep;
@@ -26,6 +30,7 @@ use WordPress\Blueprints\Model\DataClass\RunSQLStep;
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
+use WordPress\Blueprints\Model\DataClass\UnzipWordPressStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WPCLIStep;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
@@ -41,8 +46,10 @@ use WordPress\Blueprints\Runner\Step\CpStepRunner;
 use WordPress\Blueprints\Runner\Step\DefineSiteUrlStepRunner;
 use WordPress\Blueprints\Runner\Step\DefineWpConfigConstsStepRunner;
 use WordPress\Blueprints\Runner\Step\EnableMultisiteStepRunner;
+use WordPress\Blueprints\Runner\Step\EvalPHPCallbackStepRunner;
 use WordPress\Blueprints\Runner\Step\ImportFileStepRunner;
 use WordPress\Blueprints\Runner\Step\InstallPluginStepRunner;
+use WordPress\Blueprints\Runner\Step\InstallSqliteIntegrationStepRunner;
 use WordPress\Blueprints\Runner\Step\InstallThemeStepRunner;
 use WordPress\Blueprints\Runner\Step\MvStepRunner;
 use WordPress\Blueprints\Runner\Step\RmDirStepRunner;
@@ -52,6 +59,7 @@ use WordPress\Blueprints\Runner\Step\RunSQLStepRunner;
 use WordPress\Blueprints\Runner\Step\RunWordPressInstallerStepRunner;
 use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
+use WordPress\Blueprints\Runner\Step\DownloadWordPressStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
@@ -79,16 +87,16 @@ class ContainerBuilder {
 
 
 	public function build( RuntimeInterface $runtime ) {
-		$container            = $this->container;
+		$container = $this->container;
 		$container['runtime'] = function () use ( $runtime ) {
 			return $runtime;
 		};
 
 		if ( $runtime instanceof NativePHPRuntime ) {
-			$container['downloads_cache']   = function ( $c ) {
+			$container['downloads_cache'] = function ( $c ) {
 				return new FileCache();
 			};
-			$container['http_client']       = function ( $c ) {
+			$container['http_client'] = function ( $c ) {
 				return HttpClient::create();
 			};
 			$container['progress_reporter'] = function ( $c ) {
@@ -141,71 +149,79 @@ class ContainerBuilder {
 			);
 		};
 
-		$container[ "step.runner." . UnzipStep::SLUG ]                 = function () {
+		$container[ "step.runner." . UnzipStep::SLUG ] = function () {
 			return new UnzipStepRunner();
 		};
-		$container[ "step.runner." . WriteFileStep::SLUG ]             = function () {
+		$container[ "step.runner." . WriteFileStep::SLUG ] = function () {
 			return new WriteFileStepRunner();
 		};
-		$container[ "step.runner." . RunPHPStep::SLUG ]                = function () {
+		$container[ "step.runner." . RunPHPStep::SLUG ] = function () {
 			return new RunPHPStepRunner();
 		};
-		$container[ "step.runner." . DefineWpConfigConstsStep::SLUG ]  = function () {
+		$container[ "step.runner." . DefineWpConfigConstsStep::SLUG ] = function () {
 			return new DefineWpConfigConstsStepRunner();
 		};
-		$container[ "step.runner." . EnableMultisiteStep::SLUG ]       = function () {
+		$container[ "step.runner." . EnableMultisiteStep::SLUG ] = function () {
 			return new EnableMultisiteStepRunner();
 		};
-		$container[ "step.runner." . DefineSiteUrlStep::SLUG ]         = function () {
+		$container[ "step.runner." . DefineSiteUrlStep::SLUG ] = function () {
 			return new DefineSiteUrlStepRunner();
 		};
-		$container[ "step.runner." . RmDirStep::SLUG ]                 = function () {
+		$container[ "step.runner." . RmDirStep::SLUG ] = function () {
 			return new RmDirStepRunner();
 		};
-		$container[ "step.runner." . RmStep::SLUG ]                    = function () {
+		$container[ "step.runner." . RmStep::SLUG ] = function () {
 			return new RmStepRunner();
 		};
-		$container[ "step.runner." . MvStep::SLUG ]                    = function () {
+		$container[ "step.runner." . MvStep::SLUG ] = function () {
 			return new MvStepRunner();
 		};
-		$container[ "step.runner." . CpStep::SLUG ]                    = function () {
+		$container[ "step.runner." . CpStep::SLUG ] = function () {
 			return new CpStepRunner();
 		};
-		$container[ "step.runner." . WPCLIStep::SLUG ]                 = function () {
+		$container[ "step.runner." . WPCLIStep::SLUG ] = function () {
 			return new WPCLIStepRunner();
 		};
-		$container[ "step.runner." . SetSiteOptionsStep::SLUG ]        = function () {
+		$container[ "step.runner." . SetSiteOptionsStep::SLUG ] = function () {
 			return new SetSiteOptionsStepRunner();
 		};
-		$container[ "step.runner." . ActivatePluginStep::SLUG ]        = function () {
+		$container[ "step.runner." . ActivatePluginStep::SLUG ] = function () {
 			return new ActivatePluginStepRunner();
 		};
-		$container[ "step.runner." . ActivateThemeStep::SLUG ]         = function () {
+		$container[ "step.runner." . ActivateThemeStep::SLUG ] = function () {
 			return new ActivateThemeStepRunner();
 		};
-		$container[ "step.runner." . InstallPluginStep::SLUG ]         = function () {
+		$container[ "step.runner." . InstallPluginStep::SLUG ] = function () {
 			return new InstallPluginStepRunner();
 		};
-		$container[ "step.runner." . InstallThemeStep::SLUG ]          = function () {
+		$container[ "step.runner." . InstallThemeStep::SLUG ] = function () {
 			return new InstallThemeStepRunner();
 		};
-		$container[ "step.runner." . ImportFileStep::SLUG ]            = function () {
+		$container[ "step.runner." . InstallSqliteIntegrationStep::SLUG ] = function () {
+			return new InstallSqliteIntegrationStepRunner();
+		};
+		$container[ "step.runner." . DownloadWordPressStep::SLUG ] = function () {
+			return new DownloadWordPressStepRunner();
+		};
+		$container[ "step.runner." . ImportFileStep::SLUG ] = function () {
 			return new ImportFileStepRunner();
 		};
 		$container[ "step.runner." . RunWordPressInstallerStep::SLUG ] = function () {
 			return new RunWordPressInstallerStepRunner();
 		};
-		$container[ "step.runner." . RunSQLStep::SLUG ]                = function () {
+		$container[ "step.runner." . RunSQLStep::SLUG ] = function () {
 			return new RunSQLStepRunner();
 		};
-
-		$container[ "resource.resolver." . UrlResource::SLUG ]        = function ( $c ) {
+		$container[ "step.runner." . EvalPHPCallbackStep::SLUG ] = function () {
+			return new EvalPHPCallbackStepRunner();
+		};
+		$container[ "resource.resolver." . UrlResource::SLUG ] = function ( $c ) {
 			return new UrlResourceResolver( $c['data_source.url'] );
 		};
 		$container[ "resource.resolver." . FilesystemResource::SLUG ] = function () {
 			return new FilesystemResourceResolver();
 		};
-		$container[ "resource.resolver." . InlineResource::SLUG ]     = function () {
+		$container[ "resource.resolver." . InlineResource::SLUG ] = function () {
 			return new InlineResourceResolver();
 		};
 
