@@ -4,11 +4,8 @@ namespace WordPress\Blueprints;
 
 use Swaggest\JsonSchema\InvalidValue;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
-use WordPress\Blueprints\Model\BlueprintComposer;
-use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
-use WordPress\Blueprints\Model\DataClass\WriteFileStep;
+use WordPress\Blueprints\Model\Dirty\Blueprint;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
-use function WordPress\Blueprints\Model\findSubErrorForSpecificAnyOfOption;
 
 class BlueprintParser {
 
@@ -21,25 +18,21 @@ class BlueprintParser {
 		}
 
 		if ( $rawBlueprint instanceof \stdClass ) {
-			$rawBlueprint = BlueprintBuilder::import( $rawBlueprint );
+			$rawBlueprint = Blueprint::import( $rawBlueprint );
 		}
 
-		if ( $rawBlueprint instanceof BlueprintComposer ) {
-			$rawBlueprint = $rawBlueprint->getBuilder();
+		if ( ! ( $rawBlueprint instanceof Blueprint ) ) {
+			throw new \InvalidArgumentException( 'Unsupported $rawBlueprint type. Use a JSON string, a parsed JSON object, a BlueprintComposer instance, or a Blueprint instance.' );
 		}
 
-		if ( ! ( $rawBlueprint instanceof BlueprintBuilder ) ) {
-			throw new \InvalidArgumentException( 'Unsupported $rawBlueprint type. Use a JSON string, a parsed JSON object, a BlueprintComposer instance, or a BlueprintBuilder instance.' );
-		}
-
-		return $this->parseBuilder( $rawBlueprint );
+		return $this->parseDirtyBlueprint( $rawBlueprint );
 	}
 
-	protected function parseBuilder( BlueprintBuilder $builder ) {
-		$this->replaceUrlsWithFileReferenceDataObjects( $builder );
+	protected function parseDirtyBlueprint( Blueprint $dirty ) {
+		$this->replaceUrlsWithFileReferenceDataObjects( $dirty );
 
 		try {
-			$builder->validate();
+			$dirty->validate();
 		} catch ( InvalidValue $rootError ) {
 //			$errorReport = [
 //				"dataPointer"   => $rootError->getDataPointer(),
@@ -56,7 +49,7 @@ class BlueprintParser {
 			throw $rootError;
 		}
 
-		return $builder->toDataObject();
+		return $dirty->normalize();
 	}
 
 	/**

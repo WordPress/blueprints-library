@@ -2,34 +2,33 @@
 
 namespace WordPress\Blueprints\Resource\Resolver;
 
-use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\InlineResource;
+use WordPress\Blueprints\Model\Dirty\InlineResource;
+use WordPress\Blueprints\Model\InternalValidated\ValidInlineResource;
 
 class InlineResourceResolver implements ResourceResolverInterface {
 
-	public function parseUrl( string $url ): FileReferenceInterface|false {
+	public function parseUrl( string $url ) {
 		// If url starts with "protocol://" then we assume it's not inline raw data
 		if ( 0 !== preg_match( '#^[a-z_+]+://#', $url ) ) {
 			return false;
 		}
 
-		return ( new InlineResourceBuilder() )->setContents( $url );
+		return InlineResource::create()->setContents( $url );
 	}
 
 	static public function getResourceClass(): string {
 		return InlineResource::class;
 	}
 
-	public function supports( FileReferenceInterface $resource ): bool {
+	public function supports( $resource ): bool {
 		return $resource instanceof InlineResource;
 	}
 
-	public function stream( FileReferenceInterface $resource ) {
+	public function stream( $resource ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}
-		/** @var $resource InlineResource */
+		/** @var $resource ValidInlineResource */
 		$fp = fopen( "php://temp", 'r+' );
 		fwrite( $fp, $resource->contents );
 		rewind( $fp );

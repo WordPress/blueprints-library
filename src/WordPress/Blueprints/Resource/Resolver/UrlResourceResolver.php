@@ -2,9 +2,7 @@
 
 namespace WordPress\Blueprints\Resource\Resolver;
 
-use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\UrlResource;
+use WordPress\Blueprints\Model\Dirty\UrlResource;
 use WordPress\DataSource\DataSourceInterface;
 
 class UrlResourceResolver implements ResourceResolverInterface {
@@ -12,12 +10,12 @@ class UrlResourceResolver implements ResourceResolverInterface {
 	public function __construct( protected DataSourceInterface $dataSource ) {
 	}
 
-	public function parseUrl( string $url ): FileReferenceInterface|false {
+	public function parseUrl( string $url ) {
 		if ( ! str_starts_with( $url, 'http://' ) && ! str_starts_with( $url, 'https://' ) ) {
 			return false;
 		}
 
-		return ( new UrlResourceBuilder() )->setUrl( $url );
+		return UrlResource::create()->setUrl( $url );
 	}
 
 
@@ -25,11 +23,11 @@ class UrlResourceResolver implements ResourceResolverInterface {
 		return UrlResource::class;
 	}
 
-	public function supports( FileReferenceInterface $resource ): bool {
+	public function supports( $resource ): bool {
 		return $resource instanceof UrlResource;
 	}
 
-	public function stream( FileReferenceInterface $resource ) {
+	public function stream( $resource ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}

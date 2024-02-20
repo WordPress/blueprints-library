@@ -8,7 +8,7 @@ use WordPress\Blueprints\Runner\Step\StepRunnerInterface;
 class CompiledStep {
 
 	public function __construct(
-		public StepInterface $step,
+		public $step,
 		public StepRunnerInterface $runner
 	) {
 	}

@@ -3,7 +3,7 @@
 namespace WordPress\Blueprints\Resource;
 
 use Symfony\Component\Filesystem\Filesystem;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
+use WordPress\Blueprints\Model\InternalValidated\FileReferenceInterface;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
 
 class ResourceManager {
@@ -14,7 +14,7 @@ class ResourceManager {
 	public function __construct(
 		protected ResourceResolverInterface $resourceResolver
 	) {
-		$this->fs  = new Filesystem();
+		$this->fs = new Filesystem();
 		$this->map = new ResourceMap();
 	}
 
@@ -30,7 +30,7 @@ class ResourceManager {
 
 
 	public function bufferToTemporaryFile( FileReferenceInterface $resource, $callback, $suffix = null ) {
-		$fp   = $this->getStream( $resource );
+		$fp = $this->getStream( $resource );
 		$path = $this->fs->tempnam( sys_get_temp_dir(), 'resource', $suffix );
 		$this->fs->dumpFile( $path, $fp );
 

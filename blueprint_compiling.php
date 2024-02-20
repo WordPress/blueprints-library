@@ -1,12 +1,12 @@
 <?php
 
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Model\BlueprintComposer;
+use WordPress\Blueprints\Model\BlueprintBuilder;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
 
 require 'vendor/autoload.php';
 
-$composer = BlueprintComposer::create()
+$blueprint = BlueprintBuilder::create()
 	->withWordPressVersion( 'https://wordpress.org/latest.zip' )
 	->withSiteOptions( [
 		'blogname' => 'My Playground Blog',
@@ -30,7 +30,8 @@ $composer = BlueprintComposer::create()
 		INSERT INTO `tmp_table` VALUES (2);
 		SQL
 	)
-	->withFile( 'wordpress.txt', 'Data' );
+	->withFile( 'wordpress.txt', 'Data' )
+	->getBlueprint();
 
 $c = ( new ContainerBuilder() )->build(
 	new NativePHPRuntime(
@@ -38,6 +39,6 @@ $c = ( new ContainerBuilder() )->build(
 	)
 );
 
-$results = $c['blueprint.engine']->runBlueprint( $composer );
+$results = $c['blueprint.engine']->runBlueprint( $blueprint );
 
 var_dump( $results );

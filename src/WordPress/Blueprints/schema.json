@@ -75,9 +75,6 @@
           },
           "description": "The steps to run after every other operation in this Blueprint was executed.",
           "default": []
-        },
-        "$schema": {
-          "type": "string"
         }
       },
       "additionalProperties": false

@@ -2,29 +2,27 @@
 
 namespace WordPress\Blueprints\Resource\Resolver;
 
-use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
-use WordPress\Blueprints\Model\DataClass\FilesystemResource;
+use WordPress\Blueprints\Model\Dirty\FilesystemResource;
 
 class FilesystemResourceResolver implements ResourceResolverInterface {
 
-	public function parseUrl( string $url ): FileReferenceInterface|false {
+	public function parseUrl( string $url ) {
 		if ( ! str_starts_with( $url, 'file://' ) ) {
 			return false;
 		}
 
-		return ( new FilesystemResourceBuilder() )->setPath( $url );
+		return FilesystemResource::create()->setPath( $url );
 	}
 
 	static public function getResourceClass(): string {
 		return FilesystemResource::class;
 	}
 
-	public function supports( FileReferenceInterface $resource ): bool {
+	public function supports( $resource ): bool {
 		return $resource instanceof FilesystemResource;
 	}
 
-	public function stream( FileReferenceInterface $resource ) {
+	public function stream( $resource ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}
