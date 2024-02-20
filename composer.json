@@ -11,8 +11,7 @@
     "swaggest/php-code-builder": "^0.2.41"
   },
   "require-dev": {
-    "pestphp/pest": "^2.33",
-    "mockery/mockery": "^1.6.7"
+    "pestphp/pest": "^2.33"
   },
   "config": {
     "optimize-autoloader": true,
