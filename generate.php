@@ -10,6 +10,7 @@ $generator = new ModelGenerator(
 	( new GeneratorConfiguration() )
 		->setNamespacePrefix( 'MyApp\Model' )
 		->setImmutable( false )
+		->setDenyAdditionalProperties( true )
 );
 
 $generator
