@@ -3,6 +3,7 @@
 namespace WordPress\Blueprints\Runtime;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Process;
 use function WordPress\Blueprints\join_paths;
 
@@ -32,59 +33,8 @@ class NativePHPRuntime implements RuntimeInterface {
 	}
 
 	public function resolvePath( string $path ): string {
-		if ( ! strlen( $path ) ) {
-			return $this->getDocumentRoot();
-		}
-		if ( $this->isAbsolutePath($path) ) {
-			return $path;
-		}
-
-		return join_paths( $this->getDocumentRoot(), $path );
+        return Path::makeAbsolute($path, $this->getDocumentRoot());
 	}
-
-    private function isAbsolutePath(string $path): bool {
-        /*
-        * Check to see if the path is a stream and check to see if it is an actual
-        * path or file as realpath() does not support stream wrappers.
-        */
-        if ($this->isStreamPath($path) && (is_dir($path) || is_file($path))) {
-            return true;
-        }
-
-        /*
-         * This is definitive if true but fails if $path does not exist or contains
-         * a symbolic link.
-         */
-        if (realpath($path) === $path) {
-            return true;
-        }
-
-        if (strlen($path) === 0 || '.' === $path[0]) {
-            return false;
-        }
-
-        // Windows allows absolute paths like this.
-        if (preg_match('#^[a-zA-Z]:\\\\#', $path)) {
-            return true;
-        }
-
-        // A path starting with / or \ is absolute; anything else is relative.
-        return ('/' === $path[0] || '\\' === $path[0]);
-
-    }
-
-    private function isStreamPath(string $path): bool {
-        $scheme_separator = strpos( $path, '://' );
-
-        if ( false === $scheme_separator ) {
-            // $path isn't a stream.
-            return false;
-        }
-
-        $stream = substr( $path, 0, $scheme_separator );
-
-        return in_array( $stream, stream_get_wrappers(), true );
-    }
 
 	public function withTemporaryDirectory( $callback ) {
 		$path = $this->fs->tempnam( $this->getTempRoot(), 'tmpdir' );
@@ -179,5 +129,4 @@ class NativePHPRuntime implements RuntimeInterface {
 			$timeout
 		);
 	}
-
 }
