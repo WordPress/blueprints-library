@@ -8,14 +8,11 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\InstallPluginOptions;
+use WordPress\Blueprints\Model\DataClass\BlueprintOnBoot;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
-/**
- * Built from #/definitions/InstallPluginOptions
- */
-class InstallPluginOptionsBuilder extends InstallPluginOptions implements ClassStructureContract
+class BlueprintOnBootBuilder extends BlueprintOnBoot implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -25,29 +22,42 @@ class InstallPluginOptionsBuilder extends InstallPluginOptions implements ClassS
      */
     public static function setUpProperties($properties, Schema $ownerSchema)
     {
-        $properties->activate = Schema::boolean();
-        $properties->activate->description = "Whether to activate the plugin after installing it.";
+        $properties->openUrl = Schema::string();
+        $properties->openUrl->description = "The URL to navigate to after the blueprint has been run.";
+        $properties->login = Schema::boolean();
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
-        $ownerSchema->setFromRef('#/definitions/InstallPluginOptions');
     }
 
     /**
-     * @param bool $activate Whether to activate the plugin after installing it.
+     * @param string $openUrl The URL to navigate to after the blueprint has been run.
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setActivate($activate)
+    public function setOpenUrl($openUrl)
     {
-        $this->activate = $activate;
+        $this->openUrl = $openUrl;
+        return $this;
+    }
+    /** @codeCoverageIgnoreEnd */
+
+    /**
+     * @param bool $login
+     * @return $this
+     * @codeCoverageIgnoreStart
+     */
+    public function setLogin($login)
+    {
+        $this->login = $login;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new InstallPluginOptions();
-        $dataObject->activate = $this->recursiveJsonSerialize($this->activate);
+        $dataObject = new BlueprintOnBoot();
+        $dataObject->openUrl = $this->recursiveJsonSerialize($this->openUrl);
+        $dataObject->login = $this->recursiveJsonSerialize($this->login);
         return $dataObject;
     }
 

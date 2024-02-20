@@ -27,6 +27,7 @@ class ActivateThemeStepBuilder extends ActivateThemeStep implements ClassStructu
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "activateTheme";
         $properties->slug = Schema::string();

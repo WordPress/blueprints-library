@@ -42,7 +42,7 @@ foreach ( $urls as $url => $target_path ) {
 }
 
 $steps[] = function () {
-	$db = file_get_contents( 'outdir/wordpress/wp-content/mu-plugins/sqlite-database-integration/db.copy' );
+	$db = file_get_contents( 'wordpress/wp-content/mu-plugins/sqlite-database-integration/db.copy' );
 	$db = str_replace(
 		"'{SQLITE_IMPLEMENTATION_FOLDER_PATH}'",
 		"__DIR__.'/mu-plugins/sqlite-database-integration/'",
@@ -53,11 +53,11 @@ $steps[] = function () {
 		"__DIR__.'/mu-plugins/sqlite-database-integration/load.php'",
 		$db
 	);
-	file_put_contents( 'outdir/wordpress/wp-content/db.php', $db );
-	file_put_contents( 'outdir/wordpress/wp-content/mu-plugins/0-sqlite.php',
+	file_put_contents( 'wordpress/wp-content/db.php', $db );
+	file_put_contents( 'wordpress/wp-content/mu-plugins/0-sqlite.php',
 		'<?php require_once __DIR__ . "/sqlite-database-integration/load.php"; ' );
 
-	copy( 'outdir/wordpress/wp-config-sample.php', 'outdir/wordpress/wp-config.php' );
+	copy( 'wordpress/wp-config-sample.php', 'wordpress/wp-config.php' );
 };
 
 foreach ( $steps as $step ) {

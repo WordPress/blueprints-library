@@ -27,6 +27,7 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "unzip";
         $properties->zipFile = new Schema();
@@ -37,13 +38,12 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $properties->zipFile->anyOf[4] = CorePluginResourceBuilder::schema();
         $properties->zipFile->anyOf[5] = UrlResourceBuilder::schema();
         $properties->zipFile->setFromRef('#/definitions/FileReference');
-        $properties->zipPath = Schema::string();
-        $properties->zipPath->description = "The path of the zip file to extract";
         $properties->extractToPath = Schema::string();
         $properties->extractToPath->description = "The path to extract the zip file to";
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
+            self::names()->zipFile,
             self::names()->extractToPath,
             self::names()->step,
         );
@@ -99,18 +99,6 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $zipPath The path of the zip file to extract
-     * @return $this
-     * @codeCoverageIgnoreStart
-     */
-    public function setZipPath($zipPath)
-    {
-        $this->zipPath = $zipPath;
-        return $this;
-    }
-    /** @codeCoverageIgnoreEnd */
-
-    /**
      * @param string $extractToPath The path to extract the zip file to
      * @return $this
      * @codeCoverageIgnoreStart
@@ -129,7 +117,6 @@ class UnzipStepBuilder extends UnzipStep implements ClassStructureContract
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
         $dataObject->zipFile = $this->recursiveJsonSerialize($this->zipFile);
-        $dataObject->zipPath = $this->recursiveJsonSerialize($this->zipPath);
         $dataObject->extractToPath = $this->recursiveJsonSerialize($this->extractToPath);
         return $dataObject;
     }

@@ -17,7 +17,7 @@ class SetSiteOptionsStepRunner extends BaseStepRunner {
 		// with a separate wp-cli command.
 		return $this->getRuntime()->evalPhpInSubProcess( <<<'CODE'
 <?php
-		require getenv("DOCROOT") . '/wp-load.php';
+		require 'wp-load.php';
 		$site_options = getenv("OPTIONS") ? json_decode(getenv("OPTIONS"), true) : [];
 		foreach($site_options as $name => $value) {
 			update_option($name, $value);

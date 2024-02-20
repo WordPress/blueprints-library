@@ -27,6 +27,7 @@ class SetSiteOptionsStepBuilder extends SetSiteOptionsStep implements ClassStruc
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->description = "The name of the step. Must be \"setSiteOptions\".";
         $properties->step->const = "setSiteOptions";

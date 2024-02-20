@@ -13,7 +13,10 @@ class UnzipStepRunner extends BaseStepRunner {
 		Tracker $progress = null
 	) {
 		$progress?->set( 10, 'Unzipping...' );
-		zip_extract_to( $this->getResource( $input->zipFile ), $input->extractToPath );
+
+		// @TODO: Expose a generic helper method for this, e.g. $this->getExecutionContext()->resolvePath($input->extractToPath);
+		$toPath = $this->getRuntime()->getDocumentRoot() . '/' . $input->extractToPath;
+		zip_extract_to( $this->getResource( $input->zipFile ), $toPath );
 	}
 
 }

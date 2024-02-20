@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\MkdirStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/MkdirStep
+ * Built from #/definitions/DownloadWordPressStep
  */
-class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
+class DownloadWordPressStepBuilder extends DownloadWordPressStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -29,16 +29,22 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
         $properties->continueOnError = Schema::boolean();
         $properties->continueOnError->default = false;
         $properties->step = Schema::string();
-        $properties->step->const = "mkdir";
-        $properties->path = Schema::string();
-        $properties->path->description = "The path of the directory you want to create";
+        $properties->step->const = "downloadWordPress";
+        $properties->wordPressZip = new Schema();
+        $properties->wordPressZip->anyOf[0] = Schema::string();
+        $properties->wordPressZip->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->wordPressZip->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->wordPressZip->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->wordPressZip->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->wordPressZip->anyOf[5] = UrlResourceBuilder::schema();
+        $properties->wordPressZip->setFromRef('#/definitions/FileReference');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
-            self::names()->path,
+            self::names()->wordPressZip,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/MkdirStep');
+        $ownerSchema->setFromRef('#/definitions/DownloadWordPressStep');
     }
 
     /**
@@ -78,24 +84,24 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $path The path of the directory you want to create
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $wordPressZip
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPath($path)
+    public function setWordPressZip($wordPressZip)
     {
-        $this->path = $path;
+        $this->wordPressZip = $wordPressZip;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new MkdirStep();
+        $dataObject = new DownloadWordPressStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->path = $this->recursiveJsonSerialize($this->path);
+        $dataObject->wordPressZip = $this->recursiveJsonSerialize($this->wordPressZip);
         return $dataObject;
     }
 

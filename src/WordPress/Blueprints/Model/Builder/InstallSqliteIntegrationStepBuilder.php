@@ -8,14 +8,14 @@ namespace WordPress\Blueprints\Model\Builder;
 
 use Swaggest\JsonSchema\Constraint\Properties;
 use Swaggest\JsonSchema\Schema;
-use WordPress\Blueprints\Model\DataClass\MkdirStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use Swaggest\JsonSchema\Structure\ClassStructureContract;
 
 
 /**
- * Built from #/definitions/MkdirStep
+ * Built from #/definitions/InstallSqliteIntegrationStep
  */
-class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
+class InstallSqliteIntegrationStepBuilder extends InstallSqliteIntegrationStep implements ClassStructureContract
 {
     use \Swaggest\JsonSchema\Structure\ClassStructureTrait;
 
@@ -29,16 +29,22 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
         $properties->continueOnError = Schema::boolean();
         $properties->continueOnError->default = false;
         $properties->step = Schema::string();
-        $properties->step->const = "mkdir";
-        $properties->path = Schema::string();
-        $properties->path->description = "The path of the directory you want to create";
+        $properties->step->const = "installSqliteIntegration";
+        $properties->sqlitePluginZip = new Schema();
+        $properties->sqlitePluginZip->anyOf[0] = Schema::string();
+        $properties->sqlitePluginZip->anyOf[1] = FilesystemResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[2] = InlineResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[3] = CoreThemeResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[4] = CorePluginResourceBuilder::schema();
+        $properties->sqlitePluginZip->anyOf[5] = UrlResourceBuilder::schema();
+        $properties->sqlitePluginZip->setFromRef('#/definitions/FileReference');
         $ownerSchema->type = Schema::OBJECT;
         $ownerSchema->additionalProperties = false;
         $ownerSchema->required = array(
-            self::names()->path,
+            self::names()->sqlitePluginZip,
             self::names()->step,
         );
-        $ownerSchema->setFromRef('#/definitions/MkdirStep');
+        $ownerSchema->setFromRef('#/definitions/InstallSqliteIntegrationStep');
     }
 
     /**
@@ -78,24 +84,24 @@ class MkdirStepBuilder extends MkdirStep implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param string $path The path of the directory you want to create
+     * @param string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder $sqlitePluginZip
      * @return $this
      * @codeCoverageIgnoreStart
      */
-    public function setPath($path)
+    public function setSqlitePluginZip($sqlitePluginZip)
     {
-        $this->path = $path;
+        $this->sqlitePluginZip = $sqlitePluginZip;
         return $this;
     }
     /** @codeCoverageIgnoreEnd */
 
     function toDataObject()
     {
-        $dataObject = new MkdirStep();
+        $dataObject = new InstallSqliteIntegrationStep();
         $dataObject->progress = $this->recursiveJsonSerialize($this->progress);
         $dataObject->continueOnError = $this->recursiveJsonSerialize($this->continueOnError);
         $dataObject->step = $this->recursiveJsonSerialize($this->step);
-        $dataObject->path = $this->recursiveJsonSerialize($this->path);
+        $dataObject->sqlitePluginZip = $this->recursiveJsonSerialize($this->sqlitePluginZip);
         return $dataObject;
     }
 

@@ -22,16 +22,13 @@ class UnzipStep implements StepInterface
     public $progress;
 
     /** @var bool */
-    public $continueOnError;
+    public $continueOnError = false;
 
     /** @var string */
     public $step = 'unzip';
 
     /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
     public $zipFile;
-
-    /** @var string The path of the zip file to extract */
-    public $zipPath;
 
     /** @var string The path to extract the zip file to */
     public $extractToPath;

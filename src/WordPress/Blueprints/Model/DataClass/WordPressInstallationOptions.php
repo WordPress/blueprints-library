@@ -11,8 +11,8 @@ namespace WordPress\Blueprints\Model\DataClass;
 class WordPressInstallationOptions
 {
     /** @var string */
-    public $adminUsername;
+    public $adminUsername = 'admin';
 
     /** @var string */
-    public $adminPassword;
+    public $adminPassword = 'password';
 }

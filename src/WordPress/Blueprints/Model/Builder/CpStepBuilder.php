@@ -27,6 +27,7 @@ class CpStepBuilder extends CpStep implements ClassStructureContract
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "cp";
         $properties->fromPath = Schema::string();

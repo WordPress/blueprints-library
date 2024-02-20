@@ -14,9 +14,9 @@ use WordPress\Blueprints\Model\Builder\ProgressBuilder;
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
 
-class InstallPluginStep implements StepInterface
+class DownloadWordPressStep implements StepInterface
 {
-    const SLUG = 'installPlugin';
+    const SLUG = 'downloadWordPress';
 
     /** @var ProgressBuilder */
     public $progress;
@@ -24,12 +24,9 @@ class InstallPluginStep implements StepInterface
     /** @var bool */
     public $continueOnError = false;
 
-    /** @var string The step identifier. */
-    public $step = 'installPlugin';
+    /** @var string */
+    public $step = 'downloadWordPress';
 
     /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
-    public $pluginZipFile;
-
-    /** @var bool Whether to activate the plugin after installing it. */
-    public $activate = true;
+    public $wordPressZip;
 }

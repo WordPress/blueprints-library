@@ -27,6 +27,7 @@ class DefineWpConfigConstsStepBuilder extends DefineWpConfigConstsStep implement
     {
         $properties->progress = ProgressBuilder::schema();
         $properties->continueOnError = Schema::boolean();
+        $properties->continueOnError->default = false;
         $properties->step = Schema::string();
         $properties->step->const = "defineWpConfigConsts";
         $properties->consts = Schema::object();
