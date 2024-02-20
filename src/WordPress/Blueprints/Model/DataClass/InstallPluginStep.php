@@ -6,30 +6,22 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
-use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
-use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
-use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\Builder\ProgressBuilder;
-use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 
+class InstallPluginStep implements StepInterface {
+	const SLUG = 'installPlugin';
 
-class InstallPluginStep implements StepInterface
-{
-    const SLUG = 'installPlugin';
+	/** @var Progress */
+	public $progress;
 
-    /** @var ProgressBuilder */
-    public $progress;
+	/** @var bool */
+	public $continueOnError = false;
 
-    /** @var bool */
-    public $continueOnError = false;
+	/** @var string The step identifier. */
+	public $step = 'installPlugin';
 
-    /** @var string The step identifier. */
-    public $step = 'installPlugin';
+	/** @var FileReferenceInterface */
+	public $pluginZipFile;
 
-    /** @var string|FilesystemResourceBuilder|InlineResourceBuilder|CoreThemeResourceBuilder|CorePluginResourceBuilder|UrlResourceBuilder */
-    public $pluginZipFile;
-
-    /** @var bool Whether to activate the plugin after installing it. */
-    public $activate = true;
+	/** @var bool Whether to activate the plugin after installing it. */
+	public $activate = true;
 }

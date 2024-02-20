@@ -51,7 +51,10 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
         $properties->plugins->items->setFromRef('#/definitions/FileReference');
         $properties->plugins->description = "WordPress plugins to install and activate";
         $properties->plugins->default = [];
-        $properties->siteOptions = BlueprintSiteOptionsBuilder::schema();
+        $properties->siteOptions = Schema::object();
+        $properties->siteOptions->additionalProperties = Schema::string();
+        $properties->siteOptions->description = "WordPress site options to define";
+        $properties->siteOptions->default = (object)[];
         $properties->steps = Schema::arr();
         $properties->steps->items = Schema::object();
         $properties->steps->items->oneOf[0] = ActivatePluginStepBuilder::schema();
@@ -163,7 +166,7 @@ class BlueprintBuilder extends Blueprint implements ClassStructureContract
     /** @codeCoverageIgnoreEnd */
 
     /**
-     * @param BlueprintSiteOptionsBuilder|string[] $siteOptions WordPress site options to define
+     * @param string[] $siteOptions WordPress site options to define
      * @return $this
      * @codeCoverageIgnoreStart
      */

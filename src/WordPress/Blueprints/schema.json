@@ -64,12 +64,6 @@
           "additionalProperties": {
             "type": "string"
           },
-          "properties": {
-            "blogname": {
-              "type": "string",
-              "description": "The site title"
-            }
-          },
           "default": {},
           "description": "WordPress site options to define",
           "deprecated": "This experimental option will change without warning.\nUse `steps` instead."

@@ -7,17 +7,24 @@
 namespace WordPress\Blueprints\Model\DataClass;
 
 
+class UrlResource implements FileReferenceInterface {
+	const SLUG = 'url';
 
-class UrlResource implements FileReferenceInterface
-{
-    const SLUG = 'url';
+	/** @var string Identifies the file resource as a URL */
+	public $resource = 'url';
 
-    /** @var string Identifies the file resource as a URL */
-    public $resource = 'url';
+	/** @var string The URL of the file */
+	public $url;
 
-    /** @var string The URL of the file */
-    public $url;
+	/** @var string Optional caption for displaying a progress message */
+	public $caption;
 
-    /** @var string Optional caption for displaying a progress message */
-    public $caption;
+	/**
+	 * @param string $url
+	 */
+	public function __construct( string $url = null ) {
+		$this->url = $url;
+	}
+
+
 }

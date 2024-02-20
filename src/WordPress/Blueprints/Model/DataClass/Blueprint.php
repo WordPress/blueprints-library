@@ -9,7 +9,6 @@ namespace WordPress\Blueprints\Model\DataClass;
 use WordPress\Blueprints\Model\Builder\ActivatePluginStepBuilder;
 use WordPress\Blueprints\Model\Builder\ActivateThemeStepBuilder;
 use WordPress\Blueprints\Model\Builder\BlueprintOnBootBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintSiteOptionsBuilder;
 use WordPress\Blueprints\Model\Builder\CorePluginResourceBuilder;
 use WordPress\Blueprints\Model\Builder\CoreThemeResourceBuilder;
 use WordPress\Blueprints\Model\Builder\CpStepBuilder;
@@ -38,32 +37,32 @@ use WordPress\Blueprints\Model\Builder\WPCLIStepBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 
 
-class Blueprint
-{
-    /** @var string Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what. */
-    public $description;
+class Blueprint {
+	/** @var string Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what. */
+	public $description;
 
-    /** @var mixed Slot for runtime–specific options, schema must be provided by the runtime. */
-    public $runtime;
+	/** @var mixed Slot for runtime–specific options, schema must be provided by the runtime. */
+	public $runtime;
 
-    /** @var BlueprintOnBootBuilder */
-    public $onBoot;
+	/** @var BlueprintOnBootBuilder */
+	public $onBoot;
 
-    /** @var string The preferred WordPress version to use. If not specified, the latest supported version will be used */
-    public $wpVersion;
+	/** @var string The preferred WordPress version to use. If not specified, the latest supported version will be used */
+	public $wpVersion;
 
-    /** @var string[]|float[]|bool[] PHP Constants to define on every request */
-    public $constants;
+	/** @var array PHP Constants to define on every request */
+	public $constants;
 
-    /** @var string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array WordPress plugins to install and activate */
-    public $plugins = [];
+//	/** @var string[]|FilesystemResourceBuilder[]|InlineResourceBuilder[]|CoreThemeResourceBuilder[]|CorePluginResourceBuilder[]|UrlResourceBuilder[]|array WordPress plugins to install and activate */
+	/** @var FileReferenceInterface[] */
+	public $plugins = [];
 
-    /** @var BlueprintSiteOptionsBuilder|string[] WordPress site options to define */
-    public $siteOptions;
+	/** @var string[] WordPress site options to define */
+	public $siteOptions;
 
-    /** @var ActivatePluginStepBuilder[]|ActivateThemeStepBuilder[]|CpStepBuilder[]|DefineWpConfigConstsStepBuilder[]|DefineSiteUrlStepBuilder[]|EnableMultisiteStepBuilder[]|EvalPHPCallbackStepBuilder[]|ImportFileStepBuilder[]|InstallPluginStepBuilder[]|InstallThemeStepBuilder[]|MkdirStepBuilder[]|MvStepBuilder[]|RmStepBuilder[]|RmDirStepBuilder[]|RunPHPStepBuilder[]|RunWordPressInstallerStepBuilder[]|RunSQLStepBuilder[]|SetSiteOptionsStepBuilder[]|UnzipStepBuilder[]|DownloadWordPressStepBuilder[]|InstallSqliteIntegrationStepBuilder[]|WriteFileStepBuilder[]|WPCLIStepBuilder[]|array The steps to run after every other operation in this Blueprint was executed. */
-    public $steps = [];
+	/** @var StepInterface[] The steps to run after every other operation in this Blueprint was executed. */
+	public $steps = [];
 
-    /** @var string */
-    public $schema;
+	/** @var string */
+	public $schema;
 }
