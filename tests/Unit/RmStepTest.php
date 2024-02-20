@@ -1,5 +1,6 @@
 <?php
 
+use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Runner\Step\RmStepRunner;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
@@ -7,78 +8,111 @@ use WordPress\Blueprints\Runtime\NativePHPRuntime;
 
 beforeEach(function() {
     $this->step = new RmStepRunner();
-    $this->step->setRuntime(new NativePHPRuntime("root"));
+    $documentRoot = sys_get_temp_dir();
+    $this->runtime = new NativePHPRuntime($documentRoot);
+    $this->step->setRuntime($this->runtime);
 });
 
-
-it('should remove a directory', function () {
-    $dirToRemove = "/root/dir";
-    mkdir($dirToRemove, 0777, true);
-    expect(file_exists($dirToRemove))->toBeTrue();
+it('should remove a directory when an absolute path provided', function() {
+    $unresolvedDirToRemove = "dir";
+    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
+    mkdir($resolvedDirToRemove, 0777, true);
+    expect(file_exists($resolvedDirToRemove))->toBeTrue();
 
     $input = new RmStep();
-    $input->path = $dirToRemove;
+    $input->path = $resolvedDirToRemove;
 
     $this->step->run($input);
 
-    expect(file_exists($dirToRemove))->toBeFalse();
+    expect(file_exists($resolvedDirToRemove))->toBeFalse();
+});
+
+it('should remove a directory when a relative path provided', function () {
+    $unresolvedDirToRemove = "dir";
+    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
+    mkdir($resolvedDirToRemove, 0777, true);
+    expect(file_exists($resolvedDirToRemove))->toBeTrue();
+
+    $input = new RmStep();
+    $input->path = $unresolvedDirToRemove;
+
+    $this->step->run($input);
+
+    expect(file_exists($resolvedDirToRemove))->toBeFalse();
 });
 
 it ('should remove a directory with a subdirectory', function () {
-    $dirToRemove = "/root/dir";
-    $subDir = "/root/dir/subdir";
-    mkdir($subDir, 0777, true);
-    expect(file_exists($subDir))->toBeTrue();
+    $unresolvedSubDir = "dir/subdir";
+    $resolvedSubDir = $this->runtime->resolvePath($unresolvedSubDir);
+    mkdir($resolvedSubDir, 0777, true);
+    expect(file_exists($resolvedSubDir))->toBeTrue();
+
+    $unresolvedDirToRemove = "dir";
+    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
 
     $input = new RmStep();
-    $input->path = $dirToRemove;
+    $input->path = $unresolvedDirToRemove;
 
     $this->step->run($input);
 
-    expect(file_exists($dirToRemove))->toBeFalse();
+    expect(file_exists($resolvedDirToRemove))->toBeFalse();
 });
 
 it ('should remove a directory with a file', function () {
-    $dirToRemove = "/root/dir";
-    mkdir($dirToRemove, 0777, true);
-    file_put_contents("root/dir/file.txt", "test");
-    expect(file_exists($dirToRemove))->toBeTrue();
+    $unresolvedDirToRemove = "dir";
+    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
+    mkdir($resolvedDirToRemove, 0777, true);
+    expect(file_exists($resolvedDirToRemove))->toBeTrue();
+
+    $unresolvedFile = "dir/file.txt";
+    $resolvedFile = $this->runtime->resolvePath($unresolvedFile);
+    file_put_contents($resolvedFile, "test");
 
     $input = new RmStep();
-    $input->path = $dirToRemove;
+    $input->path = $unresolvedDirToRemove;
 
     $this->step->run($input);
 
-    expect(file_exists($dirToRemove))->toBeFalse();
+    expect(file_exists($resolvedDirToRemove))->toBeFalse();
 });
 
 it ('should remove a file', function () {
-   $fileToRemove = "/root/file.txt";
-   file_put_contents($fileToRemove, "test");
-   expect(file_exists($fileToRemove))->toBeTrue();
+   $unresolvedFileToRemove = "file.txt";
+   $resolvedFileToRemove = $this->runtime->resolvePath($unresolvedFileToRemove);
+   file_put_contents($resolvedFileToRemove, "test");
+   expect(file_exists($resolvedFileToRemove))->toBeTrue();
 
    $input = new RmStep();
-   $input->path = $fileToRemove;
+   $input->path = $unresolvedFileToRemove;
 
    $this->step->run($input);
 
-   expect(file_exists($fileToRemove))->toBeFalse();
+   expect(file_exists($resolvedFileToRemove))->toBeFalse();
 });
 
-it ('should do nothing when asked to remove a nonexistent directory', function() {
-    $dirToRemove = "/root/dir";
+it ('should throw an exception when asked with a relative path to remove a nonexistent directory ', function() {
+    $dirToRemove = "dir";
 
     $input = new RmStep();
     $input->path = $dirToRemove;
 
     $this->step->run($input);
-})->throwsNoExceptions();
+})->throws(BlueprintException::class, "Failed to remove the directory or file.");
 
-it ('should do nothing when asked to remove a nonexistent file', function() {
-    $fileToRemove = "/root/file.txt";
+it ('should throw an exception when asked with an absolute path to remove a nonexistent directory', function () {
+    $dirToRemove = "/dir";
+
+    $input = new RmStep();
+    $input->path = $dirToRemove;
+
+    $this->step->run($input);
+})->throws(BlueprintException::class, "Failed to remove the directory or file.");
+
+it ('should throw an exception when asked to remove a nonexistent file', function() {
+    $fileToRemove = "file.txt";
 
     $input = new RmStep();
     $input->path = $fileToRemove;
 
     $this->step->run($input);
-})->throwsNoExceptions();
+})->throws(BlueprintException::class, "Failed to remove the directory or file.");
