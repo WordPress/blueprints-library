@@ -2,18 +2,24 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
+use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 
 
-class RmStepRunner extends BaseStepRunner {
-	/**
-	 * @param RmStep $input
-	 */
-	function run( RmStep $input ) {
-		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
-		$success = unlink( $input->path );
-		if ( ! $success ) {
-			throw new \Exception( "Failed to remove the file at {$input->path}" );
-		}
-	}
+class RmStepRunner extends BaseStepRunner
+{
+    /**
+     * @param RmStep $input
+     */
+    function run(RmStep $input) {
+        try {
+            $relativePath = $this->getRuntime()->resolvePath( $input->path );
+            $fileSystem = new Filesystem();
+            $fileSystem->remove($relativePath);
+        } catch (IOException $exception) {
+            throw new BlueprintException("Failed to remove the directory or file at {$input->path}", 0, $exception);
+        }
+    }
 }
