@@ -1,0 +1,551 @@
+<?php
+
+// @codingStandardsIgnoreFile
+// @codeCoverageIgnoreStart
+
+declare(strict_types = 1);
+
+
+    namespace MyApp\Model;
+
+
+
+    use PHPModelGenerator\Interfaces\JSONModelInterface;
+
+    use PHPModelGenerator\Exception\ErrorRegistryException;
+
+
+/**
+ * Class Schema_Itemofarraysteps65d4b00f3be88
+ * @package MyApp\Model 
+ *
+
+ * This is an auto-implemented class implemented by the php-json-schema-model-generator.
+ * If you need to implement something in this class use inheritance. Else you will lose your changes if the classes
+ * are re-generated.
+ */
+class Schema_Itemofarraysteps65d4b00f3be88 implements JSONModelInterface
+{
+    
+
+    
+        /** @var Schema_Progress65d4b00f3bc38|null */
+        protected $progress;
+    
+        /** @var bool|null */
+        protected $continueOnError;
+    
+        /** @var string */
+        protected $step;
+    
+        /** @var string|Schema_Merged_Itemofarrayplugins65d4b00f3ba2c|null */
+        protected $file;
+    
+    /** @var array */
+    protected $_rawModelDataInput = [];
+
+    
+        /** @var ErrorRegistryException Collect all validation errors */
+        protected $_errorRegistry;
+    
+
+    /**
+     * Schema_Itemofarraysteps65d4b00f3be88 constructor.
+     *
+     * @param array $rawModelDataInput
+     *
+     * @throws ErrorRegistryException
+     */
+    public function __construct(array $rawModelDataInput = [])
+    {
+        
+            $this->_errorRegistry = new ErrorRegistryException();
+        
+
+        
+
+        
+            $this->executeBaseValidators($rawModelDataInput);
+        
+
+        
+            
+                $this->processProgress($rawModelDataInput);
+            
+        
+            
+                $this->processContinueOnError($rawModelDataInput);
+            
+        
+            
+                $this->processStep($rawModelDataInput);
+            
+        
+            
+                $this->processFile($rawModelDataInput);
+            
+        
+
+        
+            if (count($this->_errorRegistry->getErrors())) {
+                throw $this->_errorRegistry;
+            }
+        
+
+        $this->_rawModelDataInput = $rawModelDataInput;
+
+        
+    }
+
+    
+        protected function executeBaseValidators(array &$modelData): void
+        {
+            $value = &$modelData;
+
+            
+                
+
+if ($additionalProperties =  (static function () use ($modelData): array {
+    $additionalProperties = array_diff(array_keys($modelData), array (
+   'progress',
+   'continueOnError',
+   'step',
+   'file',
+));
+
+    
+
+    return $additionalProperties;
+})()) {
+    $this->_errorRegistry->addError(new \PHPModelGenerator\Exception\Object\AdditionalPropertiesException($value ?? null, ...array (
+  0 => 'Schema_Itemofarraysteps65d4b00f3be88',
+  1 => $additionalProperties,
+)));
+}
+
+            
+
+            
+        }
+    
+
+    /**
+     * Get the raw input used to set up the model
+     *
+     * @return array
+     */
+    public function getRawModelDataInput(): array
+    {
+        return $this->_rawModelDataInput;
+    }
+
+    
+        
+            /**
+             * Get the value of progress.
+             *
+             * 
+             *
+             * @return Schema_Progress65d4b00f3bc38|null
+             */
+            public function getProgress()
+                : ?Schema_Progress65d4b00f3bc38
+            {
+                
+
+                return $this->progress;
+            }
+
+            
+                /**
+                 * Set the value of progress.
+                 *
+                 * @param Schema_Progress65d4b00f3bc38|null $progress
+                 *
+                 * 
+                 *
+                 * @return self
+                 */
+                public function setProgress(
+                    ?Schema_Progress65d4b00f3bc38 $progress
+                ): self {
+                    if ($this->progress === $progress) {
+                        return $this;
+                    }
+
+                    $value = $modelData['progress'] = $progress;
+
+                    
+                        $this->_errorRegistry = new ErrorRegistryException();
+                    
+
+                    
+
+                    $value = $this->validateProgress($value, $modelData);
+
+                    
+                        if ($this->_errorRegistry->getErrors()) {
+                            throw $this->_errorRegistry;
+                        }
+                    
+
+                    $this->progress = $value;
+                    $this->_rawModelDataInput['progress'] = $progress;
+
+                    
+
+                    return $this;
+                }
+            
+
+            /**
+             * Extract the value, perform validations and set the property progress
+             *
+             * @param array $modelData
+             *
+             * 
+             */
+            protected function processProgress(array $modelData): void
+            {
+                
+                    
+                        if (!array_key_exists('progress', $modelData) && $this->progress === null) {
+                            return;
+                        }
+                    
+                
+
+                $value = array_key_exists('progress', $modelData) ? $modelData['progress'] : $this->progress;
+
+                $value = (function ($value) {
+    try {
+        return is_array($value) ? new Schema_Progress65d4b00f3bc38($value) : $value;
+    } catch (\Exception $instantiationException) {
+        
+            $this->_errorRegistry->addError(new \PHPModelGenerator\Exception\Object\NestedObjectException($value ?? null, ...array (
+  0 => 'progress',
+  1 => $instantiationException,
+)));
+        
+
+        
+            return $instantiationException;
+        
+    }
+})($value)
+;
+
+                $this->progress = $this->validateProgress($value, $modelData);
+            }
+
+            /**
+             * Execute all validators for the property progress
+             */
+            protected function validateProgress($value, array $modelData)
+            {
+                
+
+                return $value;
+            }
+        
+    
+        
+            /**
+             * Get the value of continueOnError.
+             *
+             * 
+             *
+             * @return bool|null
+             */
+            public function getContinueOnError()
+                : ?bool
+            {
+                
+
+                return $this->continueOnError;
+            }
+
+            
+                /**
+                 * Set the value of continueOnError.
+                 *
+                 * @param bool $continueOnError
+                 *
+                 * @throws ErrorRegistryException
+                 *
+                 * @return self
+                 */
+                public function setContinueOnError(
+                    bool $continueOnError
+                ): self {
+                    if ($this->continueOnError === $continueOnError) {
+                        return $this;
+                    }
+
+                    $value = $modelData['continueOnError'] = $continueOnError;
+
+                    
+                        $this->_errorRegistry = new ErrorRegistryException();
+                    
+
+                    
+
+                    $value = $this->validateContinueOnError($value, $modelData);
+
+                    
+                        if ($this->_errorRegistry->getErrors()) {
+                            throw $this->_errorRegistry;
+                        }
+                    
+
+                    $this->continueOnError = $value;
+                    $this->_rawModelDataInput['continueOnError'] = $continueOnError;
+
+                    
+
+                    return $this;
+                }
+            
+
+            /**
+             * Extract the value, perform validations and set the property continueOnError
+             *
+             * @param array $modelData
+             *
+             * @throws ErrorRegistryException
+             */
+            protected function processContinueOnError(array $modelData): void
+            {
+                
+                    
+                        if (!array_key_exists('continueOnError', $modelData) && $this->continueOnError === null) {
+                            return;
+                        }
+                    
+                
+
+                $value = array_key_exists('continueOnError', $modelData) ? $modelData['continueOnError'] : $this->continueOnError;
+
+                
+
+                $this->continueOnError = $this->validateContinueOnError($value, $modelData);
+            }
+
+            /**
+             * Execute all validators for the property continueOnError
+             */
+            protected function validateContinueOnError($value, array $modelData)
+            {
+                
+                    
+
+if (!is_bool($value)) {
+    $this->_errorRegistry->addError(new \PHPModelGenerator\Exception\Generic\InvalidTypeException($value ?? null, ...array (
+  0 => 'continueOnError',
+  1 => 'bool',
+)));
+}
+
+                
+
+                return $value;
+            }
+        
+    
+        
+            /**
+             * Get the value of step.
+             *
+             * 
+             *
+             * @return string
+             */
+            public function getStep()
+                : string
+            {
+                
+
+                return $this->step;
+            }
+
+            
+                /**
+                 * Set the value of step.
+                 *
+                 * @param string $step
+                 *
+                 * @throws ErrorRegistryException
+                 *
+                 * @return self
+                 */
+                public function setStep(
+                    string $step
+                ): self {
+                    if ($this->step === $step) {
+                        return $this;
+                    }
+
+                    $value = $modelData['step'] = $step;
+
+                    
+                        $this->_errorRegistry = new ErrorRegistryException();
+                    
+
+                    
+
+                    $value = $this->validateStep($value, $modelData);
+
+                    
+                        if ($this->_errorRegistry->getErrors()) {
+                            throw $this->_errorRegistry;
+                        }
+                    
+
+                    $this->step = $value;
+                    $this->_rawModelDataInput['step'] = $step;
+
+                    
+
+                    return $this;
+                }
+            
+
+            /**
+             * Extract the value, perform validations and set the property step
+             *
+             * @param array $modelData
+             *
+             * @throws ErrorRegistryException
+             */
+            protected function processStep(array $modelData): void
+            {
+                
+                    
+                
+
+                $value = array_key_exists('step', $modelData) ? $modelData['step'] : $this->step;
+
+                
+
+                $this->step = $this->validateStep($value, $modelData);
+            }
+
+            /**
+             * Execute all validators for the property step
+             */
+            protected function validateStep($value, array $modelData)
+            {
+                
+                    
+
+if ($value !== 'importFile') {
+    $this->_errorRegistry->addError(new \PHPModelGenerator\Exception\Generic\InvalidConstException($value ?? null, ...array (
+  0 => 'step',
+  1 => 'importFile',
+)));
+}
+
+                
+
+                return $value;
+            }
+        
+    
+        
+            /**
+             * Get the value of file.
+             *
+             * 
+             *
+             * @return string|Schema_Merged_Itemofarrayplugins65d4b00f3ba2c|null
+             */
+            public function getFile()
+                
+            {
+                
+
+                return $this->file;
+            }
+
+            
+                /**
+                 * Set the value of file.
+                 *
+                 * @param string|Schema_Merged_Itemofarrayplugins65d4b00f3ba2c $file
+                 *
+                 * 
+                 *
+                 * @return self
+                 */
+                public function setFile(
+                     $file
+                ): self {
+                    if ($this->file === $file) {
+                        return $this;
+                    }
+
+                    $value = $modelData['file'] = $file;
+
+                    
+                        $this->_errorRegistry = new ErrorRegistryException();
+                    
+
+                    
+
+                    $value = $this->validateFile($value, $modelData);
+
+                    
+                        if ($this->_errorRegistry->getErrors()) {
+                            throw $this->_errorRegistry;
+                        }
+                    
+
+                    $this->file = $value;
+                    $this->_rawModelDataInput['file'] = $file;
+
+                    
+
+                    return $this;
+                }
+            
+
+            /**
+             * Extract the value, perform validations and set the property file
+             *
+             * @param array $modelData
+             *
+             * 
+             */
+            protected function processFile(array $modelData): void
+            {
+                
+                    
+                        if (!array_key_exists('file', $modelData) && $this->file === null) {
+                            return;
+                        }
+                    
+                
+
+                $value = array_key_exists('file', $modelData) ? $modelData['file'] : $this->file;
+
+                
+
+                $this->file = $this->validateFile($value, $modelData);
+            }
+
+            /**
+             * Execute all validators for the property file
+             */
+            protected function validateFile($value, array $modelData)
+            {
+                
+
+                return $value;
+            }
+        
+    
+
+    
+}
+
+// @codeCoverageIgnoreEnd

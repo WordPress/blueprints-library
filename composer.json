@@ -8,16 +8,19 @@
 		"symfony/http-kernel": "^7.0",
 		"pimple/pimple": "^3.0",
 		"swaggest/json-schema": "^0.12.42",
-		"swaggest/php-code-builder": "^0.2.41"
+		"swaggest/php-code-builder": "^0.2.41",
+		"wol-soft/php-json-schema-model-generator-production": "^0.19.0"
 	},
 	"require-dev": {
-		"pestphp/pest": "^2.33"
+		"pestphp/pest": "^2.33",
+		"wol-soft/php-json-schema-model-generator": "^0.24.0"
 	},
 	"config": {
 		"optimize-autoloader": true,
 		"preferred-install": "dist",
 		"allow-plugins": {
-			"pestphp/pest-plugin": true
+			"pestphp/pest-plugin": true,
+			"php-http/discovery": true
 		}
 	},
 	"autoload": {
