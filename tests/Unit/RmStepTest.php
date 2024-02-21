@@ -1,6 +1,7 @@
 <?php
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Runner\Step\RmStepRunner;
@@ -8,7 +9,8 @@ use WordPress\Blueprints\Runtime\NativePHPRuntime;
 
 
 beforeEach(function() {
-    $this->runtime = new NativePHPRuntime(sys_get_temp_dir());
+    $this->documentRoot = Path::makeAbsolute("test", sys_get_temp_dir());
+    $this->runtime = new NativePHPRuntime($this->documentRoot);
 
     $this->step = new RmStepRunner();
     $this->step->setRuntime($this->runtime);
@@ -16,102 +18,99 @@ beforeEach(function() {
     $this->fileSystem = new Filesystem();
 });
 
-it('should remove a directory when an absolute path is provided', function() {
-    $unresolvedDirToRemove = "dir";
-    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
-    $this->fileSystem->mkdir($resolvedDirToRemove);
-
-    $input = new RmStep();
-    $input->path = $resolvedDirToRemove;
-
-    $this->step->run($input);
-
-    expect($this->fileSystem->exists($resolvedDirToRemove))->toBeFalse();
+afterEach(function() {
+    $this->fileSystem->remove($this->documentRoot);
 });
 
-it('should remove a directory when a relative path is provided', function () {
-    $unresolvedDirToRemove = "dir";
-    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
-    $this->fileSystem->mkdir($resolvedDirToRemove);
+it('should remove a directory (using an absolute path)', function() {
+    $absolutePath = $this->runtime->resolvePath("dir");
+    $this->fileSystem->mkdir($absolutePath);
 
     $input = new RmStep();
-    $input->path = $unresolvedDirToRemove;
+    $input->path = $absolutePath;
 
     $this->step->run($input);
 
-    expect($this->fileSystem->exists($resolvedDirToRemove))->toBeFalse();
+    expect($this->fileSystem->exists($absolutePath))->toBeFalse();
+});
+
+it('should remove a directory (using a relative path)', function () {
+    $relativePath = "dir";
+    $absolutePath = $this->runtime->resolvePath($relativePath);
+    $this->fileSystem->mkdir($absolutePath);
+
+    $input = new RmStep();
+    $input->path = $relativePath;
+
+    $this->step->run($input);
+
+    expect($this->fileSystem->exists($absolutePath))->toBeFalse();
 });
 
 it ('should remove a directory with a subdirectory', function () {
-    $unresolvedSubDir = "dir/subdir";
-    $resolvedSubDir = $this->runtime->resolvePath($unresolvedSubDir);
-    $this->fileSystem->mkdir($resolvedSubDir);
-
-    $unresolvedDirToRemove = "dir";
-    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
+    $relativePath = "dir/subdir";
+    $absolutePath = $this->runtime->resolvePath($relativePath);
+    $this->fileSystem->mkdir($absolutePath);
 
     $input = new RmStep();
-    $input->path = $unresolvedDirToRemove;
+    $input->path = dirname($relativePath);
 
     $this->step->run($input);
 
-    expect($this->fileSystem->exists($resolvedDirToRemove))->toBeFalse();
+    expect($this->fileSystem->exists(dirname($absolutePath)))->toBeFalse();
 });
 
 it ('should remove a directory with a file', function () {
-    $unresolvedFile = "dir/file.txt";
-    $resolvedFile = $this->runtime->resolvePath($unresolvedFile);
-    $this->fileSystem->dumpFile($resolvedFile, "test");
-
-    $unresolvedDirToRemove = "dir";
-    $resolvedDirToRemove = $this->runtime->resolvePath($unresolvedDirToRemove);
+    $relativePath = "dir/file.txt";
+    $absolutePath = $this->runtime->resolvePath($relativePath);
+    $this->fileSystem->dumpFile($absolutePath, "test");
 
     $input = new RmStep();
-    $input->path = $unresolvedDirToRemove;
+    $input->path = dirname($relativePath);
 
     $this->step->run($input);
 
-    expect($this->fileSystem->exists($resolvedDirToRemove))->toBeFalse();
+    expect($this->fileSystem->exists(dirname($absolutePath)))->toBeFalse();
 });
 
 it ('should remove a file', function () {
-   $unresolvedFileToRemove = "file.txt";
-   $resolvedFileToRemove = $this->runtime->resolvePath($unresolvedFileToRemove);
-   $this->fileSystem->dumpFile($resolvedFileToRemove, "test");
+   $relativePath = "file.txt";
+   $absolutePath = $this->runtime->resolvePath($relativePath);
+   $this->fileSystem->dumpFile($absolutePath, "test");
 
    $input = new RmStep();
-   $input->path = $unresolvedFileToRemove;
+   $input->path = $relativePath;
 
    $this->step->run($input);
 
-   expect($this->fileSystem->exists($resolvedFileToRemove))->toBeFalse();
+   expect($this->fileSystem->exists($absolutePath))->toBeFalse();
 });
 
-it ('should throw an exception when asked with a relative path to remove a nonexistent directory ', function() {
-    $dirToRemove = "dir";
+it ('should throw an exception when asked to remove a nonexistent directory (using a relative path)', function() {
+    $relativePath = "dir";
 
     $input = new RmStep();
-    $input->path = $dirToRemove;
+    $input->path = $relativePath;
 
-    $resolvedDirToRemove = $this->runtime->resolvePath($dirToRemove);
-    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove $resolvedDirToRemove: the directory or file does not exist.");
+    $absolutePath = $this->runtime->resolvePath($relativePath);
+    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove \"$absolutePath\": the directory or file does not exist.");
 });
 
-it ('should throw an exception when asked with an absolute path to remove a nonexistent directory', function () {
-    $dirToRemove = "/dir";
+it ('should throw an exception when asked to remove a nonexistent directory (using an absolute path)', function () {
+    $absolutePath = "/dir";
 
     $input = new RmStep();
-    $input->path = $dirToRemove;
+    $input->path = $absolutePath;
 
-    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove $dirToRemove: the directory or file does not exist.");
+    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove \"$absolutePath\": the directory or file does not exist.");
 });
 
 it ('should throw an exception when asked to remove a nonexistent file', function() {
-    $fileToRemove = "file.txt";
+    $relativePath = "file.txt";
 
     $input = new RmStep();
-    $input->path = $fileToRemove;
+    $input->path = $relativePath;
 
-    $resolvedFileToRemove = $this->runtime->resolvePath($fileToRemove);
-    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove $resolvedFileToRemove: the directory or file does not exist.");
+    $absolutePath = $this->runtime->resolvePath($relativePath);
+    expect(fn() => $this->step->run($input))->toThrow(BlueprintException::class, "Failed to remove \"$absolutePath\": the directory or file does not exist.");
 });
