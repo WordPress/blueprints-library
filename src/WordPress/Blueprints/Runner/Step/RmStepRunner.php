@@ -17,12 +17,12 @@ class RmStepRunner extends BaseStepRunner
         $resolvedPath = $this->getRuntime()->resolvePath($input->path);
         $fileSystem = new Filesystem();
         if (false === $fileSystem->exists($resolvedPath)) {
-            throw new BlueprintException("Failed to remove $resolvedPath: the directory or file does not exist.");
+            throw new BlueprintException("Failed to remove \"$resolvedPath\": the directory or file does not exist.");
         }
         try {
             $fileSystem->remove($resolvedPath);
         } catch (IOException $exception) {
-            throw new BlueprintException("Failed to remove the directory or file at $resolvedPath", 0, $exception);
+            throw new BlueprintException("Failed to remove the directory or file at \"$resolvedPath\"", 0, $exception);
         }
     }
 }
