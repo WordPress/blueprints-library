@@ -50,14 +50,7 @@
     "plugins": {
       "type": "array",
       "items": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "$ref": "#/definitions/FileReference"
-          }
-        ]
+        "$ref": "#/definitions/FileReference"
       },
       "description": "WordPress plugins to install and activate",
       "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
@@ -86,29 +79,9 @@
     "steps": {
       "type": "array",
       "items": {
-        "anyOf": [
-          {
-            "$ref": "#/definitions/StepDefinition"
-          },
-          {
-            "type": "string"
-          },
-          {
-            "not": {}
-          },
-          {
-            "type": "boolean",
-            "const": false
-          },
-          {
-            "type": "null"
-          }
-        ]
+        "$ref": "#/definitions/StepDefinition"
       },
       "description": "The steps to run after every other operation in this Blueprint was executed."
-    },
-    "$schema": {
-      "type": "string"
     }
   },
   "additionalProperties": false,
@@ -132,6 +105,20 @@
         {
           "type": "string"
         },
+        {
+          "$ref": "#/definitions/ResourceDefinition"
+        }
+      ]
+    },
+    "ResourceDefinition": {
+      "type": "object",
+      "discriminator": {
+        "propertyName": "resource"
+      },
+      "required": [
+        "resource"
+      ],
+      "oneOf": [
         {
           "$ref": "#/definitions/FilesystemResource"
         },
@@ -891,66 +878,6 @@
         "PUT",
         "DELETE"
       ]
-    },
-    "FileInfo": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "data": {
-          "type": "object",
-          "properties": {
-            "BYTES_PER_ELEMENT": {
-              "type": "number"
-            },
-            "buffer": {
-              "type": "object",
-              "properties": {
-                "byteLength": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "byteLength"
-              ],
-              "additionalProperties": false
-            },
-            "byteLength": {
-              "type": "number"
-            },
-            "byteOffset": {
-              "type": "number"
-            },
-            "length": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "BYTES_PER_ELEMENT",
-            "buffer",
-            "byteLength",
-            "byteOffset",
-            "length"
-          ],
-          "additionalProperties": {
-            "type": "number"
-          }
-        }
-      },
-      "required": [
-        "key",
-        "name",
-        "type",
-        "data"
-      ],
-      "additionalProperties": false
     },
     "WordPressInstallationOptions": {
       "type": "object",

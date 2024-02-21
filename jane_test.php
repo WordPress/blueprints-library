@@ -54,6 +54,8 @@ try {
 	}
 }
 
+/** @var $result */
+
 print_r( $result );
 
 //$validator = Validation::createValidator();

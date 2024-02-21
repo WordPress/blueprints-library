@@ -9,7 +9,8 @@
     "pimple/pimple": "^3.0",
     "swaggest/json-schema": "^0.12.42",
     "swaggest/php-code-builder": "^0.2.41",
-    "jane-php/open-api-runtime": "^7.6"
+    "jane-php/open-api-runtime": "^7.6",
+    "nette/php-generator": "^4.1"
   },
   "require-dev": {
     "pestphp/pest": "^2.33",
