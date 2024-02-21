@@ -7,8 +7,6 @@ use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
 
-require 'vendor/autoload.php';
-
 $builder = new BlueprintBuilder();
 $builder
 	->setPreferredVersions(
