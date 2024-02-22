@@ -13,7 +13,7 @@ use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
-use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
+use WordPress\Blueprints\ResourceManager\Resolver\ResourceResolverInterface;
 
 class BlueprintCompiler {
 

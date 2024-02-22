@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\Context\ExecutionContext;
-use WordPress\Blueprints\Resource\ResourceManager;
+//use WordPress\Blueprints\Context\ExecutionContext;
+use WordPress\Blueprints\ResourceManager\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 abstract class BaseStepRunner implements StepRunnerInterface {
@@ -27,7 +27,7 @@ abstract class BaseStepRunner implements StepRunnerInterface {
 		return $this->runtime;
 	}
 
-	protected function getDefaultCaption( $input ): string|null {
+	protected function getDefaultCaption( $input ): ?string {
 		return null;
 	}
 

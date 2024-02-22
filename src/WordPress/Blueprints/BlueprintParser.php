@@ -2,11 +2,12 @@
 
 namespace WordPress\Blueprints;
 
+
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use WordPress\Blueprints\Model\BlueprintBuilder;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
-use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
+use WordPress\Blueprints\ResourceManager\Resolver\ResourceResolverInterface;
 
 class BlueprintParser {
 
@@ -115,7 +116,7 @@ class BlueprintParser {
 	 *
 	 * @param InvalidValue $e
 	 *
-	 * @return \Swaggest\JsonSchema\Exception\Error|void|null
+	 * @return Error|void|null
 	 */
 	function getSpecificAnyOfError( InvalidValue $e ): \Throwable|null {
 		$subSchema = $this->getSubschema( $e->getSchemaPointer() );
@@ -140,7 +141,7 @@ class BlueprintParser {
 		}
 	}
 
-	private function findSubErrorForSpecificAnyOfOption( \Swaggest\JsonSchema\Exception\Error $e, string $anyOfRef ) {
+	private function findSubErrorForSpecificAnyOfOption( Error $e, string $anyOfRef ) {
 		if ( $anyOfRef[0] === '#' ) {
 			$anyOfRef = substr( $anyOfRef, 1 );
 		}
@@ -152,7 +153,7 @@ class BlueprintParser {
 			}
 		}
 		if ( ! $e->subErrors ) {
-			return;
+			return $e->error;
 		}
 		foreach ( $e->subErrors as $subError ) {
 			$subError = findSubErrorForSpecificAnyOfOption( $subError, $anyOfRef );
@@ -160,6 +161,7 @@ class BlueprintParser {
 				return $subError;
 			}
 		}
+        return $e;
 	}
 
 	private function getSubschema( $pointer ) {
@@ -186,6 +188,4 @@ class BlueprintParser {
 
 		return $subSchema;
 	}
-
-
 }
