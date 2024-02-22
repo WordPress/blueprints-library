@@ -2,14 +2,20 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\Context\ExecutionContext;
 use WordPress\Blueprints\Resource\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
+use WordPress\FileManager\FileManager;
 
 abstract class BaseStepRunner implements StepRunnerInterface {
 	protected ResourceManager $resourceManager;
 
 	protected RuntimeInterface $runtime;
+
+    protected FileManager $fileManager;
+
+    function __construct(RuntimeInterface $runtime) {
+        $this->fileManager = new FileManager($runtime);
+    }
 
 	public function setResourceManager( ResourceManager $map ) {
 		$this->resourceManager = $map;
@@ -19,6 +25,7 @@ abstract class BaseStepRunner implements StepRunnerInterface {
 		return $this->resourceManager->getStream( $declaration );
 	}
 
+//    TODO would advise to set runtime at initialization only
 	public function setRuntime( RuntimeInterface $runtime ): void {
 		$this->runtime = $runtime;
 	}
@@ -27,8 +34,7 @@ abstract class BaseStepRunner implements StepRunnerInterface {
 		return $this->runtime;
 	}
 
-	protected function getDefaultCaption( $input ): string|null {
+	protected function getDefaultCaption( $input ): ?string {
 		return null;
 	}
-
 }

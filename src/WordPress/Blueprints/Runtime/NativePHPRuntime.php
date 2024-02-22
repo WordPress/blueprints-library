@@ -10,11 +10,13 @@ use function WordPress\Blueprints\join_paths;
 class NativePHPRuntime implements RuntimeInterface {
 
 	public Filesystem $fs;
+    protected string $documentRoot;
 
-	public function __construct(
-		protected string $documentRoot
+    public function __construct(
+		string $documentRoot
 	) {
-		$this->fs = new Filesystem();
+        $this->documentRoot = $documentRoot;
+        $this->fs = new Filesystem();
 		if ( ! file_exists( $this->getDocumentRoot() ) ) {
 			$this->fs->mkdir( $this->getDocumentRoot() );
 		}
