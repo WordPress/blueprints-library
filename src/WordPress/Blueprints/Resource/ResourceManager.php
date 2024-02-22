@@ -10,11 +10,13 @@ class ResourceManager {
 
 	protected Filesystem $fs;
 	protected ResourceMap $map;
+    protected ResourceResolverInterface $resourceResolver;
 
-	public function __construct(
-		protected ResourceResolverInterface $resourceResolver
+    public function __construct(
+		ResourceResolverInterface $resourceResolver
 	) {
-		$this->fs  = new Filesystem();
+        $this->resourceResolver = $resourceResolver;
+        $this->fs  = new Filesystem();
 		$this->map = new ResourceMap();
 	}
 

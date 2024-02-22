@@ -7,6 +7,7 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 
+    //TODO why is this download and not install?
 	public function run(
 		DownloadWordPressStep $input,
 		Tracker $progress = null

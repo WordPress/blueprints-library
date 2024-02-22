@@ -10,9 +10,13 @@ class UnzipStepRunner extends BaseStepRunner {
 
 	public function run(
 		UnzipStep $input,
-		Tracker $progress = null
+        // maybe publish events for tracking instead of passing a variable?
+        // so that the tracker is a singleton with listeners
+		Tracker $tracker = null
 	) {
-		$progress?->set( 10, 'Unzipping...' );
+        if (!is_null($tracker)) {
+            $tracker->set( 10, 'Unzipping...' );
+        }
 
 		// @TODO: Expose a generic helper method for this, e.g. $this->getExecutionContext()->resolvePath($input->extractToPath);
 		$toPath = $this->getRuntime()->getDocumentRoot() . '/' . $input->extractToPath;

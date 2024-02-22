@@ -10,6 +10,8 @@ use function WordPress\Zip\zip_extract_to;
 
 
 class InstallAssetStepRunner extends BaseStepRunner {
+// TODO following the github API - this is not an exposed step - maybe it's internals should be used by other steps and not extended?
+// especially since it is a functionality primarily focused on unzipping
 
 	protected function unzipAssetTo( $zipResource, $targetPath ) {
 		if ( ! file_exists( $targetPath ) ) {
