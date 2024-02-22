@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\Resource\Resolver;
+namespace WordPress\Blueprints\Resources\Resolver;
 
 use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;

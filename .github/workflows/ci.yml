@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - trunk
+  pull_request:
+
+jobs:
+  php-cs-check:
+    name: 'PHP 7.4 compatibility (via PHP Code Sniffer)'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.4
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Check PHP version compatibility
+        uses: pantheon-systems/phpcompatibility-action@v1
+        with:
+          skip-php-setup: true
+          test-versions: 7.4-
+          paths: ${{ github.workspace }}/src
+
+  test-unit:
+    needs: [php-cs-check]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        dependency_version: [ prefer-stable ]
+
+    name: ${{ matrix.os }} - PHP ${{ matrix.php }} - ${{ matrix.dependency_version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer update --${{ matrix.dependency_version }} --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit --testdox

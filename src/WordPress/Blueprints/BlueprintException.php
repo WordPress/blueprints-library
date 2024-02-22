@@ -2,6 +2,9 @@
 
 namespace WordPress\Blueprints;
 
-class BlueprintException extends \Exception {
+use Exception;
+
+class BlueprintException extends Exception
+{
 
 }
