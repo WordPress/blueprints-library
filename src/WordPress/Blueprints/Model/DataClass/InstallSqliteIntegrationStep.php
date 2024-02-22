@@ -2,9 +2,9 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class RunPHPStep implements StepDefinitionInterface
+class InstallSqliteIntegrationStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'runPHP';
+	public const DISCRIMINATOR = 'installSqliteIntegration';
 
 	/** @var Progress */
 	public $progress;
@@ -12,17 +12,11 @@ class RunPHPStep implements StepDefinitionInterface
 	/** @var bool */
 	public $continueOnError;
 
-	/**
-	 * The step identifier.
-	 * @var string
-	 */
-	public $step = 'runPHP';
+	/** @var string */
+	public $step = 'installSqliteIntegration';
 
-	/**
-	 * The PHP code to run.
-	 * @var string
-	 */
-	public $code;
+	/** @var string|ResourceDefinitionInterface */
+	public $sqlitePluginZip;
 
 
 	public function setProgress(Progress $progress)
@@ -46,9 +40,9 @@ class RunPHPStep implements StepDefinitionInterface
 	}
 
 
-	public function setCode(string $code)
+	public function setSqlitePluginZip($sqlitePluginZip)
 	{
-		$this->code = $code;
+		$this->sqlitePluginZip = $sqlitePluginZip;
 		return $this;
 	}
 }

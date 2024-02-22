@@ -1,32 +1,36 @@
 {
-	"require": {
-		"symfony/event-dispatcher": "^7.0",
-		"justinrainbow/json-schema": "^5.2",
-		"symfony/filesystem": "^7.0",
-		"psr/simple-cache": "^3.0",
-		"symfony/http-client": "^7.0",
-		"symfony/http-kernel": "^7.0",
-		"pimple/pimple": "^3.0",
-		"swaggest/json-schema": "^0.12.42",
-		"swaggest/php-code-builder": "^0.2.41"
-	},
-	"require-dev": {
-		"pestphp/pest": "^2.33"
-	},
-	"config": {
-		"optimize-autoloader": true,
-		"preferred-install": "dist",
-		"allow-plugins": {
-			"pestphp/pest-plugin": true
-		}
-	},
-	"autoload": {
-		"psr-4": {
-			"WordPress\\": "src/WordPress"
-		},
-		"files": [
-			"src/WordPress/Zip/functions.php",
-			"src/WordPress/Streams/stream_str_replace.php"
-		]
-	}
+  "require": {
+    "symfony/event-dispatcher": "^7.0",
+    "justinrainbow/json-schema": "^5.2",
+    "symfony/filesystem": "^7.0",
+    "psr/simple-cache": "^3.0",
+    "symfony/http-client": "^7.0",
+    "symfony/http-kernel": "^7.0",
+    "pimple/pimple": "^3.0",
+    "opis/json-schema": "^2.3",
+    "nette/php-generator": "^4.1",
+    "json-mapper/json-mapper": "^2.21"
+  },
+  "require-dev": {
+    "pestphp/pest": "^2.33",
+    "jane-php/json-schema": "^7.6"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "WordPress\\": "src/WordPress"
+    },
+    "files": [
+      "src/WordPress/Blueprints/functions.php",
+      "src/WordPress/Zip/functions.php",
+      "src/WordPress/Streams/stream_str_replace.php"
+    ]
+  }
 }

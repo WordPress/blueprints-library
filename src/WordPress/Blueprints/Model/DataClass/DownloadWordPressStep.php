@@ -2,9 +2,9 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class RunPHPStep implements StepDefinitionInterface
+class DownloadWordPressStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'runPHP';
+	public const DISCRIMINATOR = 'downloadWordPress';
 
 	/** @var Progress */
 	public $progress;
@@ -12,17 +12,11 @@ class RunPHPStep implements StepDefinitionInterface
 	/** @var bool */
 	public $continueOnError;
 
-	/**
-	 * The step identifier.
-	 * @var string
-	 */
-	public $step = 'runPHP';
+	/** @var string */
+	public $step = 'downloadWordPress';
 
-	/**
-	 * The PHP code to run.
-	 * @var string
-	 */
-	public $code;
+	/** @var string|ResourceDefinitionInterface */
+	public $wordPressZip;
 
 
 	public function setProgress(Progress $progress)
@@ -46,9 +40,9 @@ class RunPHPStep implements StepDefinitionInterface
 	}
 
 
-	public function setCode(string $code)
+	public function setWordPressZip($wordPressZip)
 	{
-		$this->code = $code;
+		$this->wordPressZip = $wordPressZip;
 		return $this;
 	}
 }

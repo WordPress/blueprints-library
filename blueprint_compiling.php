@@ -1,83 +1,76 @@
 <?php
 
 use WordPress\Blueprints\ContainerBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
-use WordPress\Blueprints\Model\Builder\BlueprintPreferredVersionsBuilder;
-use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
-use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
+use WordPress\Blueprints\Model\DataClass\Blueprint;
+use WordPress\Blueprints\Model\DataClass\BlueprintPreferredVersions;
+use WordPress\Blueprints\Model\DataClass\InlineResource;
+use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
 
 require 'vendor/autoload.php';
 
-$builder = new BlueprintBuilder();
+$builder = new Blueprint();
 $builder
-	->setPreferredVersions(
-		( new BlueprintPreferredVersionsBuilder() )
-			->setPhp( '7.4' )
-			->setWp( '5.3' )
-	)
+	->setWpVersion( 'https://wordpress.org/latest.zip' )
 	->setPlugins( [
-		'akismet',
-		'hello-dolly',
-	] )
-	->setPhpExtensionBundles( [
-		'kitchen-sink',
+		'https://downloads.wordpress.org/plugin/hello-dolly.zip',
+		'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
 	] )
 	->setLandingPage( "/wp-admin" )
 	->setSteps( [
-//		( new \WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder() )->setOptions(
-//			( new WordPressInstallationOptionsBuilder() )
+//		( new \WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep() )->setOptions(
+//			( new WordPressInstallationOptions() )
 //				->setAdminUsername( 'admin' )
 //				->setAdminPassword( 'password' )
 //		),
-		( new \WordPress\Blueprints\Model\Builder\RunPHPStepBuilder() )
+		( new \WordPress\Blueprints\Model\DataClass\RunPHPStep() )
 			->setCode( '<?php echo "A"; ' ),
-		( new \WordPress\Blueprints\Model\Builder\SetSiteOptionsStepBuilder() )
-			->setOptions( (object) [
+		( new \WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep() )
+			->setOptions( [
 				'blogname' => 'My Playground Blog',
 			] ),
-		( new \WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder() )
-			->setConsts( (object) [
+		( new \WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep() )
+			->setConsts( [
 				'WP_DEBUG'         => true,
 				'WP_DEBUG_LOG'     => true,
 				'WP_DEBUG_DISPLAY' => true,
 				'WP_CACHE'         => true,
 			] ),
-		( new \WordPress\Blueprints\Model\Builder\ActivatePluginStepBuilder() )
-			->setSlug( 'hello-dolly' ),
-//		( new \WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder() )
-//			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/hello-dolly.zip' )
-//			->setOptions( ( new InstallPluginOptionsBuilder() )->setActivate( true ) ),
-//		( new \WordPress\Blueprints\Model\Builder\InstallThemeStepBuilder() )
+//		( new \WordPress\Blueprints\Model\DataClass\ActivatePluginStep() )
+//			->setSlug( 'hello-dolly' ),
+		( new \WordPress\Blueprints\Model\DataClass\InstallPluginStep() )
+			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip', ),
+//			->setOptions( ( new InstallPluginOptions() )->setActivate( true ) ),
+//		( new \WordPress\Blueprints\Model\DataClass\InstallThemeStep() )
 //			->setThemeZipFile( 'https://downloads.wordpress.org/theme/pendant.zip' )
-//			->setOptions( ( new \WordPress\Blueprints\Model\Builder\InstallThemeStepOptionsBuilder() )->setActivate( true ) ),
-//		( new \WordPress\Blueprints\Model\Builder\ImportFileStepBuilder() )
-//			->setFile( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' ),
-//		( new \WordPress\Blueprints\Model\Builder\InstallPluginStepBuilder() )
+//			->setOptions( ( new \WordPress\Blueprints\Model\DataClass\InstallThemeStepOptions() )->setActivate( true ) ),
+		( new \WordPress\Blueprints\Model\DataClass\ImportFileStep() )
+			->setFile( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' ),
+//		( new \WordPress\Blueprints\Model\DataClass\InstallPluginStep() )
 //			->setPluginZipFile( 'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip' )
-//			->setOptions( ( new InstallPluginOptionsBuilder() )->setActivate( true ) ),
-		( new \WordPress\Blueprints\Model\Builder\DefineSiteUrlStepBuilder() )
+//			->setOptions( ( new InstallPluginOptions() )->setActivate( true ) ),
+		( new \WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep() )
 			->setSiteUrl( 'http://localhost:8080' ),
-//		( new \WordPress\Blueprints\Model\Builder\RunSQLStepBuilder() )
-//			->setSql( ( new LiteralReferenceBuilder() )->setContents(
-//				<<<'SQL'
-//CREATE TABLE `tmp_table` ( id INT );
-//INSERT INTO `tmp_table` VALUES (1);
-//INSERT INTO `tmp_table` VALUES (2);
-//SQL
-//
-//			) ),
-		( new WriteFileStepBuilder() )
+		( new \WordPress\Blueprints\Model\DataClass\RunSQLStep() )
+			->setSql( ( new InlineResource() )->setContents(
+				<<<'SQL'
+CREATE TABLE `tmp_table` ( id INT );
+INSERT INTO `tmp_table` VALUES (1);
+INSERT INTO `tmp_table` VALUES (2);
+SQL
+
+			) ),
+		( new WriteFileStep() )
 			->setContinueOnError( true )
 			->setPath( 'wordpress.txt' )
-			->setData( ( new InlineResourceBuilder() )->setContents( "Data" ) ),
-//		( ( new UnzipStepBuilder() )
+			->setData( ( new InlineResource() )->setContents( "Data" ) ),
+//		( ( new UnzipStep() )
 //			->setZipFile(
 //				'https://wordpress.org/latest.zip'
-////				( new UrlReferenceBuilder() )->setUrl( 'https://wordpress.org/latest.zip' )
+////				( new UrlReference() )->setUrl( 'https://wordpress.org/latest.zip' )
 //			) )
 //			->setExtractToPath( __DIR__ . '/outdir2' ),
-//		( new WriteFileStepBuilder() )
+//		( new WriteFileStep() )
 //			->setPath( __DIR__ . '/outdir2/test.zip' )
 //			->setData( 'https://wordpress.org/latest.zip' ),
 	] );

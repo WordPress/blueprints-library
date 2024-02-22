@@ -2,16 +2,28 @@
 
 namespace WordPress\Blueprints;
 
-use Swaggest\JsonSchema\InvalidValue;
-use Swaggest\JsonSchema\Structure\ClassStructureContract;
-use WordPress\Blueprints\Model\Builder\BlueprintBuilder;
+use Opis\JsonSchema\Errors\ErrorFormatter;
+use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
-use function WordPress\Blueprints\Model\findSubErrorForSpecificAnyOfOption;
 
 class BlueprintParser {
 
-	public function __construct( protected ResourceResolverInterface $resourceResolver, protected $blueprintSchema ) {
+	public function __construct(
+		protected BlueprintValidator $validator,
+		protected BlueprintMapper $mapper
+	) {
+	}
+
+	public function parse( $rawBlueprint ) {
+		if ( is_string( $rawBlueprint ) ) {
+			return $this->fromJson( $rawBlueprint );
+		} elseif ( $rawBlueprint instanceof Blueprint ) {
+			return $this->fromBlueprint( $rawBlueprint );
+		} elseif ( is_object( $rawBlueprint ) ) {
+			return $this->fromObject( $rawBlueprint );
+		}
+		throw new \InvalidArgumentException( 'Unsupported $rawBlueprint type. Use a JSON string, a parsed JSON object, or a BlueprintBuilder instance.' );
 	}
 
 	public function fromJson( $json ) {
@@ -19,15 +31,19 @@ class BlueprintParser {
 	}
 
 	public function fromObject( object $data ) {
-		return $this->fromBuilder( BlueprintBuilder::import( $data ) );
+		$result = $this->validator->validate( $data );
+		if ( ! $result->isValid() ) {
+			print_r( ( new ErrorFormatter() )->format( $result->error() ) );
+			die();
+		}
+
+		return $this->mapper->map( $data );
 	}
 
-	public function fromBuilder( BlueprintBuilder $builder ) {
-		$this->replaceUrlsWithFileReferenceDataObjects( $builder );
-
-		try {
-			$builder->validate();
-		} catch ( InvalidValue $rootError ) {
+	public function fromBlueprint( Blueprint $blueprint ) {
+		$result = $this->validator->validate( $blueprint );
+		if ( ! $result->isValid() ) {
+			print_r( ( new ErrorFormatter() )->format( $result->error() ) );
 //			$errorReport = [
 //				"dataPointer"   => $rootError->getDataPointer(),
 //				"schemaPointer" => $rootError->getSchemaPointer(),
@@ -36,68 +52,15 @@ class BlueprintParser {
 //				"Constraint"    => $rootError->constraint,
 //			];
 
-			$specificError = $this->getSpecificAnyOfError( $rootError );
-			if ( $specificError ) {
-				throw $specificError;
-			}
-			throw $rootError;
+//			$specificError = $this->getSpecificAnyOfError( $rootError );
+//			if ( $specificError ) {
+//				throw $specificError;
+//			}
+//			throw $rootError;
+			die();
 		}
 
-		return $builder->toDataObject();
-	}
-
-	/**
-	 * Resolves resource declared with shorthand URLs with their
-	 * full data object definition.
-	 *
-	 * For example, the following Blueprint:
-	 *
-	 * {
-	 *     "staps": [
-	 *          {
-	 *              "step": "unzip",
-	 *              "toPath": "plugins/gutenberg",
-	 *              "data": "https://plugins.wordpress.org/gutenberg.zip"
-	 *          }
-	 *      ]
-	 * }
-	 *
-	 * Would be transformed to:
-	 *
-	 * {
-	 *      "staps": [
-	 *           {
-	 *               "step": "unzip",
-	 *               "toPath": "plugins/gutenberg",
-	 *               "data": {
-	 *                   "resource": "url",
-	 *                   "url": "https://plugins.wordpress.org/gutenberg.zip"
-	 *               }
-	 *           }
-	 *       ]
-	 *  }
-	 */
-	protected function replaceUrlsWithFileReferenceDataObjects( $builder ) {
-		if ( ! ( $builder instanceof ClassStructureContract ) || $builder instanceof WriteFileStep ) {
-			return;
-		}
-		foreach ( $builder::schema()->getProperties() as $key => $value ) {
-			if ( is_string( $builder->$key ) ) {
-				if ( $builder::schema()->getProperty( $key )->getFromRef() == '#/definitions/FileReference' ) {
-					$resource = $this->resourceResolver->parseUrl( $builder->$key );
-					if ( false === $resource ) {
-						throw new \InvalidArgumentException( "Could not parse resource {$builder->$key}" );
-					}
-					$builder->$key = $resource;
-				}
-			} elseif ( is_object( $builder->$key ) ) {
-				$this->replaceUrlsWithFileReferenceDataObjects( $builder->$key );
-			} elseif ( is_array( $builder->$key ) ) {
-				foreach ( $builder->$key as $k => $v ) {
-					$this->replaceUrlsWithFileReferenceDataObjects( $v );
-				}
-			}
-		}
+		return $blueprint;
 	}
 
 	/**
@@ -162,10 +125,11 @@ class BlueprintParser {
 
 				foreach ( $discriminatedDefinition->oneOf as $discriminatorOption ) {
 					if ( property_exists( $discriminatorOption, '$ref' ) ) {
-						$optionDefinition         = $this->getSubschema( $discriminatorOption->{'$ref'} );
+						$optionDefinition = $this->getSubschema( $discriminatorOption->{'$ref'} );
 						$optionDiscriminatorValue = $optionDefinition->properties->{$discriminatorField}->const;
 						if ( $optionDiscriminatorValue === $discriminatorValue ) {
-							return $this->findSubErrorForSpecificAnyOfOption( $e->inspect(), $discriminatorOption->{'$ref'} );
+							return $this->findSubErrorForSpecificAnyOfOption( $e->inspect(),
+								$discriminatorOption->{'$ref'} );
 						}
 					}
 				}
@@ -202,7 +166,7 @@ class BlueprintParser {
 		if ( $pointer[0] !== '/' ) {
 			$pointer = substr( $pointer, 1 );
 		}
-		$path      = explode( '/', substr( $pointer, 1 ) );
+		$path = explode( '/', substr( $pointer, 1 ) );
 		$subSchema = $this->blueprintSchema;
 		foreach ( $path as $key ) {
 			if ( is_numeric( $key ) && ! property_exists( $subSchema, $key ) ) {

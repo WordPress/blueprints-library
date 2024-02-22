@@ -22,7 +22,7 @@ class BlueprintRunner {
 
 	public function run( CompiledBlueprint $blueprint ) {
 		$resourceManagerFactory = $this->resourceManagerFactory;
-		$resourceManager        = $resourceManagerFactory();
+		$resourceManager = $resourceManagerFactory();
 		$resourceManager->enqueue(
 			$blueprint->compiledResources
 		);
@@ -44,7 +44,7 @@ class BlueprintRunner {
 				$results[ $k ] = $e;
 				if ( $compiledStep->step->continueOnError !== true ) {
 					throw new BlueprintRunnerException(
-						"Error when executing step $compiledStep->step->step (number $k on the list)",
+						"Error when executing step {$compiledStep->step->step} (number $k on the list)",
 						0,
 						$results[ $k ]
 					);

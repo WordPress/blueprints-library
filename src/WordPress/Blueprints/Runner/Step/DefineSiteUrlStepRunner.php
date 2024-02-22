@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\Model\Builder\DefineWpConfigConstsStepBuilder;
 use WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep;
+use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 
 class DefineSiteUrlStepRunner extends BaseStepRunner {
 
@@ -16,8 +16,8 @@ class DefineSiteUrlStepRunner extends BaseStepRunner {
 		//        $executionContext->createStepRunner( DefineWpConfigConstsStepRunner::class )
 		$defineConstsHandler = new DefineWpConfigConstsStepRunner();
 		$defineConstsHandler->setRuntime( $this->getRuntime() );
-		$defineConstsHandler->run( ( new DefineWpConfigConstsStepBuilder() )
+		$defineConstsHandler->run( ( new DefineWpConfigConstsStep() )
 			->setConsts( [ 'WP_HOME' => $input->siteUrl, 'WP_SITEURL' => $input->siteUrl ] )
-			->toDataObject() );
+		);
 	}
 }
