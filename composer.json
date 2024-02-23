@@ -12,15 +12,17 @@
     "json-mapper/json-mapper": "^2.21"
   },
   "require-dev": {
-    "pestphp/pest": "^2.33",
+    "phpunit/phpunit": "^6.5",
     "jane-php/json-schema": "^7.6"
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "allow-plugins": {
-      "pestphp/pest-plugin": true,
       "php-http/discovery": true
+    },
+    "platform": {
+      "php": "^8.2"
     }
   },
   "autoload": {
