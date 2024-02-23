@@ -181,9 +181,6 @@ class ContainerBuilder {
 		$container[ "step.runner." . DefineSiteUrlStep::DISCRIMINATOR ] = function () {
 			return new DefineSiteUrlStepRunner();
 		};
-		$container[ "step.runner." . RmDirStep::DISCRIMINATOR ] = function () {
-			return new RmDirStepRunner();
-		};
 		$container[ "step.runner." . RmStep::DISCRIMINATOR ] = function () {
 			return new RmStepRunner();
 		};

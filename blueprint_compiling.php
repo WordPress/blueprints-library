@@ -1,10 +1,13 @@
 <?php
 
-use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Model\BlueprintBuilder;
-use WordPress\Blueprints\Runtime\NativePHPRuntime;
+use function WordPress\Blueprints\run_blueprint;
 
-require 'vendor/autoload.php';
+if ( getenv( 'USE_PHAR' ) ) {
+	require __DIR__ . '/dist/blueprints.phar';
+} else {
+	require 'vendor/autoload.php';
+}
 
 $blueprint = BlueprintBuilder::create()
 	->withWordPressVersion( 'https://wordpress.org/latest.zip' )
@@ -34,12 +37,6 @@ $blueprint = BlueprintBuilder::create()
 	->toBlueprint();
 
 
-$c = ( new ContainerBuilder() )->build(
-	new NativePHPRuntime(
-		__DIR__ . '/new-wp'
-	)
-);
-
-$results = $c['blueprint.engine']->runBlueprint( $blueprint );
+$results = run_blueprint( $blueprint, __DIR__ . '/new-wp' );
 
 var_dump( $results );

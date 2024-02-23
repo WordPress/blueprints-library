@@ -1,10 +1,12 @@
 ## Setup
 
-Install composer dependencies:
+Install [composer](https://getcomposer.org/) and the required composer dependencies via
 
 ```shell
 composer install
 ```
+
+## Useful commands
 
 Run tests with
 
@@ -24,11 +26,17 @@ Run a Blueprint with
 php blueprint_compiling.php
 ```
 
-Setup WordPress with SQLite using asynchronous resource fetching as follows:
+## Building to .phar
+
+The Blueprints library is distributed as a .phar library. To build the .phar file, run:
 
 ```shell
-php setup_wordpress.php
-cd outdir/wordpress  
-php wp-cli.phar core install --url=localhost:8550 --title="My test site" --admin_user=admin --admin_email="admin@localhost.com" --admin_password="password"
-php wp-cli.phar server --port=8550 
+vendor/bin/box compile
 ```
+
+To try the built .phar file, run:
+
+```shell
+rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
+```
+

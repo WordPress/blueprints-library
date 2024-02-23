@@ -8,3 +8,6 @@ outdir/
 test.php
 run_phar.php
 run_src.php
+.phive
+vendor-bin
+new-wp

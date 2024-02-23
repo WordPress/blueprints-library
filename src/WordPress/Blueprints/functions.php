@@ -3,6 +3,17 @@
 namespace WordPress\Blueprints;
 
 use Symfony\Component\Filesystem\Exception\IOException;
+use WordPress\Blueprints\Runtime\NativePHPRuntime;
+
+function run_blueprint( $json, $documentRoot = '/wordpress' ) {
+	$c = ( new ContainerBuilder() )->build(
+		new NativePHPRuntime(
+			$documentRoot
+		)
+	);
+
+	return $c['blueprint.engine']->runBlueprint( $json );
+}
 
 function list_files( string $path, $omitDotFiles = false ): array {
 	return array_values( array_filter( scandir( $path ), function ( $file ) use ( $omitDotFiles ) {

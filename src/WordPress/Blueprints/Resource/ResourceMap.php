@@ -26,7 +26,8 @@ class ResourceMap implements \ArrayAccess {
 				return $pair[1];
 			}
 		}
-		throw new \Exception( "Offset not found" );
+
+		throw new \Exception( "Stream for resource " . json_encode( $offset ) . " not found" );
 	}
 
 	public function offsetSet( $offset, $value ): void {
