@@ -560,31 +560,6 @@
         "step"
       ]
     },
-    "RmDirStep": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "progress": {
-          "$ref": "#/definitions/Progress"
-        },
-        "continueOnError": {
-          "type": "boolean",
-          "default": false
-        },
-        "step": {
-          "type": "string",
-          "const": "rmdir"
-        },
-        "path": {
-          "type": "string",
-          "description": "The path to remove"
-        }
-      },
-      "required": [
-        "path",
-        "step"
-      ]
-    },
     "RunPHPStep": {
       "type": "object",
       "additionalProperties": false,
@@ -911,9 +886,6 @@
         },
         {
           "$ref": "#/definitions/RmStep"
-        },
-        {
-          "$ref": "#/definitions/RmDirStep"
         },
         {
           "$ref": "#/definitions/RunPHPStep"

@@ -3,6 +3,7 @@
 namespace WordPress\Blueprints\Runtime;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Process;
 use function WordPress\Blueprints\join_paths;
 
@@ -32,14 +33,7 @@ class NativePHPRuntime implements RuntimeInterface {
 	}
 
 	public function resolvePath( string $path ): string {
-		if ( ! strlen( $path ) ) {
-			return $this->getDocumentRoot();
-		}
-		if ( $path[0] === '/' ) {
-			return $path;
-		}
-
-		return join_paths( $this->getDocumentRoot(), $path );
+        return Path::makeAbsolute($path, $this->getDocumentRoot());
 	}
 
 	public function withTemporaryDirectory( $callback ) {
@@ -135,5 +129,4 @@ class NativePHPRuntime implements RuntimeInterface {
 			$timeout
 		);
 	}
-
 }

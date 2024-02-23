@@ -32,7 +32,6 @@ class ModelInfo
 			MkdirStep::class,
 			MvStep::class,
 			RmStep::class,
-			RmDirStep::class,
 			RunPHPStep::class,
 			RunWordPressInstallerStep::class,
 			RunSQLStep::class,
