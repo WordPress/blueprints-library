@@ -22,10 +22,10 @@ class InstallThemeStep implements StepDefinitionInterface
 	public $themeZipFile;
 
 	/**
-	 * Optional installation options.
-	 * @var InstallThemeStepOptions
+	 * Whether to activate the theme after installing it.
+	 * @var bool
 	 */
-	public $options;
+	public $activate = true;
 
 
 	public function setProgress(Progress $progress)
@@ -56,9 +56,9 @@ class InstallThemeStep implements StepDefinitionInterface
 	}
 
 
-	public function setOptions(InstallThemeStepOptions $options)
+	public function setActivate(bool $activate)
 	{
-		$this->options = $options;
+		$this->activate = $activate;
 		return $this;
 	}
 }
