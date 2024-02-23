@@ -1,36 +1,38 @@
 {
   "require": {
+    "json-mapper/json-mapper": "^2.21",
     "symfony/event-dispatcher": "^7.0",
-    "justinrainbow/json-schema": "^5.2",
     "symfony/filesystem": "^7.0",
-    "psr/simple-cache": "^3.0",
+    "symfony/process": "^7.0",
     "symfony/http-client": "^7.0",
     "symfony/http-kernel": "^7.0",
     "pimple/pimple": "^3.0",
-    "opis/json-schema": "^2.3",
-    "nette/php-generator": "^4.1",
-    "json-mapper/json-mapper": "^2.21"
+    "psr/simple-cache": "^3.0",
+    "opis/json-schema": "^2.3"
   },
   "require-dev": {
     "pestphp/pest": "^2.33",
-    "jane-php/json-schema": "^7.6"
+    "nette/php-generator": "^4.1",
+    "jane-php/json-schema": "^7.6",
+    "bamarni/composer-bin-plugin": "^1.8"
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "allow-plugins": {
       "pestphp/pest-plugin": true,
-      "php-http/discovery": true
+      "php-http/discovery": true,
+      "bamarni/composer-bin-plugin": true
     }
   },
   "autoload": {
     "psr-4": {
-      "WordPress\\": "src/WordPress"
+      "WordPress\\": "src/WordPress",
+      "Symfony\\Component\\Process\\": "vendor/symfony/process"
     },
     "files": [
       "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Zip/functions.php",
-      "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Streams/stream_str_replace.php"
     ]
   }
