@@ -175,7 +175,7 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 		}
 		$typeHintMap[ $janeClass->getName() ][ $janeProperty->getName() ] = $docTypeHint;
 		$property->addComment( '@var ' . $docTypeHint . '' );
-		
+
 		// Add a setter
 		$setter = $class->addMethod( 'set' . ucfirst( $janeProperty->getName() ) );
 
@@ -208,6 +208,8 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 				}
 			} elseif ( $schema->getDefault() ) {
 				$property->setValue( $schema->getDefault() );
+			} elseif ( $schema->getType() === 'array' ) {
+				$property->setValue( [] );
 			}
 		}
 	}

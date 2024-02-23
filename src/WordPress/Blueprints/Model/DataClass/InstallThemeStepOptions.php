@@ -8,7 +8,7 @@ class InstallThemeStepOptions
 	 * Whether to activate the theme after installing it.
 	 * @var bool
 	 */
-	public $activate;
+	public $activate = true;
 
 
 	public function setActivate(bool $activate)

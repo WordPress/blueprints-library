@@ -38,11 +38,11 @@ class BlueprintCompiler {
 		//        Step and Step model classes. Let's alter the code generation
 		//        to only generate a single model class for each schema object.
 		$additional_steps = [];
-		if ( $blueprint->wpVersion ) {
+		if ( $blueprint->WordPressVersion ) {
 			$additional_steps[] = ( new DownloadWordPressStep() )
 				->setWordPressZip(
 					( new UrlResource() )
-						->setUrl( $blueprint->wpVersion )
+						->setUrl( $blueprint->WordPressVersion )
 				);
 			$additional_steps[] = ( new InstallSqliteIntegrationStep() )
 				->setSqlitePluginZip(

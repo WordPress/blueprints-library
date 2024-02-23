@@ -2,15 +2,15 @@
   "$schema": "http://json-schema.org/schema",
   "type": "object",
   "properties": {
-    "landingPage": {
-      "type": "string",
-      "default": "",
-      "description": "The URL to navigate to after the blueprint has been run."
-    },
     "description": {
       "type": "string",
       "default": "",
       "description": "Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what."
+    },
+    "WordPressVersion": {
+      "type": "string",
+      "additionalProperties": true,
+      "description": "Version of WordPress to use. Also accepts URL to a WordPress zip file."
     },
     "runtime": {
       "type": "object",
@@ -27,18 +27,24 @@
         "login": {
           "type": "boolean"
         }
-      },
-      "additionalProperties": false
-    },
-    "wpVersion": {
-      "type": "string",
-      "description": "The preferred WordPress version to use. If not specified, the latest supported version will be used"
+      }
     },
     "constants": {
       "type": "object",
       "additionalProperties": {
-        "type": "string"
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
       },
+      "default": {},
       "description": "PHP Constants to define on every request",
       "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
     },
@@ -47,6 +53,7 @@
       "items": {
         "$ref": "#/definitions/FileReference"
       },
+      "default": [],
       "description": "WordPress plugins to install and activate",
       "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
     },
@@ -55,12 +62,7 @@
       "additionalProperties": {
         "type": "string"
       },
-      "properties": {
-        "blogname": {
-          "type": "string",
-          "description": "The site title"
-        }
-      },
+      "default": {},
       "description": "WordPress site options to define",
       "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
     },
@@ -69,7 +71,8 @@
       "items": {
         "$ref": "#/definitions/StepDefinition"
       },
-      "description": "The steps to run after every other operation in this Blueprint was executed."
+      "description": "The steps to run after every other operation in this Blueprint was executed.",
+      "default": []
     }
   },
   "additionalProperties": false,
@@ -247,7 +250,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -271,7 +275,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -295,7 +300,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -324,7 +330,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -349,7 +356,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -373,7 +381,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -392,7 +401,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -416,7 +426,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -446,7 +457,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -457,16 +469,10 @@
           "$ref": "#/definitions/FileReference",
           "description": "The theme zip file to install."
         },
-        "options": {
-          "type": "object",
-          "properties": {
-            "activate": {
-              "type": "boolean",
-              "description": "Whether to activate the theme after installing it."
-            }
-          },
-          "additionalProperties": false,
-          "description": "Optional installation options."
+        "activate": {
+          "type": "boolean",
+          "description": "Whether to activate the theme after installing it.",
+          "default": true
         }
       },
       "required": [
@@ -482,7 +488,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -506,7 +513,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -535,7 +543,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -559,7 +568,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -583,7 +593,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -600,6 +611,32 @@
         "step"
       ]
     },
+    "EvalPHPCallbackStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "isPrivate": true,
+      "properties": {
+        "progress": {
+          "$ref": "#/definitions/Progress"
+        },
+        "continueOnError": {
+          "type": "boolean",
+          "default": false
+        },
+        "step": {
+          "type": "string",
+          "const": "evalPHPCallback",
+          "description": "The step identifier."
+        },
+        "callback": {
+          "description": "The PHP function."
+        }
+      },
+      "required": [
+        "callback",
+        "step"
+      ]
+    },
     "RunWordPressInstallerStep": {
       "type": "object",
       "additionalProperties": false,
@@ -608,7 +645,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -631,7 +669,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -656,7 +695,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -671,6 +711,36 @@
       },
       "required": [
         "options",
+        "step"
+      ]
+    },
+    "UnzipStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "progress": {
+          "$ref": "#/definitions/Progress"
+        },
+        "continueOnError": {
+          "type": "boolean",
+          "default": false
+        },
+        "step": {
+          "type": "string",
+          "const": "unzip"
+        },
+        "zipFile": {
+          "$ref": "#/definitions/FileReference",
+          "description": "The zip file to extract"
+        },
+        "extractToPath": {
+          "type": "string",
+          "description": "The path to extract the zip file to"
+        }
+      },
+      "required": [
+        "zipFile",
+        "extractToPath",
         "step"
       ]
     },
@@ -724,39 +794,6 @@
         "step"
       ]
     },
-    "UnzipStep": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "progress": {
-          "$ref": "#/definitions/Progress"
-        },
-        "continueOnError": {
-          "type": "boolean"
-        },
-        "step": {
-          "type": "string",
-          "const": "unzip"
-        },
-        "zipFile": {
-          "$ref": "#/definitions/FileReference",
-          "description": "The zip file to extract"
-        },
-        "zipPath": {
-          "type": "string",
-          "description": "The path of the zip file to extract",
-          "deprecated": "Use zipFile instead."
-        },
-        "extractToPath": {
-          "type": "string",
-          "description": "The path to extract the zip file to"
-        }
-      },
-      "required": [
-        "extractToPath",
-        "step"
-      ]
-    },
     "WriteFileStep": {
       "type": "object",
       "additionalProperties": false,
@@ -765,7 +802,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -776,7 +814,14 @@
           "description": "The path of the file to write to"
         },
         "data": {
-          "$ref": "#/definitions/FileReference",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FileReference"
+            },
+            {
+              "type": "string"
+            }
+          ],
           "description": "The data to write"
         }
       },
@@ -794,7 +839,8 @@
           "$ref": "#/definitions/Progress"
         },
         "continueOnError": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "step": {
           "type": "string",
@@ -846,6 +892,9 @@
           "$ref": "#/definitions/EnableMultisiteStep"
         },
         {
+          "$ref": "#/definitions/EvalPHPCallbackStep"
+        },
+        {
           "$ref": "#/definitions/ImportFileStep"
         },
         {
@@ -879,13 +928,13 @@
           "$ref": "#/definitions/SetSiteOptionsStep"
         },
         {
+          "$ref": "#/definitions/UnzipStep"
+        },
+        {
           "$ref": "#/definitions/DownloadWordPressStep"
         },
         {
           "$ref": "#/definitions/InstallSqliteIntegrationStep"
-        },
-        {
-          "$ref": "#/definitions/UnzipStep"
         },
         {
           "$ref": "#/definitions/WriteFileStep"
@@ -974,7 +1023,8 @@
           "type": "string"
         },
         "adminPassword": {
-          "type": "string"
+          "type": "string",
+          "default": "admin"
         }
       },
       "additionalProperties": false

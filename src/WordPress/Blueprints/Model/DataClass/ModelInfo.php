@@ -25,6 +25,7 @@ class ModelInfo
 			DefineWpConfigConstsStep::class,
 			DefineSiteUrlStep::class,
 			EnableMultisiteStep::class,
+			EvalPHPCallbackStep::class,
 			ImportFileStep::class,
 			InstallPluginStep::class,
 			InstallThemeStep::class,
@@ -36,9 +37,9 @@ class ModelInfo
 			RunWordPressInstallerStep::class,
 			RunSQLStep::class,
 			SetSiteOptionsStep::class,
+			UnzipStep::class,
 			DownloadWordPressStep::class,
 			InstallSqliteIntegrationStep::class,
-			UnzipStep::class,
 			WriteFileStep::class,
 			WPCLIStep::class
 		];

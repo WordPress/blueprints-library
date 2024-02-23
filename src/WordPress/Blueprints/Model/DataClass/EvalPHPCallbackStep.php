@@ -2,9 +2,9 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class UnzipStep implements StepDefinitionInterface
+class EvalPHPCallbackStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'unzip';
+	public const DISCRIMINATOR = 'evalPHPCallback';
 
 	/** @var Progress */
 	public $progress;
@@ -12,17 +12,17 @@ class UnzipStep implements StepDefinitionInterface
 	/** @var bool */
 	public $continueOnError;
 
-	/** @var string */
-	public $step = 'unzip';
-
-	/** @var string|ResourceDefinitionInterface */
-	public $zipFile;
-
 	/**
-	 * The path to extract the zip file to
+	 * The step identifier.
 	 * @var string
 	 */
-	public $extractToPath;
+	public $step = 'evalPHPCallback';
+
+	/**
+	 * The PHP function.
+	 * @var mixed
+	 */
+	public $callback;
 
 
 	public function setProgress(Progress $progress)
@@ -46,16 +46,9 @@ class UnzipStep implements StepDefinitionInterface
 	}
 
 
-	public function setZipFile($zipFile)
+	public function setCallback($callback)
 	{
-		$this->zipFile = $zipFile;
-		return $this;
-	}
-
-
-	public function setExtractToPath(string $extractToPath)
-	{
-		$this->extractToPath = $extractToPath;
+		$this->callback = $callback;
 		return $this;
 	}
 }

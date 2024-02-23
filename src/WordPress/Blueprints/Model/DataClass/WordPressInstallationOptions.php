@@ -8,7 +8,7 @@ class WordPressInstallationOptions
 	public $adminUsername;
 
 	/** @var string */
-	public $adminPassword;
+	public $adminPassword = 'admin';
 
 
 	public function setAdminUsername(string $adminUsername)

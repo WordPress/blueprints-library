@@ -21,7 +21,10 @@ class WriteFileStep implements StepDefinitionInterface
 	 */
 	public $path;
 
-	/** @var string|ResourceDefinitionInterface */
+	/**
+	 * The data to write
+	 * @var string|ResourceDefinitionInterface
+	 */
 	public $data;
 
 

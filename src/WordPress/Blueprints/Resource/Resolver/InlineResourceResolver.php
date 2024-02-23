@@ -14,7 +14,7 @@ class InlineResourceResolver implements ResourceResolverInterface {
 			return false;
 		}
 
-		return ( new InlineResourceBuilder() )->setContents( $url );
+		return ( new InlineResource() )->setContents( $url );
 	}
 
 	static public function getResourceClass(): string {

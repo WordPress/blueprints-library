@@ -3,6 +3,7 @@
 namespace WordPress\Blueprints;
 
 use Opis\JsonSchema\Errors\ErrorFormatter;
+use WordPress\Blueprints\Model\BlueprintBuilder;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
@@ -20,7 +21,9 @@ class BlueprintParser {
 			return $this->fromJson( $rawBlueprint );
 		} elseif ( $rawBlueprint instanceof Blueprint ) {
 			return $this->fromBlueprint( $rawBlueprint );
-		} elseif ( is_object( $rawBlueprint ) ) {
+		} elseif ( $rawBlueprint instanceof BlueprintBuilder ) {
+			return $this->fromBlueprint( $rawBlueprint->toBlueprint() );
+		} elseif ( $rawBlueprint instanceof \stdClass ) {
 			return $this->fromObject( $rawBlueprint );
 		}
 		throw new \InvalidArgumentException( 'Unsupported $rawBlueprint type. Use a JSON string, a parsed JSON object, or a BlueprintBuilder instance.' );
