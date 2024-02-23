@@ -11,18 +11,20 @@
     "opis/json-schema": "^2.3"
   },
   "require-dev": {
-    "pestphp/pest": "^2.33",
     "nette/php-generator": "^4.1",
     "jane-php/json-schema": "^7.6",
-    "bamarni/composer-bin-plugin": "^1.8"
+    "bamarni/composer-bin-plugin": "^1.8",
+    "phpunit/phpunit": "^6.5"
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "allow-plugins": {
-      "pestphp/pest-plugin": true,
       "php-http/discovery": true,
       "bamarni/composer-bin-plugin": true
+    },
+    "platform": {
+      "php": "8.2"
     }
   },
   "autoload": {
