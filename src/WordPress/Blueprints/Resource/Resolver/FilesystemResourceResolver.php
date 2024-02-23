@@ -3,12 +3,12 @@
 namespace WordPress\Blueprints\Resource\Resolver;
 
 use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
+use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 
 class FilesystemResourceResolver implements ResourceResolverInterface {
 
-	public function parseUrl( string $url ): FileReferenceInterface|false {
+	public function parseUrl( string $url ): ResourceDefinitionInterface|false {
 		if ( ! str_starts_with( $url, 'file://' ) ) {
 			return false;
 		}
@@ -20,11 +20,11 @@ class FilesystemResourceResolver implements ResourceResolverInterface {
 		return FilesystemResource::class;
 	}
 
-	public function supports( FileReferenceInterface $resource ): bool {
+	public function supports( ResourceDefinitionInterface $resource ): bool {
 		return $resource instanceof FilesystemResource;
 	}
 
-	public function stream( FileReferenceInterface $resource ) {
+	public function stream( ResourceDefinitionInterface $resource ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}

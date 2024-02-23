@@ -24,7 +24,7 @@ class SetSiteOptionsStepRunner extends BaseStepRunner {
 		}
 CODE,
 			[
-				'OPTIONS' => json_encode( get_object_vars( $input->options ) ),
+				'OPTIONS' => json_encode( $input->options ),
 			]
 		);
 	}

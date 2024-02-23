@@ -7,17 +7,20 @@
     "symfony/http-client": "^7.0",
     "symfony/http-kernel": "^7.0",
     "pimple/pimple": "^3.0",
-    "swaggest/json-schema": "^0.12.42",
-    "swaggest/php-code-builder": "^0.2.41"
+    "opis/json-schema": "^2.3",
+    "nette/php-generator": "^4.1",
+    "json-mapper/json-mapper": "^2.21"
   },
   "require-dev": {
-    "pestphp/pest": "^2.33"
+    "pestphp/pest": "^2.33",
+    "jane-php/json-schema": "^7.6"
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "allow-plugins": {
-      "pestphp/pest-plugin": true
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true
     }
   },
   "autoload": {
@@ -25,6 +28,7 @@
       "WordPress\\": "src/WordPress"
     },
     "files": [
+      "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Zip/functions.php",
       "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Streams/stream_str_replace.php"

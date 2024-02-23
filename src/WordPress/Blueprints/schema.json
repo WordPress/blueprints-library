@@ -1,98 +1,115 @@
 {
   "$schema": "http://json-schema.org/schema",
-  "$ref": "#/definitions/Blueprint",
-  "definitions": {
-    "Blueprint": {
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "default": "",
+      "description": "Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what."
+    },
+    "WordPressVersion": {
+      "type": "string",
+      "additionalProperties": true,
+      "description": "Version of WordPress to use. Also accepts URL to a WordPress zip file."
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Slot for runtime–specific options, schema must be provided by the runtime."
+    },
+    "onBoot": {
       "type": "object",
       "properties": {
-        "description": {
+        "openUrl": {
           "type": "string",
-          "description": "Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what."
+          "description": "The URL to navigate to after the blueprint has been run."
         },
-        "runtime": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Slot for runtime–specific options, schema must be provided by the runtime."
-        },
-        "onBoot": {
-          "type": "object",
-          "properties": {
-            "openUrl": {
-              "type": "string",
-              "description": "The URL to navigate to after the blueprint has been run."
-            },
-            "login": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
-        },
-        "wpVersion": {
-          "type": "string",
-          "description": "The preferred WordPress version to use. If not specified, the latest supported version will be used"
-        },
-        "constants": {
-          "type": "object",
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              }
-            ]
-          },
-          "default": {},
-          "description": "PHP Constants to define on every request",
-          "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
-        },
-        "plugins": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/FileReference"
-          },
-          "default": [],
-          "description": "WordPress plugins to install and activate",
-          "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
-        },
-        "siteOptions": {
-          "type": "object",
-          "additionalProperties": {
+        "login": {
+          "type": "boolean"
+        }
+      }
+    },
+    "constants": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
             "type": "string"
           },
-          "properties": {
-            "blogname": {
-              "type": "string",
-              "description": "The site title"
-            }
+          {
+            "type": "number"
           },
-          "default": {},
-          "description": "WordPress site options to define",
-          "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
-        },
-        "steps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/StepDefinition"
-          },
-          "description": "The steps to run after every other operation in this Blueprint was executed.",
-          "default": []
-        },
-        "$schema": {
-          "type": "string"
-        }
+          {
+            "type": "boolean"
+          }
+        ]
       },
-      "additionalProperties": false
+      "default": {},
+      "description": "PHP Constants to define on every request",
+      "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FileReference"
+      },
+      "default": [],
+      "description": "WordPress plugins to install and activate",
+      "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
+    },
+    "siteOptions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "description": "WordPress site options to define",
+      "deprecated": "This experimental option will change without warning.\nUse `steps` instead."
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/StepDefinition"
+      },
+      "description": "The steps to run after every other operation in this Blueprint was executed.",
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "SupportedPHPVersion": {
+      "type": "string",
+      "enum": [
+        "8.3",
+        "8.2",
+        "8.1",
+        "8.0",
+        "7.4",
+        "7.3",
+        "7.2",
+        "7.1",
+        "7.0"
+      ]
     },
     "FileReference": {
       "anyOf": [
         {
           "type": "string"
         },
+        {
+          "$ref": "#/definitions/ResourceDefinition"
+        }
+      ]
+    },
+    "ResourceDefinition": {
+      "type": "object",
+      "discriminator": {
+        "propertyName": "resource"
+      },
+      "required": [
+        "resource"
+      ],
+      "oneOf": [
         {
           "$ref": "#/definitions/FilesystemResource"
         },
@@ -975,12 +992,11 @@
       "type": "object",
       "properties": {
         "adminUsername": {
-          "type": "string",
-          "default": "admin"
+          "type": "string"
         },
         "adminPassword": {
           "type": "string",
-          "default": "password"
+          "default": "admin"
         }
       },
       "additionalProperties": false

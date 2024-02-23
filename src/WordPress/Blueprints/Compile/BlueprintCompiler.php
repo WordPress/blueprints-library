@@ -2,24 +2,24 @@
 
 namespace WordPress\Blueprints\Compile;
 
-use WordPress\Blueprints\Model\Builder\DownloadWordPressStepBuilder;
-use WordPress\Blueprints\Model\Builder\InstallSqliteIntegrationStepBuilder;
-use WordPress\Blueprints\Model\Builder\RunWordPressInstallerStepBuilder;
-use WordPress\Blueprints\Model\Builder\UrlResourceBuilder;
-use WordPress\Blueprints\Model\Builder\WordPressInstallationOptionsBuilder;
-use WordPress\Blueprints\Model\Builder\WriteFileStepBuilder;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
 use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
+use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
+use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
+use WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions;
+use WordPress\Blueprints\Model\DataClass\WriteFileStep;
+use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
 
 class BlueprintCompiler {
 
 	public function __construct(
 		protected $stepRunnerFactory,
+		protected ResourceResolverInterface $resourceResolver
 	) {
 	}
 
@@ -35,28 +35,25 @@ class BlueprintCompiler {
 	protected function expandShorthandsIntoSteps( Blueprint $blueprint ) {
 		// @TODO: This duplicates the logic in BlueprintComposer.
 		//        It cannot be easily reused because of the dichotomy between the
-		//        StepBuilder and Step model classes. Let's alter the code generation
+		//        Step and Step model classes. Let's alter the code generation
 		//        to only generate a single model class for each schema object.
 		$additional_steps = [];
-		if ( $blueprint->wpVersion ) {
-			$additional_steps[] = ( new DownloadWordPressStepBuilder() )
+		if ( $blueprint->WordPressVersion ) {
+			$additional_steps[] = ( new DownloadWordPressStep() )
 				->setWordPressZip(
-					( new UrlResourceBuilder() )
-						->setUrl( $blueprint->wpVersion )
-				)
-				->toDataObject();
-			$additional_steps[] = ( new InstallSqliteIntegrationStepBuilder() )
+					( new UrlResource() )
+						->setUrl( $blueprint->WordPressVersion )
+				);
+			$additional_steps[] = ( new InstallSqliteIntegrationStep() )
 				->setSqlitePluginZip(
-					( new UrlResourceBuilder() )
+					( new UrlResource() )
 						->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' )
-				)->toDataObject();
-			$additional_steps[] = ( new WriteFileStepBuilder() )
+				);
+			$additional_steps[] = ( new WriteFileStep() )
 				->setPath( 'wp-cli.phar' )
-				->setData( ( new UrlResourceBuilder() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) )
-				->toDataObject();
-			$additional_steps[] = ( new RunWordPressInstallerStepBuilder() )
-				->setOptions( new WordPressInstallationOptionsBuilder() )
-				->toDataObject();
+				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
+			$additional_steps[] = ( new RunWordPressInstallerStep() )
+				->setOptions( new WordPressInstallationOptions() );
 		}
 		if ( $blueprint->constants ) {
 			$step = new DefineWpConfigConstsStep();
@@ -72,7 +69,7 @@ class BlueprintCompiler {
 		}
 		if ( $blueprint->siteOptions ) {
 			$step = new SetSiteOptionsStep();
-			$step->options = (object) $blueprint->siteOptions;
+			$step->setOptions( $blueprint->siteOptions );
 			$additional_steps[] = $step;
 		}
 
@@ -103,12 +100,33 @@ class BlueprintCompiler {
 	}
 
 	// Find all the resources in the blueprint
-	protected function findResources( $blueprintFragment, &$resources, $path = '' ) {
-		if ( $blueprintFragment instanceof FileReferenceInterface ) {
-			$resources[ $path ] = $blueprintFragment;
+	protected function findResources( $blueprintFragment, &$resources, $path = '', $parseUrls = false ) {
+		if ( $parseUrls && is_string( $blueprintFragment ) ) {
+			$resources[ $path ] = [
+				$blueprintFragment,
+				$this->resourceResolver->parseUrl( $blueprintFragment ),
+			];
+		} elseif ( $blueprintFragment instanceof ResourceDefinitionInterface ) {
+			$resources[ $path ] = [
+				$blueprintFragment,
+				$blueprintFragment,
+			];
 		} elseif ( is_object( $blueprintFragment ) ) {
+			// Check if the @var annotation mentions a ResourceDefinitionInterface
 			foreach ( get_object_vars( $blueprintFragment ) as $key => $value ) {
-				$this->findResources( $value, $resources, $path . '->' . $key );
+				$reflection = new \ReflectionProperty( $blueprintFragment, $key );
+				$docComment = $reflection->getDocComment();
+				$parseNestedUrls = false;
+				if ( preg_match( '/@var\s+([^\s]+)/', $docComment, $matches ) ) {
+					$className = $matches[1];
+					if (
+						str_contains( $className, 'string' ) &&
+						str_contains( $className, 'ResourceDefinitionInterface' )
+					) {
+						$parseNestedUrls = true;
+					}
+				}
+				$this->findResources( $value, $resources, $path . '->' . $key, $parseNestedUrls );
 			}
 		} elseif ( is_array( $blueprintFragment ) ) {
 			foreach ( $blueprintFragment as $k => $v ) {

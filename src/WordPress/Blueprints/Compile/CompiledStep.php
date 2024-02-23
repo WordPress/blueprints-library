@@ -2,13 +2,13 @@
 
 namespace WordPress\Blueprints\Compile;
 
-use WordPress\Blueprints\Model\DataClass\StepInterface;
+use WordPress\Blueprints\Model\DataClass\StepDefinitionInterface;
 use WordPress\Blueprints\Runner\Step\StepRunnerInterface;
 
 class CompiledStep {
 
 	public function __construct(
-		public StepInterface $step,
+		public StepDefinitionInterface $step,
 		public StepRunnerInterface $runner
 	) {
 	}

@@ -2,7 +2,7 @@
 
 namespace WordPress\Blueprints\Resource\Resolver;
 
-use WordPress\Blueprints\Model\DataClass\FileReferenceInterface;
+use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 
 class ResourceResolverCollection implements ResourceResolverInterface {
 
@@ -16,7 +16,7 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		throw new \RuntimeException( 'Not implemented' );
 	}
 
-	public function parseUrl( string $url ): FileReferenceInterface|false {
+	public function parseUrl( string $url ): ResourceDefinitionInterface|false {
 		foreach ( $this->ResourceResolvers as $handler ) {
 			$resource = $handler->parseUrl( $url );
 			if ( $resource ) {
@@ -27,7 +27,7 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		return false;
 	}
 
-	public function supports( FileReferenceInterface $resource ): bool {
+	public function supports( ResourceDefinitionInterface $resource ): bool {
 		foreach ( $this->ResourceResolvers as $handler ) {
 			if ( $handler->supports( $resource ) ) {
 				return true;
@@ -37,7 +37,7 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		return false;
 	}
 
-	public function stream( FileReferenceInterface $resource ) {
+	public function stream( ResourceDefinitionInterface $resource ) {
 		foreach ( $this->ResourceResolvers as $handler ) {
 			if ( $handler->supports( $resource ) ) {
 				return $handler->stream( $resource );

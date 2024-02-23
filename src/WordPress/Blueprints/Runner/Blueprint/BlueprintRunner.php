@@ -22,7 +22,7 @@ class BlueprintRunner {
 
 	public function run( CompiledBlueprint $blueprint ) {
 		$resourceManagerFactory = $this->resourceManagerFactory;
-		$resourceManager        = $resourceManagerFactory();
+		$resourceManager = $resourceManagerFactory();
 		$resourceManager->enqueue(
 			$blueprint->compiledResources
 		);
