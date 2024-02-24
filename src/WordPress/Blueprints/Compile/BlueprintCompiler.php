@@ -44,16 +44,16 @@ class BlueprintCompiler {
 					( new UrlResource() )
 						->setUrl( $blueprint->WordPressVersion )
 				);
-			$additional_steps[] = ( new InstallSqliteIntegrationStep() )
-				->setSqlitePluginZip(
-					( new UrlResource() )
-						->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' )
-				);
-			$additional_steps[] = ( new WriteFileStep() )
-				->setPath( 'wp-cli.phar' )
-				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
-			$additional_steps[] = ( new RunWordPressInstallerStep() )
-				->setOptions( new WordPressInstallationOptions() );
+//			$additional_steps[] = ( new InstallSqliteIntegrationStep() )
+//				->setSqlitePluginZip(
+//					( new UrlResource() )
+//						->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' )
+//				);
+//			$additional_steps[] = ( new WriteFileStep() )
+//				->setPath( 'wp-cli.phar' )
+//				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
+//			$additional_steps[] = ( new RunWordPressInstallerStep() )
+//				->setOptions( new WordPressInstallationOptions() );
 		}
 		if ( $blueprint->constants ) {
 			$step = new DefineWpConfigConstsStep();

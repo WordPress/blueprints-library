@@ -34,6 +34,10 @@ The Blueprints library is distributed as a .phar library. To build the .phar fil
 vendor/bin/box compile
 ```
 
+Note that in box.json, the `"check-requirements"` option is set to `false`. Somehow, keeping it as `true` results in a
+.phar file
+that breaks HTTP requests in Playground. @TODO: Investigate why this is the case.
+
 To try the built .phar file, run:
 
 ```shell

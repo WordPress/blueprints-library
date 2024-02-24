@@ -37,7 +37,7 @@ class UrlSource extends BaseDataSource {
 		if ( $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
-			$cached    = $this->cache->get( $url );
+			$cached = $this->cache->get( $url );
 			$data_size = strlen( $cached );
 			$this->events->dispatch( new ProgressEvent(
 				$url,
@@ -52,26 +52,35 @@ class UrlSource extends BaseDataSource {
 		}
 
 		$response = $this->client->request( 'GET', $url, [
-			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
+			'on_progress'   => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
 				$this->events->dispatch( new ProgressEvent(
 					$url,
 					$dlNow,
 					$dlSize
 				) );
 			},
+			// @TODO: Only use these unsecure options in in-browser Playground.
+			//        We use a fake SSL server in there to MITM the HTTPS requests
+			//        and funnel them through fetch() – and fetch() handles HTTPS
+			//  	  security for us.
+			'verify_host'   => false,
+			'verify_peer'   => false,
+			'crypto_method' => \STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT,
 		] );
-		$stream   = StreamWrapper::createResource( $response, $this->client );
+		$stream = StreamWrapper::createResource( $response, $this->client );
 		if ( ! $stream ) {
 			throw new \Exception( 'Failed to download file' );
 		}
 		$onChunk = function ( $chunk ) use ( $url, $response, $stream ) {
 			// Handle response caching
 			// @TODO: don't buffer, just keep appending to the cache.
-			static $bufferedChunks = [];
-			$bufferedChunks[] = $chunk;
-			if ( feof( $stream ) ) {
-				$this->cache->set( $url, implode( '', $bufferedChunks ) );
-			}
+			//        Buffering the response causes an out of memory error in the in-browser
+			//        version of Playground
+//			static $bufferedChunks = [];
+//			$bufferedChunks[] = $chunk;
+//			if ( feof( $stream ) ) {
+//				$this->cache->set( $url, implode( '', $bufferedChunks ) );
+//			}
 		};
 		$onClose = function () use ( $response ) {
 			$response->cancel();
