@@ -62,6 +62,7 @@ use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\NativePHPRuntime;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 use WordPress\DataSource\FileSource;
+use WordPress\DataSource\PlaygroundFetchSource;
 use WordPress\DataSource\ProgressEvent;
 use WordPress\DataSource\UrlSource;
 
@@ -218,8 +219,12 @@ class ContainerBuilder {
 			return new RunSQLStepRunner();
 		};
 
+		// @TODO: dynamically load one of the supported resolvers
+//		$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
+//			return new UrlResourceResolver( $c['data_source.url'] );
+//		};
 		$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
-			return new UrlResourceResolver( $c['data_source.url'] );
+			return new UrlResourceResolver( $c['data_source.playground_fetch'] );
 		};
 		$container[ "resource.resolver." . FilesystemResource::DISCRIMINATOR ] = function () {
 			return new FilesystemResourceResolver();
@@ -261,6 +266,9 @@ class ContainerBuilder {
 
 		$container['data_source.url'] = function ( $c ) {
 			return new UrlSource( $c['http_client'], $c['downloads_cache'] );
+		};
+		$container['data_source.playground_fetch'] = function ( $c ) {
+			return new PlaygroundFetchSource();
 		};
 
 		// Add a progress listener to all data sources

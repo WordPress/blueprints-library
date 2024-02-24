@@ -10,6 +10,7 @@ class WriteFileStepRunner extends BaseStepRunner {
 		WriteFileStep $input,
 		Tracker $progress = null
 	) {
+		var_dump( $input->data );
 		$path = $this->getRuntime()->resolvePath( $input->path );
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
 		if ( is_string( $input->data ) ) {
@@ -21,6 +22,7 @@ class WriteFileStepRunner extends BaseStepRunner {
 		if ( $fp2 === false ) {
 			throw new \Exception( "Failed to open file at {$path}" );
 		}
+		var_dump( $this->getResource( $input->data ) );
 		stream_copy_to_stream( $this->getResource( $input->data ), $fp2 );
 		fclose( $fp2 );
 	}
