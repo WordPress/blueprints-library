@@ -12,6 +12,8 @@ use WordPress\Streams\StreamPeekerContext;
 
 class PlaygroundFetchSource extends BaseDataSource {
 
+	public $proc_handles = [];
+
 	public function stream( $resourceIdentifier ) {
 		$url = $resourceIdentifier;
 		$proc_handle = proc_open(
@@ -19,28 +21,33 @@ class PlaygroundFetchSource extends BaseDataSource {
 			[ 1 => [ 'pipe', 'w' ], 2 => [ 'pipe', 'w' ] ],
 			$pipes
 		);
-
-
-		// This works, but blocks the execution until the entire file is available:
-		// $fp2 = fopen( 'php://memory', 'r+' );
-		// stream_copy_to_stream( $pipes[1], $fp2 );
-		// return $fp2;
-
-		// This triggers the following error:
+		// This prevents the process handle from getting garbage collected and
+		// breaking the stdout pipe. However, how the program never terminates.
+		// Presumably we need to peek() on the resource handle and close the
+		// process handle when it's done.
+		// Without this line, we get the following error:
 		// PHP Fatal error:  Uncaught TypeError: stream_copy_to_stream(): supplied resource is not a valid stream resource i
 		// var_dump()–ing first says
 		//    resource(457) of type (stream)
 		// but then it says
 		//    resource(457) of type (Unknown)
-		return $pipes[1];
+		$this->proc_handles[] = $proc_handle;
 
-		// This doesn't help:
-		// fread( $pipes[1], 1 );
-
-		// This doesn't help:
-		// stream_set_blocking( $pipes[1], 1 );
+		return StreamPeeker::wrap(
+			new StreamPeekerContext(
+				$pipes[1],
+				function ( $chunk ) use ( $proc_handle, $pipes ) {
+					if ( feof( $pipes[1] ) ) {
+						proc_close( $proc_handle );
+					}
+				},
+				function () use ( $proc_handle ) {
+					proc_close( $proc_handle );
+					// On close
+				}
+			)
+		);
 	}
-
 
 }
 

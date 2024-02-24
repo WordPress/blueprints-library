@@ -22,7 +22,6 @@ class WriteFileStepRunner extends BaseStepRunner {
 		if ( $fp2 === false ) {
 			throw new \Exception( "Failed to open file at {$path}" );
 		}
-		var_dump( $this->getResource( $input->data ) );
 		stream_copy_to_stream( $this->getResource( $input->data ), $fp2 );
 		fclose( $fp2 );
 	}

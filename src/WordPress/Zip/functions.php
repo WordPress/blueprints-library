@@ -11,7 +11,7 @@ function zip_extract_to( $fp, $toPath ) {
 		if ( ! $entry->isFileEntry() ) {
 			continue;
 		}
-		$path   = $toPath . '/' . sanitize_path( $entry->path );
+		$path = $toPath . '/' . sanitize_path( $entry->path );
 		$parent = dirname( $path );
 		if ( ! is_dir( $parent ) ) {
 			mkdir( $parent, 0777, true );

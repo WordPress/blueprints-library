@@ -15,6 +15,9 @@ class ZipStreamReader {
 	 * @param resource $fp A stream of zip file bytes.
 	 */
 	static public function readEntry( $fp ) {
+		if ( feof( $fp ) ) {
+			return null;
+		}
 		$signature = static::read_bytes( $fp, 4 );
 		if ( $signature === false ) {
 			return null;
@@ -57,10 +60,10 @@ class ZipStreamReader {
 	 * @param resource $stream
 	 */
 	static protected function readFileEntry( $stream ): ZipFileEntry {
-		$data  = self::read_bytes( $stream, 26 );
-		$data  = unpack( 'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
+		$data = self::read_bytes( $stream, 26 );
+		$data = unpack( 'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
 			$data );
-		$path  = self::read_bytes( $stream, $data['pathLength'] );
+		$path = self::read_bytes( $stream, $data['pathLength'] );
 		$extra = self::read_bytes( $stream, $data['extraLength'] );
 		$bytes = self::read_bytes( $stream, $data['compressedSize'] );
 
@@ -119,11 +122,11 @@ class ZipStreamReader {
 	 * @param resource stream
 	 */
 	static protected function readCentralDirectoryEntry( $stream ): ZipCentralDirectoryEntry {
-		$data        = static::read_bytes( $stream, 42 );
-		$data        = unpack( 'vversionCreated/vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength/vfileCommentLength/vdiskNumber/vinternalAttributes/VexternalAttributes/VfirstByteAt',
+		$data = static::read_bytes( $stream, 42 );
+		$data = unpack( 'vversionCreated/vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength/vfileCommentLength/vdiskNumber/vinternalAttributes/VexternalAttributes/VfirstByteAt',
 			$data );
-		$path        = static::read_bytes( $stream, $data['pathLength'] );
-		$extra       = static::read_bytes( $stream, $data['extraLength'] );
+		$path = static::read_bytes( $stream, $data['pathLength'] );
+		$extra = static::read_bytes( $stream, $data['extraLength'] );
 		$fileComment = static::read_bytes( $stream, $data['fileCommentLength'] );
 
 		return new ZipCentralDirectoryEntry(
@@ -198,13 +201,26 @@ class ZipStreamReader {
 		}
 
 		$data = '';
+		$zeroLengthChunks = 0;
 		while ( true ) {
 			$chunk = fread( $stream, $length );
+			// Without this check, fread() hangs indefinitely when reading from a stream
+			// in Playground. I'm not sure if that's after the stream reached its EOF or
+			// not.
+			// @TODO: Harmonize Playground behavior with native PHP behavior
+			if ( strlen( $chunk ) === 0 ) {
+				$zeroLengthChunks ++;
+				if ( $zeroLengthChunks > 10 ) {
+					return $data ?: false;
+				}
+				continue;
+			}
+			$zeroLengthChunks = 0;
 			if ( false === $chunk ) {
 				return false;
 			}
 			$length -= strlen( $chunk );
-			$data   .= $chunk;
+			$data .= $chunk;
 
 			if ( $length === 0 ) {
 				break;
