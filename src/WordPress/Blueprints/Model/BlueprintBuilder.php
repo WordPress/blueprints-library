@@ -87,7 +87,8 @@ class BlueprintBuilder {
 		if ( ! is_array( $wxrs ) ) {
 			$wxrs = [ $wxrs ];
 		}
-		$this->withPlugin( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip' );
+		// @TODO: Playground comes with the importer plugin already installed
+		// $this->withPlugin( 'https://downloads.wordpress.org/plugin/wordpress-importer.zip' );
 		foreach ( $wxrs as $wxr ) {
 			$this->addStep(
 				( new ImportFileStep() )

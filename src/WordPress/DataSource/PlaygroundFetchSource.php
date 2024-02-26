@@ -33,20 +33,7 @@ class PlaygroundFetchSource extends BaseDataSource {
 		//    resource(457) of type (Unknown)
 		$this->proc_handles[] = $proc_handle;
 
-		return StreamPeeker::wrap(
-			new StreamPeekerContext(
-				$pipes[1],
-				function ( $chunk ) use ( $proc_handle, $pipes ) {
-					if ( feof( $pipes[1] ) ) {
-						proc_close( $proc_handle );
-					}
-				},
-				function () use ( $proc_handle ) {
-					proc_close( $proc_handle );
-					// On close
-				}
-			)
-		);
+		return $pipes[1];
 	}
 
 }
