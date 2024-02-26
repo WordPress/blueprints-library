@@ -1,8 +1,7 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceManager\Resolver;
+namespace WordPress\Blueprints\Resources\Resolver;
 
-use WordPress\Blueprints\Model\Builder\InlineResourceBuilder;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Model\DataClass\InlineResource;
 

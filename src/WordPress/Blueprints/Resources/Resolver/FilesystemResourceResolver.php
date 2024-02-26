@@ -1,8 +1,7 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceManager\Resolver;
+namespace WordPress\Blueprints\Resources\Resolver;
 
-use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
 
@@ -15,8 +14,9 @@ class FilesystemResourceResolver implements ResourceResolverInterface
             return null;
         }
 
-//    TODO does this Builder exist?
-        return ( new FilesystemResourceBuilder() )->setPath($url);
+        $resourceDefinition = new FilesystemResource();
+        $resourceDefinition->setPath($url);
+        return $resourceDefinition;
     }
 
     public static function getResourceClass(): string

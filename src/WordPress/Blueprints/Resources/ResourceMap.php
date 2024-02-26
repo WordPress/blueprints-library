@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceManager;
+namespace WordPress\Blueprints\Resources;
 
 use ArrayAccess;
 use Symfony\Component\Filesystem\Filesystem;
@@ -33,6 +33,7 @@ class ResourceMap implements ArrayAccess
             }
         }
 
+        // TODO Evaluate waring: 'ext-json' is missing in composer.json
         throw new \Exception("Stream for resource " . json_encode($offset) . " not found");
     }
 

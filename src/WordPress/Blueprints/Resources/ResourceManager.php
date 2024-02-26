@@ -1,10 +1,10 @@
 <?php
 
-namespace WordPress\Blueprints\ResourceManager;
+namespace WordPress\Blueprints\Resources;
 
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
-use WordPress\Blueprints\ResourceManager\Resolver\ResourceResolverInterface;
+use WordPress\Blueprints\Resources\Resolver\ResourceResolverInterface;
 
 class ResourceManager
 {

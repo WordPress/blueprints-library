@@ -2,7 +2,7 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\ResourceManager\ResourceManager;
+use WordPress\Blueprints\Resources\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 interface StepRunnerInterface {

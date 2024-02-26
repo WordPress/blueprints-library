@@ -3,7 +3,7 @@
 namespace WordPress\Blueprints\Runner\Step;
 
 //use WordPress\Blueprints\Context\ExecutionContext;
-use WordPress\Blueprints\ResourceManager\ResourceManager;
+use WordPress\Blueprints\Resources\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 abstract class BaseStepRunner implements StepRunnerInterface {
