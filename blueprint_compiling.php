@@ -57,9 +57,10 @@ $subscriber = new class implements EventSubscriberInterface {
 	protected ProgressBar $progress_bar;
 
 	public function __construct() {
-		ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message% (%filename%)' );
+		ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message%' );
 
-		$this->progress_bar = ( new SymfonyStyle( new StringInput( "" ), new ConsoleOutput() ) )->createProgressBar();
+		$this->progress_bar = ( new SymfonyStyle( new StringInput( "" ),
+			new ConsoleOutput() ) )->createProgressBar( 100 );
 		$this->progress_bar->setFormat( 'custom' );
 		$this->progress_bar->setMessage( 'Start' );
 		$this->progress_bar->start();
@@ -68,21 +69,20 @@ $subscriber = new class implements EventSubscriberInterface {
 	public function onProgress( ProgressEvent $event ) {
 		$this->progress_bar->setMessage( $event->caption );
 		$this->progress_bar->setProgress( (int) $event->progress );
-
-		// echo $event->progress . "% – " . $event->caption . "\n";
 	}
 
 	public function onDone( DoneEvent $event ) {
-//		echo "Steps done!\n";
 		$this->progress_bar->finish();
 	}
 };
 
 $results = run_blueprint(
 	$blueprint,
-	ContainerBuilder::ENVIRONMENT_NATIVE,
-	__DIR__ . '/new-wp',
-	$subscriber
+	[
+		'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
+		'documentRoot'       => __DIR__ . '/new-wp',
+		'progressSubscriber' => $subscriber,
+	]
 );
 
 //var_dump( $results );

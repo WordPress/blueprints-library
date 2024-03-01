@@ -10,6 +10,7 @@ class CompiledBlueprint {
 		public array $compiledSteps,
 		public array $compiledResources,
 		public Tracker $progressTracker,
+		public Tracker $stepsProgressStage,
 	) {
 	}
 

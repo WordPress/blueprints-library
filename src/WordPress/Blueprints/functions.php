@@ -2,22 +2,33 @@
 
 namespace WordPress\Blueprints;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
-use WordPress\Blueprints\Progress\DoneEvent;
-use WordPress\Blueprints\Progress\ProgressEvent;
 use WordPress\Blueprints\Runtime\Runtime;
 
-function run_blueprint( $json, $environment, $documentRoot = '/wordpress', $progressSubscriber = null ) {
+function run_blueprint( $json, $options = [] ) {
+	$environment = $options['environment'] ?? ContainerBuilder::ENVIRONMENT_NATIVE;
+	$documentRoot = $options['documentRoot'] ?? '/wordpress';
+	$progressSubscriber = $options['progressSubscriber'] ?? null;
+	$progressType = $options['progressType'] ?? 'all';
+
 	$c = ( new ContainerBuilder() )->build(
 		$environment,
 		new Runtime( $documentRoot )
 	);
 
 	$engine = $c['blueprint.engine'];
-
+	$compiledBlueprint = $engine->parseAndCompile( $json );
+	
 	/** @var $engine Engine */
-	return $engine->runBlueprint( $json, $progressSubscriber );
+	if ( $progressSubscriber ) {
+		if ( $progressType === 'steps' ) {
+			$compiledBlueprint->stepsProgressStage->events->addSubscriber( $progressSubscriber );
+		} else {
+			$compiledBlueprint->progressTracker->events->addSubscriber( $progressSubscriber );
+		}
+	}
+
+	return $engine->run( $compiledBlueprint );
 }
 
 function list_files( string $path, $omitDotFiles = false ): array {

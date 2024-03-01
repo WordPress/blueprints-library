@@ -27,14 +27,15 @@ class BlueprintCompiler {
 	public function compile( Blueprint $blueprint ): CompiledBlueprint {
 		$blueprint->steps = array_merge( $this->expandShorthandsIntoSteps( $blueprint ), $blueprint->steps );
 
-		$progressTracker = new Tracker( [
-//			'caption' => 'Preparing WordPress',
-		] );
+		$progressTracker = new Tracker();
+		$stepsStage = $progressTracker->stage( 0.6 );
+		$resourcesStage = $progressTracker->stage( 0.4 );
 
 		return new CompiledBlueprint(
-			$this->compileSteps( $blueprint, $progressTracker->stage( 0.6 ) ),
-			$this->compileResources( $blueprint, $progressTracker->stage( 0.4 ) ),
-			$progressTracker
+			$this->compileSteps( $blueprint, $stepsStage ),
+			$this->compileResources( $blueprint, $resourcesStage ),
+			$progressTracker,
+			$stepsStage
 		);
 	}
 
