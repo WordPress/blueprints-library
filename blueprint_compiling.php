@@ -1,5 +1,6 @@
 <?php
 
+use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Model\BlueprintBuilder;
 use function WordPress\Blueprints\run_blueprint;
 
@@ -21,6 +22,8 @@ $blueprint = BlueprintBuilder::create()
 		'WP_CACHE'         => true,
 	] )
 	->withPlugins( [
+		// Required for withContent():
+		'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
 		'https://downloads.wordpress.org/plugin/hello-dolly.zip',
 		'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
 	] )
@@ -37,6 +40,6 @@ $blueprint = BlueprintBuilder::create()
 	->toBlueprint();
 
 
-$results = run_blueprint( $blueprint, __DIR__ . '/new-wp' );
+$results = run_blueprint( $blueprint, ContainerBuilder::ENVIRONMENT_NATIVE, __DIR__ . '/new-wp' );
 
 var_dump( $results );
