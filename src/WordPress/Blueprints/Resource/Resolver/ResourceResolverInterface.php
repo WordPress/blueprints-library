@@ -3,6 +3,7 @@
 namespace WordPress\Blueprints\Resource\Resolver;
 
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
+use WordPress\Blueprints\Progress\Tracker;
 
 interface ResourceResolverInterface {
 	public function parseUrl( string $url ): ResourceDefinitionInterface|false;
@@ -11,5 +12,5 @@ interface ResourceResolverInterface {
 
 	static public function getResourceClass(): string;
 
-	public function stream( ResourceDefinitionInterface $resource );
+	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker );
 }

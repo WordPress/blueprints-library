@@ -39,7 +39,7 @@ class UrlSource extends BaseDataSource {
 			// @TODO: Stream directly from the cache
 			$cached = $this->cache->get( $url );
 			$data_size = strlen( $cached );
-			$this->events->dispatch( new ProgressEvent(
+			$this->events->dispatch( new DataSourceProgressEvent(
 				$url,
 				$data_size,
 				$data_size
@@ -53,7 +53,7 @@ class UrlSource extends BaseDataSource {
 
 		$response = $this->client->request( 'GET', $url, [
 			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
-				$this->events->dispatch( new ProgressEvent(
+				$this->events->dispatch( new DataSourceProgressEvent(
 					$url,
 					$dlNow,
 					$dlSize
@@ -111,7 +111,7 @@ class UrlSource extends BaseDataSource {
 		$response = new AsyncResponse( $this->client, 'GET', $url, [
 			'timeout'     => 60000,
 			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
-				$this->events->dispatch( new ProgressEvent(
+				$this->events->dispatch( new DataSourceProgressEvent(
 					$url,
 					$dlNow,
 					$dlSize

@@ -20,4 +20,8 @@ class DefineSiteUrlStepRunner extends BaseStepRunner {
 			->setConsts( [ 'WP_HOME' => $input->siteUrl, 'WP_SITEURL' => $input->siteUrl ] )
 		);
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Defining site URL";
+	}
 }

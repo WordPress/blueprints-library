@@ -2,9 +2,9 @@
 
 namespace WordPress\Blueprints\Resource\Resolver;
 
-use WordPress\Blueprints\Model\Builder\FilesystemResourceBuilder;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Model\DataClass\FilesystemResource;
+use WordPress\Blueprints\Progress\Tracker;
 
 class FilesystemResourceResolver implements ResourceResolverInterface {
 
@@ -13,7 +13,7 @@ class FilesystemResourceResolver implements ResourceResolverInterface {
 			return false;
 		}
 
-		return ( new FilesystemResourceBuilder() )->setPath( $url );
+		return ( new FilesystemResource() )->setPath( $url );
 	}
 
 	static public function getResourceClass(): string {
@@ -24,10 +24,12 @@ class FilesystemResourceResolver implements ResourceResolverInterface {
 		return $resource instanceof FilesystemResource;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource ) {
+	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}
+
+		$progressTracker->finish();
 
 		/** @var $resource FilesystemResource */
 		return fopen( $resource->path, 'r' );

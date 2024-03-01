@@ -18,7 +18,7 @@ class ActivateThemeStepRunner extends BaseStepRunner {
 	/**
 	 * @param ActivateThemeStep $input
 	 */
-	protected function getDefaultCaption( $input ): string|null {
+	public function getDefaultCaption( $input ): string|null {
 		return "Activating theme " . $input->slug;
 	}
 

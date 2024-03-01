@@ -14,8 +14,6 @@ class InstallThemeStepRunner extends InstallAssetStepRunner {
 	 * @param InstallThemeStep $input
 	 */
 	function run( InstallThemeStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( $input->progress->caption ?? "Installing theme" );
-
 		// @TODO: inject this information into this step
 		$themeDir = 'theme' . rand( 0, 1000 );
 		$targetPath = $this->getRuntime()->resolvePath( 'wp-content/themes/' . $themeDir );
@@ -32,4 +30,9 @@ class InstallThemeStepRunner extends InstallAssetStepRunner {
 			);
 		}
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Installing theme " . $input->themeZipFile;
+	}
+
 }

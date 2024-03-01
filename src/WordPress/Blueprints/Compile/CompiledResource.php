@@ -2,15 +2,15 @@
 
 namespace WordPress\Blueprints\Compile;
 
+use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Progress\Tracker;
 
-class CompiledBlueprint {
+class CompiledResource {
 
 	public function __construct(
-		public array $compiledSteps,
-		public array $compiledResources,
+		public $declaration,
+		public ResourceDefinitionInterface $resource,
 		public Tracker $progressTracker,
-		public Tracker $stepsProgressStage,
 	) {
 	}
 

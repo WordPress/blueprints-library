@@ -25,4 +25,8 @@ class WriteFileStepRunner extends BaseStepRunner {
 		fclose( $fp2 );
 	}
 
+	public function getDefaultCaption( $input ): null|string {
+		return "Writing file " . $input->path;
+	}
+
 }

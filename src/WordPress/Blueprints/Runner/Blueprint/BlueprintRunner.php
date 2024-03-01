@@ -2,6 +2,7 @@
 
 namespace WordPress\Blueprints\Runner\Blueprint;
 
+use Composer\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use WordPress\Blueprints\Compile\CompiledBlueprint;
 use WordPress\Blueprints\Compile\CompiledStep;
@@ -30,7 +31,6 @@ class BlueprintRunner {
 			$compiledStep->runner->setRuntime( $this->runtime );
 			$compiledStep->runner->setResourceManager( $resourceManager );
 		}
-
 		// Run, store results
 		$results = [];
 		foreach ( $blueprint->compiledSteps as $k => $compiledStep ) {
@@ -38,8 +38,12 @@ class BlueprintRunner {
 			try {
 				$results[ $k ] = new StepSuccess(
 					$compiledStep->step,
-					$compiledStep->runner->run( $compiledStep->step, new Tracker() )
+					$compiledStep->runner->run(
+						$compiledStep->step,
+						$compiledStep->progressTracker
+					)
 				);
+				$compiledStep->progressTracker->finish();
 			} catch ( \Exception $e ) {
 				$results[ $k ] = $e;
 				if ( $compiledStep->step->continueOnError !== true ) {

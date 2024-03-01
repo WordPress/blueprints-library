@@ -30,4 +30,8 @@ class ActivatePluginStepRunner extends BaseStepRunner {
 //			]
 //		);
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Activating plugin";
+	}
 }
