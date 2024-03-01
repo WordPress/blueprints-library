@@ -43,4 +43,3 @@ To try the built .phar file, run:
 ```shell
 rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
 ```
-

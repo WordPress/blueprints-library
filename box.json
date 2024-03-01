@@ -4,7 +4,6 @@
   "compactors": [
     "KevinGH\\Box\\Compactor\\Php"
   ],
-  "check-requirements": false,
   "compression": "GZ",
   "annotations": false,
   "directories": [
