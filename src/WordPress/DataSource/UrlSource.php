@@ -66,14 +66,12 @@ class UrlSource extends BaseDataSource {
 		}
 		$onChunk = function ( $chunk ) use ( $url, $response, $stream ) {
 			// Handle response caching
-			// @TODO: don't buffer, just keep appending to the cache.
-			//        Buffering the response causes an out of memory error in the in-browser
-			//        version of Playground
-//			static $bufferedChunks = [];
-//			$bufferedChunks[] = $chunk;
-//			if ( feof( $stream ) ) {
-//				$this->cache->set( $url, implode( '', $bufferedChunks ) );
-//			}
+			static $bufferedChunks = [];
+			$bufferedChunks[] = $chunk;
+			if ( feof( $stream ) ) {
+				$this->cache->set( $url, implode( '', $bufferedChunks ) );
+				$bufferedChunks = [];
+			}
 		};
 		$onClose = function () use ( $response ) {
 			$response->cancel();
