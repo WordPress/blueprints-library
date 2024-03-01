@@ -7,7 +7,7 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Process\Process;
 use function WordPress\Blueprints\join_paths;
 
-class NativePHPRuntime implements RuntimeInterface {
+class Runtime implements RuntimeInterface {
 
 	public Filesystem $fs;
 
@@ -33,7 +33,7 @@ class NativePHPRuntime implements RuntimeInterface {
 	}
 
 	public function resolvePath( string $path ): string {
-        return Path::makeAbsolute($path, $this->getDocumentRoot());
+		return Path::makeAbsolute( $path, $this->getDocumentRoot() );
 	}
 
 	public function withTemporaryDirectory( $callback ) {

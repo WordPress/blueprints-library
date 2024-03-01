@@ -59,21 +59,22 @@ use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
-use WordPress\Blueprints\Runtime\NativePHPRuntime;
+use WordPress\Blueprints\Runtime\Runtime;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 use WordPress\DataSource\FileSource;
+use WordPress\DataSource\PlaygroundFetchSource;
 use WordPress\DataSource\ProgressEvent;
 use WordPress\DataSource\UrlSource;
 
 class ContainerBuilder {
 
-	const RUNTIME_NATIVE = 'native';
-	const RUNTIME_PLAYGROUND = 'playground';
-	const RUNTIME_WP_NOW = 'wp-now';
-	const RUNTIMES = [
-		self::RUNTIME_NATIVE,
-		self::RUNTIME_PLAYGROUND,
-		self::RUNTIME_WP_NOW,
+	const ENVIRONMENT_NATIVE = 'native';
+	const ENVIRONMENT_PLAYGROUND = 'playground';
+	const ENVIRONMENT_WP_NOW = 'wp-now';
+	const ENVIRONMENTS = [
+		self::ENVIRONMENT_NATIVE,
+		self::ENVIRONMENT_PLAYGROUND,
+		self::ENVIRONMENT_WP_NOW,
 	];
 
 	protected $container;
@@ -83,18 +84,30 @@ class ContainerBuilder {
 	}
 
 
-	public function build( RuntimeInterface $runtime ) {
+	public function build( string $environment, RuntimeInterface $runtime ) {
 		$container = $this->container;
 		$container['runtime'] = function () use ( $runtime ) {
 			return $runtime;
 		};
 
-		if ( $runtime instanceof NativePHPRuntime ) {
+		if ( $environment === static::ENVIRONMENT_NATIVE ) {
 			$container['downloads_cache'] = function ( $c ) {
 				return new FileCache();
 			};
 			$container['http_client'] = function ( $c ) {
 				return HttpClient::create();
+			};
+			$container['progress_reporter'] = function ( $c ) {
+				return function ( ProgressEvent $event ) {
+					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
+				};
+			};
+			$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
+				return new UrlResourceResolver( $c['data_source.url'] );
+			};
+		} elseif ( $environment === static::ENVIRONMENT_PLAYGROUND ) {
+			$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
+				return new UrlResourceResolver( $c['data_source.playground_fetch'] );
 			};
 			$container['progress_reporter'] = function ( $c ) {
 				return function ( ProgressEvent $event ) {
@@ -218,9 +231,6 @@ class ContainerBuilder {
 			return new RunSQLStepRunner();
 		};
 
-		$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
-			return new UrlResourceResolver( $c['data_source.url'] );
-		};
 		$container[ "resource.resolver." . FilesystemResource::DISCRIMINATOR ] = function () {
 			return new FilesystemResourceResolver();
 		};
@@ -261,6 +271,9 @@ class ContainerBuilder {
 
 		$container['data_source.url'] = function ( $c ) {
 			return new UrlSource( $c['http_client'], $c['downloads_cache'] );
+		};
+		$container['data_source.playground_fetch'] = function ( $c ) {
+			return new PlaygroundFetchSource();
 		};
 
 		// Add a progress listener to all data sources

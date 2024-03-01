@@ -3,13 +3,12 @@
 namespace WordPress\Blueprints;
 
 use Symfony\Component\Filesystem\Exception\IOException;
-use WordPress\Blueprints\Runtime\NativePHPRuntime;
+use WordPress\Blueprints\Runtime\Runtime;
 
-function run_blueprint( $json, $documentRoot = '/wordpress' ) {
+function run_blueprint( $json, $environment, $documentRoot = '/wordpress' ) {
 	$c = ( new ContainerBuilder() )->build(
-		new NativePHPRuntime(
-			$documentRoot
-		)
+		$environment,
+		new Runtime( $documentRoot )
 	);
 
 	return $c['blueprint.engine']->runBlueprint( $json );

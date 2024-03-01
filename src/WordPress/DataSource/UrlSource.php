@@ -37,7 +37,7 @@ class UrlSource extends BaseDataSource {
 		if ( $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
-			$cached    = $this->cache->get( $url );
+			$cached = $this->cache->get( $url );
 			$data_size = strlen( $cached );
 			$this->events->dispatch( new ProgressEvent(
 				$url,
@@ -60,17 +60,17 @@ class UrlSource extends BaseDataSource {
 				) );
 			},
 		] );
-		$stream   = StreamWrapper::createResource( $response, $this->client );
+		$stream = StreamWrapper::createResource( $response, $this->client );
 		if ( ! $stream ) {
 			throw new \Exception( 'Failed to download file' );
 		}
 		$onChunk = function ( $chunk ) use ( $url, $response, $stream ) {
 			// Handle response caching
-			// @TODO: don't buffer, just keep appending to the cache.
 			static $bufferedChunks = [];
 			$bufferedChunks[] = $chunk;
 			if ( feof( $stream ) ) {
 				$this->cache->set( $url, implode( '', $bufferedChunks ) );
+				$bufferedChunks = [];
 			}
 		};
 		$onClose = function () use ( $response ) {
