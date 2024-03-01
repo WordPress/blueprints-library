@@ -201,21 +201,8 @@ class ZipStreamReader {
 		}
 
 		$data = '';
-		$zeroLengthChunks = 0;
 		while ( true ) {
 			$chunk = fread( $stream, $length );
-			// Without this check, fread() hangs indefinitely when reading from a stream
-			// in Playground. I'm not sure if that's after the stream reached its EOF or
-			// not.
-			// @TODO: Harmonize Playground behavior with native PHP behavior
-			if ( strlen( $chunk ) === 0 ) {
-				$zeroLengthChunks ++;
-				if ( $zeroLengthChunks > 10 ) {
-					return $data ?: false;
-				}
-				continue;
-			}
-			$zeroLengthChunks = 0;
 			if ( false === $chunk ) {
 				return false;
 			}
