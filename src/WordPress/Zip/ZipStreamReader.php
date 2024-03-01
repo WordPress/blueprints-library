@@ -15,9 +15,6 @@ class ZipStreamReader {
 	 * @param resource $fp A stream of zip file bytes.
 	 */
 	static public function readEntry( $fp ) {
-		if ( feof( $fp ) ) {
-			return null;
-		}
 		$signature = static::read_bytes( $fp, 4 );
 		if ( $signature === false ) {
 			return null;
