@@ -52,20 +52,13 @@ class UrlSource extends BaseDataSource {
 		}
 
 		$response = $this->client->request( 'GET', $url, [
-			'on_progress'   => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
+			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
 				$this->events->dispatch( new ProgressEvent(
 					$url,
 					$dlNow,
 					$dlSize
 				) );
 			},
-			// @TODO: Only use these unsecure options in in-browser Playground.
-			//        We use a fake SSL server in there to MITM the HTTPS requests
-			//        and funnel them through fetch() – and fetch() handles HTTPS
-			//  	  security for us.
-			'verify_host'   => false,
-			'verify_peer'   => false,
-			'crypto_method' => \STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT,
 		] );
 		$stream = StreamWrapper::createResource( $response, $this->client );
 		if ( ! $stream ) {
