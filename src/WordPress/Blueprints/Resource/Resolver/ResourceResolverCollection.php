@@ -3,6 +3,7 @@
 namespace WordPress\Blueprints\Resource\Resolver;
 
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
+use WordPress\Blueprints\Progress\Tracker;
 
 class ResourceResolverCollection implements ResourceResolverInterface {
 
@@ -37,10 +38,10 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		return false;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource ) {
+	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker ) {
 		foreach ( $this->ResourceResolvers as $handler ) {
 			if ( $handler->supports( $resource ) ) {
-				return $handler->stream( $resource );
+				return $handler->stream( $resource, $progressTracker );
 			}
 		}
 

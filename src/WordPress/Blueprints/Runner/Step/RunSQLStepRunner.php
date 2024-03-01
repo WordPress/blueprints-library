@@ -17,8 +17,6 @@ class RunSQLStepRunner extends BaseStepRunner {
 		RunSQLStep $input,
 		Tracker $progress = null
 	) {
-		$progress?->setCaption( $input->progress->caption ?? "Running SQL queries" );
-
 		return $this->getRuntime()->evalPhpInSubProcess( <<<'CODE'
 <?php
 		require_once getenv("DOCROOT") . '/wp-load.php';
@@ -42,5 +40,9 @@ CODE,
 			null,
 			$this->getResource( $input->sql )
 		);
+	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Running SQL queries";
 	}
 }

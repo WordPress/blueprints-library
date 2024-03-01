@@ -32,4 +32,9 @@ class InstallSqliteIntegrationStepRunner extends InstallAssetStepRunner {
 		file_put_contents( $this->getRuntime()->resolvePath( 'wp-content/mu-plugins/0-sqlite.php' ),
 			'<?php require_once __DIR__ . "/sqlite-database-integration/load.php"; ' );
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Installing SQLite integration plugin";
+	}
+
 }

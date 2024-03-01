@@ -13,6 +13,7 @@ use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
+use WordPress\Blueprints\Progress\Tracker;
 use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
 
 class BlueprintCompiler {
@@ -26,9 +27,14 @@ class BlueprintCompiler {
 	public function compile( Blueprint $blueprint ): CompiledBlueprint {
 		$blueprint->steps = array_merge( $this->expandShorthandsIntoSteps( $blueprint ), $blueprint->steps );
 
+		$progressTracker = new Tracker( [
+//			'caption' => 'Preparing WordPress',
+		] );
+
 		return new CompiledBlueprint(
-			$this->compileSteps( $blueprint ),
-			$this->compileResources( $blueprint )
+			$this->compileSteps( $blueprint, $progressTracker->stage( 0.6 ) ),
+			$this->compileResources( $blueprint, $progressTracker->stage( 0.4 ) ),
+			$progressTracker
 		);
 	}
 
@@ -76,27 +82,52 @@ class BlueprintCompiler {
 		return $additional_steps;
 	}
 
-	protected function compileSteps( Blueprint $blueprint ) {
+	protected function compileSteps( Blueprint $blueprint, Tracker $progress ) {
 		$stepRunnerFactory = $this->stepRunnerFactory;
 		// Compile, ensure all the runners may be created and configured
+		$totalProgressWeight = 0;
+		foreach ( $blueprint->steps as $step ) {
+			$totalProgressWeight += $step->progress->weight ?? 1;
+		}
+
 		$compiledSteps = [];
 		foreach ( $blueprint->steps as $step ) {
 			$runner = $stepRunnerFactory( $step->step );
+			$stepProgressTracker = $progress->stage(
+				( $step->progress->weight ?? 1 ) / $totalProgressWeight,
+				$step->progress->caption ?? $runner->getDefaultCaption( $step )
+			);
+
 			/** @var $runner \WordPress\Blueprints\Runner\Step\BaseStepRunner */
 			$compiledSteps[] = new CompiledStep(
 				$step,
-				$runner
+				$runner,
+				$stepProgressTracker
 			);
 		}
 
 		return $compiledSteps;
 	}
 
-	protected function compileResources( Blueprint $blueprint ) {
+	protected function compileResources( Blueprint $blueprint, Tracker $progress ) {
 		$resources = [];
 		$this->findResources( $blueprint, $resources );
 
-		return $resources;
+		$totalProgressWeight = count( $resources );
+		$compiledResources = [];
+		foreach ( $resources as $path => [$declaration, $resource] ) {
+			/** @var $resource ResourceDefinitionInterface */
+			$compiledResources[ $path ] = new CompiledResource(
+				$declaration,
+				$resource,
+				$progress->stage(
+					1 / $totalProgressWeight,
+					$resource->caption ?? 'Fetching a resource'
+				)
+			);
+		}
+
+		return $compiledResources;
 	}
 
 	// Find all the resources in the blueprint

@@ -1,7 +1,14 @@
 <?php
 
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Model\BlueprintBuilder;
+use WordPress\Blueprints\Progress\DoneEvent;
+use WordPress\Blueprints\Progress\ProgressEvent;
 use function WordPress\Blueprints\run_blueprint;
 
 if ( getenv( 'USE_PHAR' ) ) {
@@ -28,7 +35,7 @@ $blueprint = BlueprintBuilder::create()
 		'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
 	] )
 	->withTheme( 'https://downloads.wordpress.org/theme/pendant.zip' )
-	->withContent( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' )
+//	->withContent( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' )
 	->withSiteUrl( 'http://localhost:8081' )
 	->andRunSQL( <<<'SQL'
 		CREATE TABLE `tmp_table` ( id INT );
@@ -39,7 +46,43 @@ $blueprint = BlueprintBuilder::create()
 	->withFile( 'wordpress.txt', 'Data' )
 	->toBlueprint();
 
+$subscriber = new class implements EventSubscriberInterface {
+	public static function getSubscribedEvents() {
+		return [
+			ProgressEvent::class => 'onProgress',
+			DoneEvent::class     => 'onDone',
+		];
+	}
 
-$results = run_blueprint( $blueprint, ContainerBuilder::ENVIRONMENT_NATIVE, __DIR__ . '/new-wp' );
+	protected ProgressBar $progress_bar;
 
-var_dump( $results );
+	public function __construct() {
+		ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message% (%filename%)' );
+
+		$this->progress_bar = ( new SymfonyStyle( new StringInput( "" ), new ConsoleOutput() ) )->createProgressBar();
+		$this->progress_bar->setFormat( 'custom' );
+		$this->progress_bar->setMessage( 'Start' );
+		$this->progress_bar->start();
+	}
+
+	public function onProgress( ProgressEvent $event ) {
+		$this->progress_bar->setMessage( $event->caption );
+		$this->progress_bar->setProgress( (int) $event->progress );
+
+		// echo $event->progress . "% – " . $event->caption . "\n";
+	}
+
+	public function onDone( DoneEvent $event ) {
+//		echo "Steps done!\n";
+		$this->progress_bar->finish();
+	}
+};
+
+$results = run_blueprint(
+	$blueprint,
+	ContainerBuilder::ENVIRONMENT_NATIVE,
+	__DIR__ . '/new-wp',
+	$subscriber
+);
+
+//var_dump( $results );

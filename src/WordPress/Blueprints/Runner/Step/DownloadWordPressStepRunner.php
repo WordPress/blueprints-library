@@ -9,10 +9,8 @@ class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 
 	public function run(
 		DownloadWordPressStep $input,
-		Tracker $progress = null
+		Tracker $progress
 	) {
-		$progress?->set( 10, 'Extracting WordPress...' );
-
 		$this->unzipAssetTo( $input->wordPressZip, $this->getRuntime()->getDocumentRoot() );
 
 		$cofigSample = $this->getRuntime()->resolvePath( 'wp-config-sample.php' );
@@ -20,6 +18,10 @@ class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 		if ( file_exists( $cofigSample ) && ! file_exists( $cofig ) ) {
 			copy( $cofigSample, $cofig );
 		}
+	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Extracting WordPress";
 	}
 
 }

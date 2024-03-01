@@ -7,8 +7,6 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class RunWordPressInstallerStepRunner extends BaseStepRunner {
 	function run( RunWordPressInstallerStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( "Setting site options" );
-
 		return $this->getRuntime()->runShellCommand(
 			[
 				'php',
@@ -24,4 +22,9 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 			$this->getRuntime()->getDocumentRoot()
 		);
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Installing WordPress";
+	}
+	
 }

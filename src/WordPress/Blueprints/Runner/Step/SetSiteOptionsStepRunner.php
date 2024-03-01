@@ -11,8 +11,6 @@ class SetSiteOptionsStepRunner extends BaseStepRunner {
 	 * @param SetSiteOptionsStep $input
 	 */
 	function run( SetSiteOptionsStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( "Setting site options" );
-
 		// Running a custom PHP script is much faster than setting each option
 		// with a separate wp-cli command.
 		return $this->getRuntime()->evalPhpInSubProcess( <<<'CODE'
@@ -28,4 +26,9 @@ CODE,
 			]
 		);
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Setting site options";
+	}
+
 }

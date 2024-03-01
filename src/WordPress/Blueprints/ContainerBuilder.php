@@ -63,7 +63,7 @@ use WordPress\Blueprints\Runtime\Runtime;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 use WordPress\DataSource\FileSource;
 use WordPress\DataSource\PlaygroundFetchSource;
-use WordPress\DataSource\ProgressEvent;
+use WordPress\DataSource\DataSourceProgressEvent;
 use WordPress\DataSource\UrlSource;
 
 class ContainerBuilder {
@@ -98,7 +98,7 @@ class ContainerBuilder {
 				return HttpClient::create();
 			};
 			$container['progress_reporter'] = function ( $c ) {
-				return function ( ProgressEvent $event ) {
+				return function ( DataSourceProgressEvent $event ) {
 					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
 				};
 			};
@@ -110,7 +110,7 @@ class ContainerBuilder {
 				return new UrlResourceResolver( $c['data_source.playground_fetch'] );
 			};
 			$container['progress_reporter'] = function ( $c ) {
-				return function ( ProgressEvent $event ) {
+				return function ( DataSourceProgressEvent $event ) {
 					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
 				};
 			};
@@ -277,18 +277,18 @@ class ContainerBuilder {
 		};
 
 		// Add a progress listener to all data sources
-		foreach ( $container->keys() as $key ) {
-			if ( str_starts_with( $key, 'data_source.' ) ) {
-				$container->extend( $key, function ( $urlSource, $c ) {
-					$urlSource->events->addListener(
-						ProgressEvent::class,
-						$c['progress_reporter']
-					);
-
-					return $urlSource;
-				} );
-			}
-		}
+//		foreach ( $container->keys() as $key ) {
+//			if ( str_starts_with( $key, 'data_source.' ) ) {
+//				$container->extend( $key, function ( $urlSource, $c ) {
+//					$urlSource->events->addListener(
+//						ProgressEvent::class,
+//						$c['progress_reporter']
+//					);
+//
+//					return $urlSource;
+//				} );
+//			}
+//		}
 
 		return $container;
 	}

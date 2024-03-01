@@ -23,4 +23,8 @@ PHP,
 			]
 		);
 	}
+
+	public function getDefaultCaption( $input ): null|string {
+		return "Defining wp-config constants";
+	}
 }

@@ -44,20 +44,14 @@ class Tracker {
 	private $selfProgress = 0;
 	private $selfCaption = '';
 	private $weight;
-	private $progressObserver;
-	private $loadingListener;
-	private $isFilling = false;
-	private $fillTime;
-	private $fillInterval;
 	private $subTrackers = [];
 
 	public readonly EventDispatcher $events;
 
 	public function __construct( $options = [] ) {
-		$this->weight      = $options['weight'] ?? 1;
+		$this->weight = $options['weight'] ?? 1;
 		$this->selfCaption = $options['caption'] ?? '';
-		$this->fillTime    = $options['fillTime'] ?? 4;
-		$this->events      = new EventDispatcher();
+		$this->events = new EventDispatcher();
 	}
 
 	/**
@@ -106,16 +100,15 @@ class Tracker {
 		}
 		$this->selfWeight -= $weight;
 
-		$subTracker          = new Tracker( [
-			'caption'  => $caption,
-			'weight'   => $weight,
-			'fillTime' => $this->fillTime,
+		$subTracker = new Tracker( [
+			'caption' => $caption,
+			'weight'  => $weight,
 		] );
 		$this->subTrackers[] = $subTracker;
-		$subTracker->events->addListener( 'progress', function () {
+		$subTracker->events->addListener( ProgressEvent::class, function () {
 			$this->notifyProgress();
 		} );
-		$subTracker->events->addListener( 'done', function () {
+		$subTracker->events->addListener( DoneEvent::class, function () {
 			if ( $this->isDone() ) {
 				$this->notifyDone();
 			}
@@ -127,6 +120,10 @@ class Tracker {
 	public function set( float $value, ?string $caption = null ): void {
 		if ( $value < $this->selfProgress ) {
 			throw new \InvalidArgumentException( "Progress cannot go backwards (tried updating to $value when it already was $this->selfProgress)" );
+		}
+		// Don't report the same progress twice
+		if ( $this->selfProgress === $value && ( $caption === null || $this->selfCaption === $caption ) ) {
+			return;
 		}
 		$this->selfProgress = min( $value, 100 );
 		if ( $caption !== null ) {
@@ -144,21 +141,16 @@ class Tracker {
 	}
 
 	public function finish() {
-		$this->selfDone     = true;
+		$this->selfDone = true;
 		$this->selfProgress = 100;
-		$this->isFilling    = false;
-		$this->fillInterval = null;
 		$this->notifyProgress();
 		$this->notifyDone();
 	}
 
 	public function getCaption() {
-		for ( $i = count( $this->subTrackers ) - 1; $i >= 0; $i -- ) {
-			if ( ! $this->subTrackers[ $i ]->isDone() ) {
-				$captionMaybe = $this->subTrackers[ $i ]->getCaption();
-				if ( $captionMaybe ) {
-					return $captionMaybe;
-				}
+		foreach ( $this->subTrackers as $subTracker ) {
+			if ( ! $subTracker->isDone() ) {
+				return $subTracker->getCaption();
 			}
 		}
 
@@ -185,52 +177,17 @@ class Tracker {
 		return $this->weight;
 	}
 
-	public function getObserver() {
-		if ( ! $this->progressObserver ) {
-			$this->progressObserver = function ( $progress ) {
-				$this->set( $progress );
-			};
-		}
-
-		return $this->progressObserver;
-	}
-
-	// Turn into a subscriber perhaps?
-	//	public function getLoadingListener() {
-	//		if ( ! $this->loadingListener ) {
-	//			$this->loadingListener = function ( $event ) {
-	//				$this->set( ( $event->detail->loaded / $event->detail->total ) * 100 );
-	//			};
-	//		}
-	//
-	//		return $this->loadingListener;
-	//	}
-
-	public function pipe( $receiver ) {
-		$receiver->setProgress( [
-			'progress' => $this->getProgress(),
-			'caption'  => $this->getCaption(),
-		] );
-		$this->events->addListener( 'progress', function ( $event ) use ( $receiver ) {
-			$receiver->setProgress( [
-				'progress' => $event->detail->progress,
-				'caption'  => $event->detail->caption,
-			] );
-		} );
-		$this->events->addListener( 'done', function () use ( $receiver ) {
-			$receiver->setLoaded();
-		} );
-	}
-
 	private function notifyProgress() {
-		$this->events->dispatch( new ProgressEvent(
-			$this->getProgress(),
-			$this->getCaption(),
-		), 'progress' );
+		$this->events->dispatch(
+			new ProgressEvent(
+				$this->getProgress(),
+				$this->getCaption(),
+			)
+		);
 	}
 
 	private function notifyDone() {
-		$this->events->dispatch( new DoneEvent(), 'done' );
+		$this->events->dispatch( new DoneEvent() );
 	}
 
 }
