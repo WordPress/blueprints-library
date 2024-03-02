@@ -8,15 +8,20 @@ use function WordPress\Zip\zip_extract_to;
 
 class UnzipStepRunner extends BaseStepRunner {
 
+	/**
+	 * Runs the Unzip Step
+	 *
+	 * @param UnzipStep $input Step.
+	 * @param Tracker   $progress_tracker Tracker.
+	 * @return void
+	 */
 	public function run(
 		UnzipStep $input,
-		Tracker $progress = null
+		Tracker $progress_tracker
 	) {
-		$progress?->set( 10, 'Unzipping...' );
+		$progress_tracker->set( 10, 'Unzipping...' );
 
-		// @TODO: Expose a generic helper method for this, e.g. $this->getExecutionContext()->resolvePath($input->extractToPath);
-		$toPath = $this->getRuntime()->getDocumentRoot() . '/' . $input->extractToPath;
-		zip_extract_to( $this->getResource( $input->zipFile ), $toPath );
+		$resolved_to_path = $this->getRuntime()->resolvePath( $input->extractToPath );
+		zip_extract_to( $this->getResource( $input->zipFile ), $resolved_to_path );
 	}
-
 }
