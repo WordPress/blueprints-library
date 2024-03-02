@@ -16,14 +16,16 @@
     "squizlabs/php_codesniffer":"*",
     "nette/php-generator": "*",
     "jane-php/json-schema": "*",
-    "bamarni/composer-bin-plugin": "*"
+    "bamarni/composer-bin-plugin": "*",
+    "wp-coding-standards/wpcs": "3.0"
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "allow-plugins": {
       "php-http/discovery": true,
-      "bamarni/composer-bin-plugin": true
+      "bamarni/composer-bin-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
     },
     "platform": {
       "php": "7.4"
@@ -44,6 +46,6 @@
     ]
   },
   "scripts": {
-    "phpcs": "phpcs --standard=PSR4"
+    "phpcs": "phpcs --standard=WordPress"
   }
 }
