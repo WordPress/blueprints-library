@@ -13,15 +13,19 @@ use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
+use WordPress\Blueprints\Resources\Resolver\ResourceResolverInterface;
 use WordPress\Blueprints\Progress\Tracker;
-use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
 
 class BlueprintCompiler {
+    protected $stepRunnerFactory;
+    protected ResourceResolverInterface $resourceResolver;
 
 	public function __construct(
-		protected $stepRunnerFactory,
-		protected ResourceResolverInterface $resourceResolver
+		$stepRunnerFactory,
+		ResourceResolverInterface $resourceResolver
 	) {
+		$this->resourceResolver = $resourceResolver;
+		$this->stepRunnerFactory = $stepRunnerFactory;
 	}
 
 	public function compile( Blueprint $blueprint ): CompiledBlueprint {

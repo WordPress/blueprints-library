@@ -7,13 +7,13 @@ use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 
-
 class RmStepRunner extends BaseStepRunner
 {
     /**
      * @param RmStep $input
      */
-    function run(RmStep $input) {
+    public function run(RmStep $input)
+    {
         $resolvedPath = $this->getRuntime()->resolvePath($input->path);
         $fileSystem = new Filesystem();
         if (false === $fileSystem->exists($resolvedPath)) {

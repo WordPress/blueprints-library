@@ -2,17 +2,17 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
-use WordPress\Blueprints\Resource\ResourceManager;
+use WordPress\Blueprints\Resources\ResourceManager;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
-interface StepRunnerInterface {
+interface StepRunnerInterface
+{
 
-	function setResourceManager( ResourceManager $map );
+    public function setResourceManager(ResourceManager $map);
 
-	function setRuntime( RuntimeInterface $runtime ): void;
+    public function setRuntime(RuntimeInterface $runtime): void;
 
 //  @TODO: Document how this method isn't defined because
 //         PHP doens't support covariant arguments
-//	function run( StepInterface $input, Tracker $tracker );
-
+//  function run( StepInterface $input, Tracker $tracker );
 }

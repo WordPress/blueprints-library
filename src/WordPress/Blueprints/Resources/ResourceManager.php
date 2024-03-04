@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Blueprints\Resource;
+namespace WordPress\Blueprints\Resources;
 
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\Compile\CompiledResource;

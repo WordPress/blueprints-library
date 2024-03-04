@@ -10,11 +10,13 @@ use function WordPress\Blueprints\join_paths;
 class Runtime implements RuntimeInterface {
 
 	public Filesystem $fs;
+    protected string $documentRoot;
 
-	public function __construct(
-		protected string $documentRoot
+    public function __construct(
+		string $documentRoot
 	) {
-		$this->fs = new Filesystem();
+        $this->documentRoot = $documentRoot;
+        $this->fs = new Filesystem();
 		if ( ! file_exists( $this->getDocumentRoot() ) ) {
 			$this->fs->mkdir( $this->getDocumentRoot() );
 		}
@@ -69,7 +71,7 @@ class Runtime implements RuntimeInterface {
 	public function evalPhpInSubProcess(
 		$code,
 		?array $env = null,
-		mixed $input = null,
+		$input = null,
 		?float $timeout = 60
 	) {
 		return $this->runShellCommand(
@@ -93,7 +95,7 @@ class Runtime implements RuntimeInterface {
 		array $command,
 		?string $cwd = null,
 		?array $env = null,
-		mixed $input = null,
+		$input = null,
 		?float $timeout = 60
 	) {
 		$process = $this->startProcess(
@@ -116,7 +118,7 @@ class Runtime implements RuntimeInterface {
 		array $command,
 		?string $cwd = null,
 		?array $env = null,
-		mixed $input = null,
+		$input = null,
 		?float $timeout = 60
 	): Process {
 		$cwd ??= $this->getDocumentRoot();
