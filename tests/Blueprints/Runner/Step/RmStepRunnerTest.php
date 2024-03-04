@@ -8,7 +8,7 @@ use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Runner\Step\RmStepRunner;
 use PHPUnit\Framework\TestCase;
-use WordPress\Blueprints\Runtime\NativePHPRuntime;
+use WordPress\Blueprints\Runtime\Runtime;
 
 class RmStepRunnerTest extends TestCase
 {
@@ -18,9 +18,9 @@ class RmStepRunnerTest extends TestCase
     private string $documentRoot;
 
     /**
-     * @var NativePHPRuntime
+     * @var Runtime
      */
-    private NativePHPRuntime $runtime;
+    private Runtime $runtime;
 
     /**
      * @var RmStepRunner
@@ -38,7 +38,7 @@ class RmStepRunnerTest extends TestCase
     public function before()
     {
         $this->documentRoot = Path::makeAbsolute("test", sys_get_temp_dir());
-        $this->runtime = new NativePHPRuntime($this->documentRoot);
+        $this->runtime = new Runtime($this->documentRoot);
 
         $this->step = new RmStepRunner();
         $this->step->setRuntime($this->runtime);
