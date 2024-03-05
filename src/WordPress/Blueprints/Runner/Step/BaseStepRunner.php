@@ -31,7 +31,7 @@ abstract class BaseStepRunner implements StepRunnerInterface
         return $this->runtime;
     }
 
-    protected function getDefaultCaption($input): ?string
+	public function getDefaultCaption($input): ?string
     {
         return null;
     }

@@ -35,7 +35,7 @@ $blueprint = BlueprintBuilder::create()
 		'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
 	] )
 	->withTheme( 'https://downloads.wordpress.org/theme/pendant.zip' )
-	->withContent( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' )
+//	->withContent( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' )
 	->withSiteUrl( 'http://localhost:8081' )
 	->andRunSQL( <<<'SQL'
 		CREATE TABLE `tmp_table` ( id INT );
