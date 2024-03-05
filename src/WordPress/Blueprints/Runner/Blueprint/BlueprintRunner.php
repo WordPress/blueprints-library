@@ -7,17 +7,20 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use WordPress\Blueprints\Compile\CompiledBlueprint;
 use WordPress\Blueprints\Compile\CompiledStep;
 use WordPress\Blueprints\Compile\StepSuccess;
-use WordPress\Blueprints\Progress\Tracker;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 class BlueprintRunner {
 
-	public readonly EventDispatcher $events;
+	public EventDispatcher $events;
+	protected RuntimeInterface $runtime;
+	protected $resourceManagerFactory;
 
 	public function __construct(
-		protected RuntimeInterface $runtime,
-		protected $resourceManagerFactory,
+		RuntimeInterface $runtime,
+		$resourceManagerFactory
 	) {
+		$this->resourceManagerFactory = $resourceManagerFactory;
+		$this->runtime = $runtime;
 		$this->events = new EventDispatcher();
 	}
 
