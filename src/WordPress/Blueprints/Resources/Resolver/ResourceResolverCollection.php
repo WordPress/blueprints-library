@@ -2,35 +2,42 @@
 
 namespace WordPress\Blueprints\Resources\Resolver;
 
+use InvalidArgumentException;
+use RuntimeException;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Progress\Tracker;
 
 class ResourceResolverCollection implements ResourceResolverInterface {
 
+	/** @var ResourceResolverInterface[] */
+	protected array $resource_resolvers;
+
 	public function __construct(
-		/** @var ResourceResolverInterface[] */
-		protected $ResourceResolvers
+		array $resource_resolvers
 	) {
+		$this->resource_resolvers = $resource_resolvers;
 	}
 
-	static public function getResourceClass(): string {
-		throw new \RuntimeException( 'Not implemented' );
+	public static function getResourceClass(): string {
+		throw new RuntimeException( 'Not implemented' );
 	}
 
-	public function parseUrl( string $url ): ResourceDefinitionInterface|false {
-		foreach ( $this->ResourceResolvers as $handler ) {
-			$resource = $handler->parseUrl( $url );
+	public function parseUrl( string $url ): ?ResourceDefinitionInterface {
+		foreach ( $this->resource_resolvers as $resolver ) {
+			/** @var ResourceResolverInterface $resolver */
+			$resource = $resolver->parseUrl( $url );
 			if ( $resource ) {
 				return $resource;
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	public function supports( ResourceDefinitionInterface $resource ): bool {
-		foreach ( $this->ResourceResolvers as $handler ) {
-			if ( $handler->supports( $resource ) ) {
+		foreach ( $this->resource_resolvers as $resolver ) {
+			/** @var ResourceResolverInterface $resolver */
+			if ( $resolver->supports( $resource ) ) {
 				return true;
 			}
 		}
@@ -39,13 +46,13 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 	}
 
 	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker ) {
-		foreach ( $this->ResourceResolvers as $handler ) {
-			if ( $handler->supports( $resource ) ) {
-				return $handler->stream( $resource, $progressTracker );
+		foreach ( $this->resource_resolvers as $resolver ) {
+			/** @var ResourceResolverInterface $resolver */
+			if ( $resolver->supports( $resource ) ) {
+				return $resolver->stream( $resource, $progressTracker );
 			}
 		}
 
-		throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
+		throw new InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 	}
-
 }

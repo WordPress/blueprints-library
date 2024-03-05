@@ -4,17 +4,18 @@ namespace WordPress\Blueprints\Resources;
 
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\Compile\CompiledResource;
-use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
-use WordPress\Blueprints\Resource\Resolver\ResourceResolverInterface;
+use WordPress\Blueprints\Resources\Resolver\ResourceResolverCollection;
 
 class ResourceManager {
 
 	protected Filesystem $fs;
 	protected ResourceMap $map;
+	protected ResourceResolverCollection $resource_resolvers;
 
 	public function __construct(
-		protected ResourceResolverInterface $resourceResolver
+		ResourceResolverCollection $resource_resolvers
 	) {
+		$this->resource_resolvers = $resource_resolvers;
 		$this->fs = new Filesystem();
 		$this->map = new ResourceMap();
 	}
@@ -22,7 +23,8 @@ class ResourceManager {
 	public function enqueue( array $compiledResources ) {
 		foreach ( $compiledResources as $compiled ) {
 			/** @var CompiledResource $compiled */
-			$this->map[ $compiled->declaration ] = $this->resourceResolver->stream(
+
+			$this->map[ $compiled->declaration ] = $this->resource_resolvers->stream(
 				$compiled->resource,
 				$compiled->progressTracker
 			);

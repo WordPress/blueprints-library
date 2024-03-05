@@ -9,10 +9,10 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class InlineResourceResolver implements ResourceResolverInterface {
 
-	public function parseUrl( string $url ): ResourceDefinitionInterface|false {
+	public function parseUrl( string $url ): ?ResourceDefinitionInterface {
 		// If url starts with "protocol://" then we assume it's not inline raw data
 		if ( 0 !== preg_match( '#^[a-z_+]+://#', $url ) ) {
-			return false;
+			return null;
 		}
 
 		return ( new InlineResource() )->setContents( $url );
@@ -26,11 +26,11 @@ class InlineResourceResolver implements ResourceResolverInterface {
 		return $resource instanceof InlineResource;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker ) {
+	public function stream( ResourceDefinitionInterface $resource, Tracker $progress_tracker ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}
-		$progressTracker->finish();
+		$progress_tracker->finish();
 
 		/** @var $resource InlineResource */
 		$fp = fopen( "php://temp", 'r+' );
