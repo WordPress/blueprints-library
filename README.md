@@ -11,7 +11,7 @@ composer install
 Run tests with
 
 ```shell
-vendor/bin/pest
+vendor/bin/phpunit --testdox
 ```
 
 Regenerate models from JSON schema with
