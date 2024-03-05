@@ -1,7 +1,5 @@
 # WordPress Blueprints
 
-🚧 This README file is a work in progress 🚧
-
 Blueprints are JSON files used to create WordPress sites with specific settings, themes, plugins, content, and anything
 else that can be configured in WordPress. Here's what a Blueprint looks like:
 
@@ -32,26 +30,33 @@ else that can be configured in WordPress. Here's what a Blueprint looks like:
 }
 ```
 
-## Blueprints are an Active Exploration
+See the
+original [Getting started with Blueprints v1](https://wordpress.github.io/wordpress-playground/blueprints-api/index)
+page for more information.
+
+## Let's build Version 2 of Blueprints together!
 
 Blueprints were initially built in TypeScript
-for [WordPress Playground](https://github.com/WordPress/wordpress-playground/), but [quickly proved useful for
+for [WordPress Playground](https://github.com/WordPress/wordpress-playground/),
+However, they [quickly proved useful for
 WordPress in general](https://github.com/WordPress/wordpress-playground/issues/1025).
 
 This repository explores
-a [PHP-based implementation of Blueprints](https://github.com/WordPress/wordpress-playground/issues/1025) that could be
+a [PHP-based version 2 of Blueprints](https://github.com/WordPress/wordpress-playground/issues/1025) that can be
 used in any environment, be it a browser, Node.js, wp-cli, or a native PHP application. The plan is to create a robust,
 useful tool that will eventually be merged into WordPress core.
 
 Your feedback is not just welcome, but essential to the success of this project. Please:
 
 * Share your thoughts and ideas in the [Blueprints v2 Specification](https://github.com/WordPress/blueprints/issues/6)
-  issue
+  issue – or any other issue that interests you
 * Start new discussions
 * Propose changes through comments and pull requests
 
 Your input and code contributions will help shape the future of Blueprints in WordPress.
 in discussions.
+
+# Technical bits
 
 ## Setting Up the Project Locally
 
@@ -98,3 +103,7 @@ To try the built .phar file, run:
 ```shell
 rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
 ```
+
+## License
+
+WordPress Blueprints are open-source software licensed under the GPL.
