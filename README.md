@@ -71,7 +71,7 @@ composer install
 ### Run tests with
 
 ```shell
-vendor/bin/pest
+vendor/bin/phpunit --testdox
 ```
 
 ### Run a Blueprint with
