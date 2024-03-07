@@ -36,10 +36,9 @@ class BlueprintParser
             'Unsupported $rawBlueprint type. Use a JSON string, a parsed JSON object, or a BlueprintBuilder instance.'
         );
     }
-    // TODO Evaluate waring: missing function's return type
-    public function fromJson($json)
-    {
-        // TODO Evaluate warning: 'ext-json' is missing in composer.json
+
+    public function fromJson($json): ?Blueprint
+	{
         return $this->fromObject(json_decode($json, false));
     }
 

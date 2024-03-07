@@ -192,7 +192,7 @@ class ZipStreamReader {
 	 *
 	 * @return false|string
 	 */
-	static protected function read_bytes( $stream, $length ): string|bool {
+	static protected function read_bytes( $stream, $length ) {
 		if ( $length === 0 ) {
 			return '';
 		}

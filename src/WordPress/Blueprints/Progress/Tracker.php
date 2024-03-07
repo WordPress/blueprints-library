@@ -46,7 +46,7 @@ class Tracker {
 	private $weight;
 	private $subTrackers = [];
 
-	public readonly EventDispatcher $events;
+	public EventDispatcher $events;
 
 	public function __construct( $options = [] ) {
 		$this->weight = $options['weight'] ?? 1;

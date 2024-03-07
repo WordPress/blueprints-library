@@ -9,7 +9,8 @@
     "symfony/http-kernel": "*",
     "pimple/pimple": "*",
     "psr/simple-cache": "*",
-    "opis/json-schema": "*"
+    "opis/json-schema": "*",
+    "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "*",
