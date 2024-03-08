@@ -74,10 +74,18 @@ composer install
 vendor/bin/phpunit --testdox
 ```
 
-### Run a Blueprint with
+### Run Blueprint in a variety forms
+
+#### from PHP:
 
 ```shell
-php blueprint_compiling.php
+ php examples/blueprint_compiling.php
+```
+
+#### from JSON as string:
+
+```shell
+ php examples/json_string_compiling.php
 ```
 
 ### Regenerate models files from JSON schema with
