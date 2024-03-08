@@ -74,15 +74,15 @@ composer install
 vendor/bin/phpunit --testdox
 ```
 
-### Run Blueprint in a variety of forms
+### Run Blueprints in a variety of ways
 
-#### from PHP:
+#### using the PHP Blueprint builder:
 
 ```shell
  php examples/blueprint_compiling.php
 ```
 
-#### from JSON as string:
+#### using a string containg a Blueprint (in JSON):
 
 ```shell
  php examples/json_string_compiling.php
