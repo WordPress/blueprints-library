@@ -74,7 +74,7 @@ composer install
 vendor/bin/phpunit --testdox
 ```
 
-### Run Blueprint in a variety forms
+### Run Blueprint in a variety of forms
 
 #### from PHP:
 
