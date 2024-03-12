@@ -3,6 +3,7 @@
 namespace WordPress\JsonMapper\Evaluators;
 
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
@@ -205,10 +206,18 @@ class PropertyMapper implements JsonEvaluatorInterface {
 		return array_key_exists( $this->sanitise_class_name( $class_name ), $this->factories );
 	}
 
-	private function use_factory( string $class_name, $params ) {
+	/**
+	 * @param string $class_name
+	 * @param $params
+	 * @return mixed
+	 * @throws ReflectionException
+	 */
+	private function use_factory(string $class_name, $params ) {
 		$factory = $this->factories[ $this->sanitise_class_name( $class_name ) ];
-
-		return $factory( $this->mapper, $params );
+		if (true === self::requires_json_mapper($factory)) {
+			return $factory( $this->mapper, $params );
+		}
+		return $factory( $params );
 	}
 
 	private function add_factory( string $class_name, callable $factory ) {
@@ -249,5 +258,21 @@ class PropertyMapper implements JsonEvaluatorInterface {
 				return new \ArrayObject( $value );
 			}
 		);
+	}
+
+	/**
+	 * @param callable $factory
+	 * @return bool
+	 * @throws ReflectionException
+	 */
+	public static function requires_json_mapper( callable $factory ): bool {
+		$reflection = new ReflectionMethod($factory);
+		$parameters = $reflection->getParameters();
+		foreach ($parameters as $parameter) {
+			if ($parameter->getName() === 'mapper') {
+				return true;
+			}
+		}
+		return false;
 	}
 }
