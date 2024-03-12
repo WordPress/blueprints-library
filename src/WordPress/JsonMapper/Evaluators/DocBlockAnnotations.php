@@ -25,7 +25,11 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 		$property_map->merge( $this->compute_property_map( $object_wrapper ) );
 	}
 
-	private function compute_property_map( ObjectWrapper $object ): PropertyMap {
+	/**
+	 * @param ObjectWrapper $object
+	 * @return PropertyMap
+	 */
+	private function compute_property_map(ObjectWrapper $object ): PropertyMap {
 		$intermediate_property_map = new PropertyMap();
 		foreach ( self::get_properties( $object ) as $property ) {
 			$docBlock = $property->getDocComment();
