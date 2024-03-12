@@ -212,9 +212,9 @@ class PropertyMapper implements JsonEvaluatorInterface {
 	 * @return mixed
 	 * @throws ReflectionException
 	 */
-	private function use_factory(string $class_name, $params ) {
+	private function use_factory( string $class_name, $params ) {
 		$factory = $this->factories[ $this->sanitise_class_name( $class_name ) ];
-		if (true === self::requires_json_mapper($factory)) {
+		if ( true === self::requires_json_mapper( $factory ) ) {
 			return $factory( $this->mapper, $params );
 		}
 		return $factory( $params );
@@ -266,10 +266,10 @@ class PropertyMapper implements JsonEvaluatorInterface {
 	 * @throws ReflectionException
 	 */
 	public static function requires_json_mapper( callable $factory ): bool {
-		$reflection = new ReflectionMethod($factory);
+		$reflection = new ReflectionMethod( $factory );
 		$parameters = $reflection->getParameters();
-		foreach ($parameters as $parameter) {
-			if ($parameter->getName() === 'mapper') {
+		foreach ( $parameters as $parameter ) {
+			if ( $parameter->getName() === 'mapper' ) {
 				return true;
 			}
 		}
