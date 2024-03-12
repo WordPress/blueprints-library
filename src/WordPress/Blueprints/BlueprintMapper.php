@@ -2,7 +2,6 @@
 
 namespace WordPress\Blueprints;
 
-use Closure;
 use stdClass;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\ModelInfo;
@@ -21,15 +20,15 @@ class BlueprintMapper {
 	 *
 	 */
 	public function __construct() {
-		$json_evaluators  = array(
+		$property_mappers = array(
 			new DocBlockAnnotations(),
 			new NamespaceResolver(),
 		);
-		$custom_factories = array_merge(
-			self::create_resource_factory(),
-			self::create_steps_factory()
+		$custom_factories = array(
+			'ResourceDefinitionInterface' => array( $this, 'resource_factory' ),
+			'StepDefinitionInterface'     => array( $this, 'step_factory' ),
 		);
-		$this->mapper     = new JsonMapper( $json_evaluators, $custom_factories );
+		$this->mapper     = new JsonMapper( $property_mappers, $custom_factories );
 	}
 
 	/**
@@ -43,53 +42,47 @@ class BlueprintMapper {
 	}
 
 	/**
-	 * @return array{ResourceDefinitionInterface: Closure}
+	 * @param $value
+	 * @return object|string
+	 * @throws JsonMapperException
 	 */
-	private static function create_resource_factory(): array {
+	public function resource_factory( $value ) {
 		$resource_map = array();
 		foreach ( ModelInfo::getResourceDefinitionInterfaceImplementations() as $resource_class ) {
 			$resource_map[ $resource_class::DISCRIMINATOR ] = $resource_class;
 		}
 
-		return array(
-			'ResourceDefinitionInterface' =>
-								function ( $mapper, $value ) use ( $resource_map ) {
-									if ( is_string( $value ) ) {
-										return $value;
-									}
-									if ( ! isset( $value->resource ) ) {
-										throw new JsonMapperException( 'Resource type must be defined' );
-									}
-									if ( ! isset( $resource_map[ $value->resource ] ) ) {
-										throw new JsonMapperException( "Resource type {$value->resource} is not implemented" );
-									}
+		if ( is_string( $value ) ) {
+			return $value;
+		}
+		if ( ! isset( $value->resource ) ) {
+			throw new JsonMapperException( 'Resource type must be defined' );
+		}
+		if ( ! isset( $resource_map[ $value->resource ] ) ) {
+			throw new JsonMapperException( "Resource type {$value->resource} is not implemented" );
+		}
 
-									return $mapper->hydrate( $value, $resource_map[ $value->resource ] );
-								},
-		);
+		return $this->mapper->hydrate( $value, $resource_map[ $value->resource ] );
 	}
 
-
 	/**
-	 * @return array{ResourceDefinitionInterface: Closure}
+	 * @param $value
+	 * @return object
+	 * @throws JsonMapperException
 	 */
-	private static function create_steps_factory(): array {
+	public function step_factory( $value ) {
 		$step_map = array();
 		foreach ( ModelInfo::getStepDefinitionInterfaceImplementations() as $class ) {
 			$step_map[ $class::DISCRIMINATOR ] = $class;
 		}
-		return array(
-			'StepDefinitionInterface' =>
-							function ( $mapper, $value ) use ( $step_map ) {
-								if ( ! isset( $value->step ) ) {
-									throw new JsonMapperException( 'Step must be defined' );
-								}
-								if ( ! isset( $step_map[ $value->step ] ) ) {
-									throw new JsonMapperException( "Step {$value->step} is not implemented" );
-								}
 
-								return $mapper->hydrate( $value, $step_map[ $value->step ] );
-							},
-		);
+		if ( ! isset( $value->step ) ) {
+			throw new JsonMapperException( 'Step must be defined' );
+		}
+		if ( ! isset( $step_map[ $value->step ] ) ) {
+			throw new JsonMapperException( "Step {$value->step} is not implemented" );
+		}
+
+		return $this->mapper->hydrate( $value, $step_map[ $value->step ] );
 	}
 }

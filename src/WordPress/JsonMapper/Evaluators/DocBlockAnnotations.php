@@ -4,24 +4,18 @@ namespace WordPress\JsonMapper\Evaluators;
 
 use ReflectionProperty;
 use WordPress\JsonMapper\ArrayInformation;
-use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\ObjectWrapper;
 use WordPress\JsonMapper\Property\Property;
 use WordPress\JsonMapper\Property\PropertyMap;
 use WordPress\JsonMapper\Property\PropertyType;
 
-class DocBlockAnnotations implements JsonEvaluatorInterface {
+class DocBlockAnnotations {
 
 	const DOC_BLOCK_REGEX = '/@(?P<name>[A-Za-z_-]+)[ \t]+(?P<value>[\w\[\]\\\\|]*).*$/m';
 
 	public function __construct() {}
 
-	public function evaluate(
-		\stdClass $json,
-		ObjectWrapper $object_wrapper,
-		PropertyMap $property_map,
-		JsonMapper $mapper
-	) {
+	public function map_properties( ObjectWrapper $object_wrapper, PropertyMap $property_map ) {
 		$property_map->merge( $this->compute_property_map( $object_wrapper ) );
 	}
 
@@ -29,7 +23,7 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 	 * @param ObjectWrapper $object
 	 * @return PropertyMap
 	 */
-	private function compute_property_map(ObjectWrapper $object ): PropertyMap {
+	private function compute_property_map( ObjectWrapper $object ): PropertyMap {
 		$intermediate_property_map = new PropertyMap();
 		foreach ( self::get_properties( $object ) as $property ) {
 			$doc_block = $property->getDocComment();

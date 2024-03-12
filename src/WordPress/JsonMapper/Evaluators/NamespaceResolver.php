@@ -12,18 +12,13 @@ use WordPress\JsonMapper\Property\PropertyMap;
 use WordPress\JsonMapper\Property\PropertyType;
 use WordPress\JsonMapper\UseNodeVisitor;
 
-class NamespaceResolver implements JsonEvaluatorInterface {
+class NamespaceResolver {
 
 	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
 
 	public function __construct() {}
 
-	public function evaluate(
-		\stdClass $json,
-		ObjectWrapper $object_wrapper,
-		PropertyMap $property_map,
-		JsonMapper $mapper
-	) {
+	public function map_properties( ObjectWrapper $object_wrapper, PropertyMap $property_map ) {
 		foreach ( $this->fetchPropertyMapForObject( $object_wrapper, $property_map ) as $property ) {
 			$property_map->addProperty( $property );
 		}
