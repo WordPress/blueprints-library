@@ -24,10 +24,6 @@ class PropertyType {
 		return $this->arrayInformation->isArray();
 	}
 
-	public function isMultiDimensionalArray(): bool {
-		return $this->arrayInformation->isMultiDimensionalArray();
-	}
-
 	public function getArrayInformation(): ArrayInformation {
 		return $this->arrayInformation;
 	}

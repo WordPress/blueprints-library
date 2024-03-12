@@ -26,7 +26,7 @@ class BlueprintMapper {
 	 * @param $blueprint
 	 * @return Blueprint
 	 */
-	public function map( $blueprint ) {
+	public function map( $blueprint ): Blueprint {
 		return $this->mapper->map_to_class( $blueprint, Blueprint::class );
 	}
 

@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace WordPress\JsonMapper\Evaluators;
 
 use ReflectionProperty;
-use WordPress\JsonMapper\AnnotationMap;
 use WordPress\JsonMapper\ArrayInformation;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\ObjectWrapper;
@@ -23,25 +20,23 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 		ObjectWrapper $object_wrapper,
 		PropertyMap $property_map,
 		JsonMapper $mapper) {
-		$property_map->merge( $this->fetchPropertyMapForObject( $object_wrapper ) );
+		$property_map->merge( $this->compute_property_map( $object_wrapper ) );
 	}
 
-	private function fetchPropertyMapForObject( ObjectWrapper $object ): PropertyMap {
-		$intermediatePropertyMap = new PropertyMap();
-		foreach ( $this->getObjectPropertiesIncludingParents( $object ) as $property ) {
-			$name     = $property->getName();
+	private function compute_property_map(ObjectWrapper $object ): PropertyMap {
+		$intermediate_property_map = new PropertyMap();
+		foreach ( self::get_properties( $object ) as $property ) {
 			$docBlock = $property->getDocComment();
-			if ( $docBlock === false ) {
+			if ( false === $docBlock ) {
 				continue;
 			}
 
-			$annotations = self::parseDocBlockToAnnotationMap( $docBlock );
-
-			if ( ! $annotations->hasVar() ) {
+			$var = self::parse_var( $docBlock );
+			if ( null === $var ) {
 				continue;
 			}
 
-			$types    = \explode( '|', $annotations->getVar() );
+			$types    = \explode( '|', $var );
 			$nullable = \in_array( 'null', $types, true );
 			$types    = \array_filter(
 				$types,
@@ -51,14 +46,14 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 			);
 
 			$builder = PropertyBuilder::new()
-				->setName( $name )
+				->setName( $property->getName() )
 				->setIsNullable( $nullable )
-				->setVisibility( $this->fromReflectionProperty( $property ) );
+				->setVisibility( $this->parse_visibility( $property ) );
 
 			/* A union type that has one of its types defined as array is to complex to understand */
 			if ( \in_array( 'array', $types, true ) ) {
 				$property = $builder->addType( 'mixed', ArrayInformation::singleDimension() )->build();
-				$intermediatePropertyMap->addProperty( $property );
+				$intermediate_property_map->addProperty( $property );
 				continue;
 			}
 
@@ -82,14 +77,13 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 			}
 
 			$property = $builder->build();
-			$intermediatePropertyMap->addProperty( $property );
+			$intermediate_property_map->addProperty( $property );
 		}
 
-		return $intermediatePropertyMap;
+		return $intermediate_property_map;
 	}
 
-	private function fromReflectionProperty( ReflectionProperty $property ): string {
-
+	private function parse_visibility( ReflectionProperty $property ): string {
 		if ( $property->isPublic() ) {
 			return 'public';
 		}
@@ -99,7 +93,11 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 		return 'private';
 	}
 
-	public static function parseDocBlockToAnnotationMap( string $docBlock ): AnnotationMap {
+	/**
+	 * @param string $docBlock
+	 * @return string|null
+	 */
+	private static function parse_var( string $docBlock ): string {
 		// Strip away the start "/**' and ending "*/"
 		if ( strpos( $docBlock, '/**' ) === 0 ) {
 			$docBlock = \substr( $docBlock, 3 );
@@ -118,11 +116,11 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 			}
 		}
 
-		return new AnnotationMap( $var ?: null, array(), null );
+		return $var;
 	}
 
-	/** @return \ReflectionProperty[] */
-	public function getObjectPropertiesIncludingParents( ObjectWrapper $object ): array {
+	/** @return ReflectionProperty[] */
+	private static function get_properties( ObjectWrapper $object ): array {
 		$properties      = array();
 		$reflectionClass = $object->getReflectedObject();
 		do {

@@ -35,16 +35,6 @@ class ArrayInformation implements \JsonSerializable
 		return $this->isArray;
 	}
 
-	public function getDimensions(): int
-	{
-		return $this->dimensions;
-	}
-
-	public function isMultiDimensionalArray(): bool
-	{
-		return $this->isArray && $this->dimensions > 1;
-	}
-
 	public function jsonSerialize(): array
 	{
 		return [

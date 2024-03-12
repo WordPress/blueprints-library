@@ -4,7 +4,6 @@ namespace WordPress\JsonMapper\Evaluators;
 
 use ReflectionClass;
 use ReflectionMethod;
-use WordPress\Blueprints\Model\DataClass\ModelInfo;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
 use WordPress\JsonMapper\ObjectWrapper;
