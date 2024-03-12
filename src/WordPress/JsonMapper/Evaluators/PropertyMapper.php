@@ -158,7 +158,7 @@ class PropertyMapper implements JsonEvaluatorInterface {
 			throw new JsonMapperException( "Unable to resolve uninstantiable \'{$type->getType()}\'." );
 		}
 		if ( false === is_array( $value ) ) {
-			return $this->mapper->map_to_class( $value, $type->getType() );
+			return $this->mapper->hydrate( $value, $type->getType() );
 		}
 		$mapped_objects = array();
 		foreach ( $value as $inner_value ) {
@@ -208,7 +208,7 @@ class PropertyMapper implements JsonEvaluatorInterface {
 	private function use_factory( string $class_name, $params ) {
 		$factory = $this->factories[ $this->sanitise_class_name( $class_name ) ];
 
-		return $factory( $params );
+		return $factory( $this->mapper, $params );
 	}
 
 	private function add_factory( string $class_name, callable $factory ) {

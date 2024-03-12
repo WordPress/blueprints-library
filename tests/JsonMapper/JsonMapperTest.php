@@ -26,7 +26,7 @@ class JsonMapperTest extends TestCase {
 
 		$parsed_json = json_decode( $raw_json, false );
 
-		$blueprint = $this->json_mapper->map_to_class( $parsed_json, Blueprint::class );
+		$blueprint = $this->json_mapper->hydrate( $parsed_json, Blueprint::class );
 
 		$expected = BlueprintBuilder::create()
 			->toBlueprint();

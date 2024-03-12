@@ -3,27 +3,33 @@
 namespace WordPress\JsonMapper;
 
 use WordPress\JsonMapper\Evaluators\DocBlockAnnotations;
+use WordPress\JsonMapper\Evaluators\JsonEvaluatorInterface;
 use WordPress\JsonMapper\Evaluators\NamespaceResolver;
 use WordPress\JsonMapper\Evaluators\PropertyMapper;
 use WordPress\JsonMapper\Property\PropertyMap;
 
 class JsonMapper {
-	private $evaluators;
+	/**
+	 * @var JsonEvaluatorInterface[]
+	 */
+	private $evaluators = array();
 
-	public function __construct() {
-		$this->configure_evaluators();
+	/**
+	 * @param array $evaluators
+	 * @param array $custom_factories
+	 */
+	public function __construct( array $evaluators = null, array $custom_factories = null ) {
+		$this->evaluators[] = $evaluators;
+		$this->evaluators[] = new PropertyMapper( $this, $custom_factories );
 	}
 
-	public function configure_evaluators( array $custom_factories = null ) {
-			$this->evaluators = array(
-				new DocBlockAnnotations(),
-				new NamespaceResolver(),
-				new PropertyMapper( $this, $custom_factories ), // PropertyMapper has to be the last evaluator.
-			);
-	}
-
-	public function map_to_class( \stdClass $json, string $class ) {
-		$object_wrapper = new ObjectWrapper( null, $class );
+	/**
+	 * @param \stdClass $json
+	 * @param string    $target
+	 * @return object
+	 */
+	public function hydrate( \stdClass $json, string $target ) {
+		$object_wrapper = new ObjectWrapper( null, $target );
 		$property_map   = new PropertyMap();
 
 		foreach ( $this->evaluators as $evaluator ) {
