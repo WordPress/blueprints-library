@@ -32,12 +32,12 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 	private function compute_property_map(ObjectWrapper $object ): PropertyMap {
 		$intermediate_property_map = new PropertyMap();
 		foreach ( self::get_properties( $object ) as $property ) {
-			$docBlock = $property->getDocComment();
-			if ( false === $docBlock ) {
+			$doc_block = $property->getDocComment();
+			if ( false === $doc_block ) {
 				continue;
 			}
 
-			$var = self::parse_var( $docBlock );
+			$var = self::parse_var( $doc_block );
 			if ( null === $var ) {
 				continue;
 			}
@@ -48,7 +48,7 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 			$types       = array_filter(
 				$types,
 				static function ( string $type ) {
-					return $type !== 'null';
+					return 'null' !== $type;
 				}
 			);
 
@@ -66,19 +66,19 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 			}
 
 			foreach ( $types as $type ) {
-				$type          = trim( $type );
-				$isAnArrayType = substr( $type, -2 ) === '[]';
+				$type     = trim( $type );
+				$is_array = substr( $type, -2 ) === '[]';
 
-				if ( ! $isAnArrayType ) {
+				if ( ! $is_array ) {
 					$property->property_types[] = new PropertyType( $type, ArrayInformation::notAnArray() );
 					continue;
 				}
 
-				$initialBracketPosition = strpos( $type, '[' );
-				$dimensions             = substr_count( $type, '[]' );
+				$first_bracket_index = strpos( $type, '[' );
+				$dimensions          = substr_count( $type, '[]' );
 
-				if ( $initialBracketPosition !== false ) {
-					$type = substr( $type, 0, $initialBracketPosition );
+				if ( false !== $first_bracket_index ) {
+					$type = substr( $type, 0, $first_bracket_index );
 				}
 
 				$property->property_types[] = new PropertyType( $type, ArrayInformation::multiDimension( $dimensions ) );
@@ -105,23 +105,23 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 	}
 
 	/**
-	 * @param string $docBlock
+	 * @param string $doc_block
 	 * @return string|null
 	 */
-	private static function parse_var( string $docBlock ): string {
-		// Strip away the start "/**' and ending "*/"
-		if ( strpos( $docBlock, '/**' ) === 0 ) {
-			$docBlock = \substr( $docBlock, 3 );
+	private static function parse_var( string $doc_block ): string {
+		// Strip away the start "/**' and ending "*/".
+		if ( strpos( $doc_block, '/**' ) === 0 ) {
+			$doc_block = \substr( $doc_block, 3 );
 		}
-		if ( substr( $docBlock, -2 ) === '*/' ) {
-			$docBlock = \substr( $docBlock, 0, -2 );
+		if ( substr( $doc_block, -2 ) === '*/' ) {
+			$doc_block = \substr( $doc_block, 0, -2 );
 		}
-		$docBlock = \trim( $docBlock );
+		$doc_block = \trim( $doc_block );
 
 		$var = null;
-		if ( \preg_match_all( self::DOC_BLOCK_REGEX, $docBlock, $matches ) ) {
+		if ( \preg_match_all( self::DOC_BLOCK_REGEX, $doc_block, $matches ) ) {
 			for ( $x = 0, $max = count( $matches[0] ); $x < $max; $x++ ) {
-				if ( $matches['name'][ $x ] === 'var' ) {
+				if ( 'var' === $matches['name'][ $x ] ) {
 					$var = $matches['value'][ $x ];
 				}
 			}
@@ -135,11 +135,11 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 	 * @return ReflectionProperty[]
 	 */
 	private static function get_properties( ObjectWrapper $object ): array {
-		$properties      = array();
-		$reflectionClass = $object->getReflectedObject();
+		$properties       = array();
+		$reflection_class = $object->getReflectedObject();
 		do {
-			$properties = array_merge( $properties, $reflectionClass->getProperties() );
-		} while ( $reflectionClass = $reflectionClass->getParentClass() );
+			$properties = array_merge( $properties, $reflection_class->getProperties() );
+		} while ( $reflection_class = $reflection_class->getParentClass() );
 		return $properties;
 	}
 }
