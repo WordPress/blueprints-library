@@ -30,13 +30,15 @@ class PropertyMapper implements JsonEvaluatorInterface {
 	private $mapper;
 
 	public function __construct(
-		JsonMapper $json_mapper
+		JsonMapper $json_mapper,
+		array $custom_factories = null
 	) {
 		$this->mapper = $json_mapper;
 		$this->add_factories_for_native_php_classes();
-		$this->add_factory_for_resources();
-		$this->add_factory_for_steps();
 		$this->add_factory_for_arrays();
+		if ( null !== $custom_factories ) {
+			$this->add_custom_factories( $custom_factories );
+		}
 	}
 
 	public function evaluate(
@@ -214,6 +216,12 @@ class PropertyMapper implements JsonEvaluatorInterface {
 		$this->factories[ $this->sanitise_class_name( $class_name ) ] = $factory;
 	}
 
+	public function add_custom_factories( array $custom_factories ) {
+		foreach ( $custom_factories as $class_name => $custom_factory ) {
+			$this->add_factory( $class_name, $custom_factory );
+		}
+	}
+
 	private function add_factories_for_native_php_classes() {
 		$this->add_factory(
 			\DateTime::class,
@@ -231,49 +239,6 @@ class PropertyMapper implements JsonEvaluatorInterface {
 			\stdClass::class,
 			static function ( $value ) {
 				return (object) $value;
-			}
-		);
-	}
-
-	private function add_factory_for_resources() {
-		$resourceMap = array();
-		foreach ( ModelInfo::getResourceDefinitionInterfaceImplementations() as $resourceClass ) {
-			$resourceMap[ $resourceClass::DISCRIMINATOR ] = $resourceClass;
-		}
-		$this->add_factory(
-			'ResourceDefinitionInterface',
-			function ( $value ) use ( $resourceMap ) {
-				if ( is_string( $value ) ) {
-					return $value;
-				}
-				if ( ! isset( $value->resource ) ) {
-					throw new JsonMapperException( 'Resource type must be defined' );
-				}
-				if ( ! isset( $resourceMap[ $value->resource ] ) ) {
-					throw new JsonMapperException( "Resource type {$value->resource} is not implemented" );
-				}
-
-				return $this->mapper->map_to_class( $value, $resourceMap[ $value->resource ] );
-			}
-		);
-	}
-
-	private function add_factory_for_steps() {
-		$stepMap = array();
-		foreach ( ModelInfo::getStepDefinitionInterfaceImplementations() as $class ) {
-			$stepMap[ $class::DISCRIMINATOR ] = $class;
-		}
-		$this->add_factory(
-			'StepDefinitionInterface',
-			function ( $value ) use ( $stepMap ) {
-				if ( ! isset( $value->step ) ) {
-					throw new JsonMapperException( 'Step must be defined' );
-				}
-				if ( ! isset( $stepMap[ $value->step ] ) ) {
-					throw new JsonMapperException( "Step {$value->step} is not implemented" );
-				}
-
-				return $this->mapper->map_to_class( $value, $stepMap[ $value->step ] );
 			}
 		);
 	}

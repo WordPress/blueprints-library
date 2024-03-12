@@ -10,21 +10,19 @@ use WordPress\JsonMapper\Property\PropertyMap;
 class JsonMapper {
 	private $evaluators;
 
-	public function __construct() {}
+	public function __construct() {
+		$this->configure_evaluators();
+	}
 
-	private function configure_evaluators() {
-		if ( null === $this->evaluators ) {
+	public function configure_evaluators( array $custom_factories = null ) {
 			$this->evaluators = array(
 				new DocBlockAnnotations(),
 				new NamespaceResolver(),
-				new PropertyMapper( $this ), // PropertyMapper has to be the last evaluator.
+				new PropertyMapper( $this, $custom_factories ), // PropertyMapper has to be the last evaluator.
 			);
-		}
 	}
 
 	public function map_to_class( \stdClass $json, string $class ) {
-		$this->configure_evaluators();
-
 		$object_wrapper = new ObjectWrapper( null, $class );
 		$property_map   = new PropertyMap();
 
