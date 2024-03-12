@@ -6,8 +6,9 @@ use ReflectionProperty;
 use WordPress\JsonMapper\ArrayInformation;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\ObjectWrapper;
-use WordPress\JsonMapper\Property\PropertyBuilder;
+use WordPress\JsonMapper\Property\Property;
 use WordPress\JsonMapper\Property\PropertyMap;
+use WordPress\JsonMapper\Property\PropertyType;
 
 class DocBlockAnnotations implements JsonEvaluatorInterface {
 
@@ -19,11 +20,12 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 		\stdClass $json,
 		ObjectWrapper $object_wrapper,
 		PropertyMap $property_map,
-		JsonMapper $mapper) {
+		JsonMapper $mapper
+	) {
 		$property_map->merge( $this->compute_property_map( $object_wrapper ) );
 	}
 
-	private function compute_property_map(ObjectWrapper $object ): PropertyMap {
+	private function compute_property_map( ObjectWrapper $object ): PropertyMap {
 		$intermediate_property_map = new PropertyMap();
 		foreach ( self::get_properties( $object ) as $property ) {
 			$docBlock = $property->getDocComment();
@@ -36,33 +38,35 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 				continue;
 			}
 
-			$types    = \explode( '|', $var );
-			$nullable = \in_array( 'null', $types, true );
-			$types    = \array_filter(
+			$name        = $property->getName();
+			$types       = explode( '|', $var );
+			$is_nullable = in_array( 'null', $types, true );
+			$types       = array_filter(
 				$types,
 				static function ( string $type ) {
 					return $type !== 'null';
 				}
 			);
 
-			$builder = PropertyBuilder::new()
-				->setName( $property->getName() )
-				->setIsNullable( $nullable )
-				->setVisibility( $this->parse_visibility( $property ) );
+			$property = new Property(
+				$name,
+				self::parse_visibility( $property ),
+				$is_nullable
+			);
 
 			/* A union type that has one of its types defined as array is to complex to understand */
-			if ( \in_array( 'array', $types, true ) ) {
-				$property = $builder->addType( 'mixed', ArrayInformation::singleDimension() )->build();
+			if ( in_array( 'array', $types, true ) ) {
+				$property->property_types[] = new PropertyType( 'mixed', ArrayInformation::singleDimension() );
 				$intermediate_property_map->addProperty( $property );
 				continue;
 			}
 
 			foreach ( $types as $type ) {
-				$type          = \trim( $type );
-				$isAnArrayType = \substr( $type, -2 ) === '[]';
+				$type          = trim( $type );
+				$isAnArrayType = substr( $type, -2 ) === '[]';
 
 				if ( ! $isAnArrayType ) {
-					$builder->addType( $type, ArrayInformation::notAnArray() );
+					$property->property_types[] = new PropertyType( $type, ArrayInformation::notAnArray() );
 					continue;
 				}
 
@@ -73,17 +77,20 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 					$type = substr( $type, 0, $initialBracketPosition );
 				}
 
-				$builder->addType( $type, ArrayInformation::multiDimension( $dimensions ) );
+				$property->property_types[] = new PropertyType( $type, ArrayInformation::multiDimension( $dimensions ) );
 			}
 
-			$property = $builder->build();
 			$intermediate_property_map->addProperty( $property );
 		}
 
 		return $intermediate_property_map;
 	}
 
-	private function parse_visibility( ReflectionProperty $property ): string {
+	/**
+	 * @param ReflectionProperty $property
+	 * @return string
+	 */
+	private static function parse_visibility( ReflectionProperty $property ): string {
 		if ( $property->isPublic() ) {
 			return 'public';
 		}
@@ -119,7 +126,10 @@ class DocBlockAnnotations implements JsonEvaluatorInterface {
 		return $var;
 	}
 
-	/** @return ReflectionProperty[] */
+	/**
+	 * @param ObjectWrapper $object
+	 * @return ReflectionProperty[]
+	 */
 	private static function get_properties( ObjectWrapper $object ): array {
 		$properties      = array();
 		$reflectionClass = $object->getReflectedObject();

@@ -4,16 +4,16 @@ namespace WordPress\JsonMapper\Property;
 
 class Property implements \JsonSerializable {
 	/** @var string */
-	private $name;
+	public $name;
 
 	/** @var PropertyType[] */
-	private $property_types;
+	public $property_types;
 
 	/** @var string */
 	public $visibility;
 
 	/** @var bool */
-	private $is_nullable;
+	public $is_nullable;
 
 	public function __construct(
 		string $name,
