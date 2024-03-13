@@ -117,8 +117,6 @@ Accept-Language: en-US,en;q=0.9
 Connection: close
 REQUEST;
     $request = str_replace( "\n", "\r\n", $request ) . "\r\n\r\n";
-    stream_set_write_buffer( $stream, 0 );
-    stream_set_read_buffer( $stream, 0 );
     blocking_write_to_stream( $stream, $request );
 
     $headers_raw = blocking_read_headers($stream);
