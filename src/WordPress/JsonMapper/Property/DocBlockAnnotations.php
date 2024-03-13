@@ -4,7 +4,6 @@ namespace WordPress\JsonMapper\Property;
 
 use ReflectionClass;
 use ReflectionProperty;
-use WordPress\JsonMapper\ArrayInformation;
 use WordPress\JsonMapper\ObjectWrapper;
 
 class DocBlockAnnotations implements PropertyMapperInterface {

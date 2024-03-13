@@ -2,6 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
+use ArrayObject;
+
 class Blueprint
 {
 	/**
@@ -18,7 +20,7 @@ class Blueprint
 
 	/**
 	 * Slot for runtime–specific options, schema must be provided by the runtime.
-	 * @var \ArrayObject
+	 * @var ArrayObject
 	 */
 	public $runtime;
 
@@ -27,7 +29,7 @@ class Blueprint
 
 	/**
 	 * PHP Constants to define on every request
-	 * @var \ArrayObject
+	 * @var ArrayObject
 	 */
 	public $constants;
 
@@ -39,7 +41,7 @@ class Blueprint
 
 	/**
 	 * WordPress site options to define
-	 * @var \ArrayObject
+	 * @var ArrayObject
 	 */
 	public $siteOptions;
 

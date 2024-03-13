@@ -133,20 +133,6 @@ class BlueprintBuilder {
 		);
 	}
 
-	public function remove( $path ) {
-		return $this->addStep(
-			( new RmStep() )
-			->setPath( $path )
-		);
-	}
-
-	public function makeDirectory( $path ) {
-		return $this->addStep(
-			( new MkdirStep() )
-			->setPath( $path )
-		);
-	}
-
 	public function downloadWordPress( $wpZip = null ) {
 		$this->prependStep(
 			( new DownloadWordPressStep() )

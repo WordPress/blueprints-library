@@ -21,8 +21,9 @@ class BlueprintMapper {
 	 */
 	public function __construct() {
 		$property_mappers = array(
-			new DocBlockAnnotations(),
 			new NamespaceResolver(),
+			new DocBlockAnnotations(),
+
 		);
 		$custom_factories = array(
 			'ResourceDefinitionInterface' => array( $this, 'resource_factory' ),
