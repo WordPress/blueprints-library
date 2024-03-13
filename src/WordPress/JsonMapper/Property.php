@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\JsonMapper\Property;
+namespace WordPress\JsonMapper;
 
 class Property {
 	/** @var string */

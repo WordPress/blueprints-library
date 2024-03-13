@@ -4,44 +4,38 @@ namespace WordPress\JsonMapper;
 
 use ReflectionClass;
 use stdClass;
-use WordPress\JsonMapper\Property\Property;
-use WordPress\JsonMapper\Property\PropertyMap;
-use WordPress\JsonMapper\Property\PropertyMapperInterface;
 
 class JsonMapper {
 	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
-
-	/**
-	 * @var PropertyMapperInterface[]
-	 */
-	private $property_mappers;
 
 	/**
 	 * @var array{$class_name}
 	 */
 	private $factories = array();
 
-	public function __construct( array $property_mappers = array(), array $custom_factories = array() ) {
-		$this->property_mappers = $property_mappers;
+	public function __construct( array $custom_factories = array() ) {
 		$this->add_factories_for_native_php_classes();
 		$this->add_custom_factories( $custom_factories );
 	}
 
 	public function hydrate( stdClass $json, string $target ) {
 		$object_wrapper = new ObjectWrapper( null, $target );
-		$property_map   = new PropertyMap();
 
-		/** @var PropertyMapperInterface $property_mapper */
-		foreach ($this->property_mappers as $property_mapper ) {
-			$property_mapper->map_properties( $object_wrapper, $property_map );
-		}
+		$property_map = DocBlockAnnotations::compute_property_map( $object_wrapper );
 
 		$this->map_json_to_object( $json, $object_wrapper, $property_map );
 
 		return $object_wrapper->getObject();
 	}
 
-	public function map_json_to_object(stdClass $json, ObjectWrapper $object_wrapper, PropertyMap $property_map ) {
+	/**
+	 * @param stdClass $json
+	 * @param ObjectWrapper $object_wrapper
+	 * @param Property[] $property_map
+	 * @return void
+	 * @throws JsonMapperException
+	 */
+	public function map_json_to_object(stdClass $json, ObjectWrapper $object_wrapper, array $property_map ) {
 		if ( $this->has_factory( $object_wrapper->getName() ) ) {
 			$result = $this->use_factory( $object_wrapper->getName(), $json );
 
@@ -51,12 +45,9 @@ class JsonMapper {
 
 		$values = (array) $json;
 		foreach ( $values as $key => $value ) {
-			if ( false === $property_map->has_property( $key ) ) {
+			if ( null === $property = self::get_property( $property_map, $key ) ) {
 				continue;
 			}
-
-			$property = $property_map->get_property( $key );
-
 			if ( false === $property->is_nullable && null === $value ) {
 				throw new JsonMapperException(
 					"Null provided in json where \'{$object_wrapper->getName()}::{$key}\' doesn't allow null value"
@@ -240,5 +231,19 @@ class JsonMapper {
 				return new \ArrayObject( $value );
 			}
 		);
+	}
+
+	/**
+	 * @param array $property_map
+	 * @param string $property_name
+	 * @return null|Property
+	 */
+	public static function get_property ( array $property_map, string $property_name ) {
+		foreach ( $property_map as $property ) {
+			if ( $property->name === $property_name ) {
+				return $property;
+			}
+		}
+		return null;
 	}
 }

@@ -1,27 +1,22 @@
 <?php
 
-namespace WordPress\JsonMapper\Property;
+namespace WordPress\JsonMapper;
 
 use ReflectionClass;
 use ReflectionProperty;
-use WordPress\JsonMapper\ObjectWrapper;
 
-class DocBlockAnnotations implements PropertyMapperInterface {
+class DocBlockAnnotations {
 
 	const DOC_BLOCK_REGEX = '/@(?P<name>[A-Za-z_-]+)[ \t]+(?P<value>[\w\[\]\\\\|]*).*$/m';
 
-	public function __construct() {}
-
-	public function map_properties( ObjectWrapper $object_wrapper, PropertyMap $property_map ) {
-		$property_map->merge( $this->compute_property_map( $object_wrapper ) );
-	}
+	private function __construct() {}
 
 	/**
 	 * @param ObjectWrapper $object
-	 * @return PropertyMap
+	 * @return array
 	 */
-	private function compute_property_map( ObjectWrapper $object ): PropertyMap {
-		$intermediate_property_map = new PropertyMap();
+	public static function compute_property_map( ObjectWrapper $object ): array {
+		$property_map = array();
 		foreach ( self::get_properties( $object ) as $property ) {
 			$doc_block = $property->getDocComment();
 			if ( false === $doc_block ) {
@@ -52,7 +47,7 @@ class DocBlockAnnotations implements PropertyMapperInterface {
 			/* A union type that has one of its types defined as array is to complex to understand */
 			if ( in_array( 'array', $types, true ) ) {
 				$property->property_types[] = 'mixed';
-				$intermediate_property_map->addProperty( $property );
+				$property_map[] = $property ;
 				continue;
 			}
 
@@ -74,10 +69,10 @@ class DocBlockAnnotations implements PropertyMapperInterface {
 				$property->property_types[] = $type;
 			}
 
-			$intermediate_property_map->addProperty( $property );
+			$property_map[] = $property ;
 		}
 
-		return $intermediate_property_map;
+		return $property_map;
 	}
 
 	/**

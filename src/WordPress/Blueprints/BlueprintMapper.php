@@ -7,8 +7,6 @@ use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\ModelInfo;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
-use WordPress\JsonMapper\Property\DocBlockAnnotations;
-use WordPress\JsonMapper\Property\NamespaceResolver;
 
 class BlueprintMapper {
 	/**
@@ -20,16 +18,11 @@ class BlueprintMapper {
 	 *
 	 */
 	public function __construct() {
-		$property_mappers = array(
-			new NamespaceResolver(),
-			new DocBlockAnnotations(),
-
-		);
 		$custom_factories = array(
 			'ResourceDefinitionInterface' => array( $this, 'resource_factory' ),
 			'StepDefinitionInterface'     => array( $this, 'step_factory' ),
 		);
-		$this->mapper     = new JsonMapper( $property_mappers, $custom_factories );
+		$this->mapper     = new JsonMapper( $custom_factories );
 	}
 
 	/**
