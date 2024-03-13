@@ -32,10 +32,11 @@ class UrlResource implements ResourceDefinitionInterface {
 
 
 	public function setUrl( string $url ) {
+		// @TODO mapper supposedly sets values with setters, so why does this not set the caption?
 		$this->url = $url;
-		if ( ! $this->caption ) {
-			$this->caption = 'Downloading ' . $url;
-		}
+//		if ( ! $this->caption ) {
+//			$this->caption = 'Downloading ' . $url;
+//		}
 
 		return $this;
 	}

@@ -6,17 +6,19 @@ use ReflectionClass;
 use ReflectionMethod;
 use stdClass;
 
-class JsonMapper {
-	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
+class JsonMapper
+{
+	private $scalar_types = array('string', 'bool', 'boolean', 'int', 'integer', 'double', 'float');
 
 	/**
-	 * @var array{$class_name}
+	 * @var array{ $class_name }
 	 */
 	private $factories = array();
 
-	public function __construct( array $custom_factories = array() ) {
+	public function __construct(array $custom_factories = array())
+	{
 		$this->add_factories_for_native_php_classes();
-		$this->add_custom_factories( $custom_factories );
+		$this->add_custom_factories($custom_factories);
 	}
 
 	/**
@@ -25,12 +27,13 @@ class JsonMapper {
 	 * @return object
 	 * @throws JsonMapperException
 	 */
-	public function hydrate( stdClass $json, string $class_name ) {
-		$object_wrapper = new ObjectWrapper( null, $class_name );
+	public function hydrate(stdClass $json, string $class_name)
+	{
+		$object_wrapper = new ObjectWrapper(null, $class_name);
 
-		$property_map = DocBlockAnnotations::compute_property_map( $object_wrapper );
+		$property_map = DocBlockAnnotations::compute_property_map($object_wrapper);
 
-		$this->map_json_to_object( $json, $object_wrapper, $property_map );
+		$this->map_json_to_object($json, $object_wrapper, $property_map);
 
 		return $object_wrapper->getObject();
 	}
@@ -42,141 +45,281 @@ class JsonMapper {
 	 * @return void
 	 * @throws JsonMapperException
 	 */
-	private function map_json_to_object( stdClass $json, ObjectWrapper $object_wrapper, array $property_map ) {
-		if ( $this->has_factory( $object_wrapper->getName() ) ) {
-			$result = $this->use_factory( $object_wrapper->getName(), $json );
+	private function map_json_to_object(stdClass $json, ObjectWrapper $object_wrapper, array $property_map)
+	{
+		if ($this->has_factory($object_wrapper->getName())) {
+			$result = $this->use_factory($object_wrapper->getName(), $json);
 
-			$object_wrapper->setObject( $result );
+			$object_wrapper->setObject($result);
 			return;
 		}
 
-		$values = (array) $json;
-		foreach ( $values as $key => $value ) {
-			if ( null === $property = self::get_property( $property_map, $key ) ) {
+		$values = (array)$json;
+		foreach ($values as $key => $value) {
+			if (null === $property = self::get_property($property_map, $key)) {
 				continue;
 			}
-			if ( false === $property->is_nullable && null === $value ) {
+			if (false === $property->is_nullable && null === $value) {
 				throw new JsonMapperException(
 					"Null provided in json where \'{$object_wrapper->getName()}::{$key}\' doesn't allow null value"
 				);
 			}
-
-			if ( $property->is_nullable && null === $value ) {
-				$this->set_value( $object_wrapper, $property, null );
+			if ($property->is_nullable && null === $value) {
+				$this->set_value($object_wrapper, $property, null);
 				continue;
 			}
-
-			$value = $this->map_value( $property, $value );
-			$this->set_value( $object_wrapper, $property, $value );
+			$value = $this->map_value($property, $value);
+			$this->set_value($object_wrapper, $property, $value);
 		}
 	}
 
-	private function map_value( Property $property, $value ) {
-		if ( null === $value && $property->is_nullable ) {
+	private function map_value(Property $property, $value)
+	{
+		// For union types, loop through and see if value is a match with the type
+		if (\count($property->property_types) > 1) {
+			foreach ($property->property_types as $property_type) {
+
+				$property_type = trim($property_type);
+				$is_array = substr($property_type, -2) === '[]';
+//
+//					if ( ! $is_array ) {
+//						$property->property_types[] = $type;
+//						continue;
+//					}
+//
+//					$first_bracket_index = strpos( $type, '[' );
+//
+//					if ( false !== $first_bracket_index ) {
+//						$type = substr( $type, 0, $first_bracket_index );
+//					}
+
+
+				if (\is_array($value) && $is_array && count($value) === 0) {
+					return [];
+				}
+
+				if (\is_array($value) && $is_array) {
+					$copy = $value;
+					$firstValue = \array_shift($copy);
+
+					/* Array of scalar values */
+					if ($this->propertyTypeAndValueTypeAreScalarAndSameType($property_type, $firstValue)) {
+
+
+						$scalarType = new ScalarType($property_type->getType());
+						return \array_map(function ($v) use ($scalarType) {
+							return $this->scalarCaster->cast($scalarType, $v);
+						}, $value);
+					}
+
+//						if ( $this->is_valid_scalar_type( $property_type ) ) {
+//			return $this->map_to_scalar( $property_type, $value );
+//		}
+
+					// Array of registered class @todo how do you know it was the correct type?
+//						if ($this->has_factory($type->getType())) {
+//							return $this->mapToObjectsUsingFactory($type, $value);
+//						}
+					if ($this->has_factory($property_type)) {
+						return $this->map_to_object_using_factory($property_type, $value);
+					}
+
+					// Array of existing class @todo how do you know it was the correct type?
+//						if ((class_exists($type->getType()) || interface_exists($type->getType()))) {
+//							return $this->mapToObjects($type, $value, $mapper);
+//						}
+					if ((class_exists($property_type) || interface_exists($property_type))) {
+						return $this->map_to_object($property_type, $value);
+					}
+
+					continue;
+				}
+
+				// If the type we are mapping has a last minute factory use it.
+//					if ($this->classFactoryRegistry->hasFactory($type->getType())) {
+//						return $this->mapToObjectsUsingFactory($type, $value);
+//					}
+				if ($this->has_factory($property_type)) {
+					return $this->map_to_object_using_factory($property_type, $value);
+				}
+
+				// Single scalar value
+				if ($this->propertyTypeAndValueTypeAreScalarAndSameType($property_type, $value)) {
+					return $this->scalarCaster->cast(new ScalarType($property_type->getType()), $value);
+				}
+
+				// Single existing class @todo how do you know it was the correct type?
+//					if (\class_exists($property_type->getType())) {
+//						return $this->mapToSingleObject($property_type->getType(), $value, $mapper);
+//					}
+				if ((class_exists($property_type) || interface_exists($property_type))) {
+					return $this->map_to_object($property_type, $value);
+				}
+			}
+		}
+
+		if (\is_null($value) && $property->isNullable()) {
 			return null;
 		}
 		// No match was found (or there was only one option) lets assume the first is the right one.
 		$types = $property->property_types;
-		$property_type  = \array_shift( $types );
+		$property_type = \array_shift($types);
 
-		if ( null === $property_type ) {
+		if ($property_type === null) {
 			// Return the value as is as there is no type info.
 			return $value;
 		}
 
-		if ( $this->is_valid_scalar_type( $property_type ) ) {
-			return $this->map_to_scalar( $property_type, $value );
+		if ($this->is_valid_scalar_type($property_type)) {
+			return $this->map_to_scalar($property_type, $value);
 		}
 
-		if ( $this->has_factory( $property_type ) ) {
-			return $this->map_to_object_using_factory( $property_type, $value );
+		if ($this->has_factory($property_type)) {
+			return $this->map_to_object_using_factory($property_type, $value);
 		}
 
-		if ( ( class_exists( $property_type ) || interface_exists( $property_type ) ) ) {
-			return $this->map_to_object( $property_type, $value );
+//		if ($this->classFactoryRegistry->hasFactory($property_type)) {
+//			return $this->mapToObjectsUsingFactory($property_type, $value);
+//		}
+
+//			if ((class_exists($type->getType()) || interface_exists($type->getType()))) {
+//				return $this->mapToObjects($type, $value, $mapper);
+//			}
+		if ((class_exists($property_type) || interface_exists($property_type))) {
+			return $this->map_to_object($property_type, $value);
 		}
 
-		throw new JsonMapperException( "Unable to map to \'{$property_type}\'" );
+		throw new \Exception("Unable to map to {$type->getType()}");
+	}
+//		if ( null === $value && $property->is_nullable ) {
+//			return null;
+//		}
+//		// No match was found (or there was only one option) lets assume the first is the right one.
+//		$types = $property->property_types;
+//		$property_type  = \array_shift( $types );
+//
+//		if ( null === $property_type ) {
+//			// Return the value as is as there is no type info.
+//			return $value;
+//		}
+//
+//		if ( $this->is_valid_scalar_type( $property_type ) ) {
+//			return $this->map_to_scalar( $property_type, $value );
+//		}
+//
+//		if ( $this->has_factory( $property_type ) ) {
+//			return $this->map_to_object_using_factory( $property_type, $value );
+//		}
+//
+//		if ( ( class_exists( $property_type ) || interface_exists( $property_type ) ) ) {
+//			return $this->map_to_object( $property_type, $value );
+//		}
+//
+//		throw new JsonMapperException( "Unable to map to \'{$property_type}\'" );
+//	}
+
+	/**
+	 * @param mixed $value
+	 * @psalm-assert-if-true scalar $value
+	 */
+	private function propertyTypeAndValueTypeAreScalarAndSameType(string $type, $value): bool
+	{
+		if (!\is_scalar($value) || !$this->is_valid_scalar_type($type)) {
+			return false;
+		}
+
+		$valueType = \gettype($value);
+		if ($valueType === 'double') {
+			$valueType = 'float';
+		}
+
+		return $type === $valueType;
 	}
 
 	/**
 	 * @param string $property_type
 	 * @return bool
 	 */
-	private function is_valid_scalar_type( string $property_type ): bool {
-		return in_array( $property_type, $this->scalar_types, true );
+	private function is_valid_scalar_type(string $property_type): bool
+	{
+		return in_array($property_type, $this->scalar_types, true);
 	}
 
-	private function map_to_scalar(string $property_type, $value ) {
-		if ( false === is_array( $value ) ) {
-			return $this->cast_to_scalar_type( $property_type, $value );
+	private function map_to_scalar(string $property_type, $value)
+	{
+		if (false === is_array($value)) {
+			return $this->cast_to_scalar_type($property_type, $value);
 		}
 		$mapped_scalars = array();
-		foreach ( $value as $inner_value ) {
-			$mapped_scalars[] = $this->map_to_scalar( $property_type, $inner_value );
+		foreach ($value as $inner_value) {
+			$mapped_scalars[] = $this->map_to_scalar($property_type, $inner_value);
 		}
 		return $mapped_scalars;
 	}
 
-	private function cast_to_scalar_type( string $type, $value ) {
-		if ( 'string' === $type ) {
-			return (string) $value;
+	private function cast_to_scalar_type(string $type, $value)
+	{
+		if ('string' === $type) {
+			return (string)$value;
 		}
-		if ( 'boolean' === $type || 'bool' === $type ) {
-			return (bool) $value;
+		if ('boolean' === $type || 'bool' === $type) {
+			return (bool)$value;
 		}
-		if ( 'integer' === $type || 'int' === $type ) {
-			return (int) $value;
+		if ('integer' === $type || 'int' === $type) {
+			return (int)$value;
 		}
-		if ( 'double' === $type || 'float' === $type ) {
-			return (float) $value;
+		if ('double' === $type || 'float' === $type) {
+			return (float)$value;
 		}
 
-		throw new JsonMapperException( "Casting to scalar type \'$type\' failed." );
+		throw new JsonMapperException("Casting to scalar type \'$type\' failed.");
 	}
 
-	private function map_to_object_using_factory( string $property_type, $value ): array{
-		if ( false === is_array( $value ) ) {
-			return $this->use_factory( $property_type, $value );
+	private function map_to_object_using_factory(string $property_type, $value)
+	{
+		if (false === is_array($value)) {
+			return $this->use_factory($property_type, $value);
 		}
 		$mapped_objects = array();
-		foreach ( $value as $inner_value ) {
-			$mapped_objects[] = $this->map_to_object_using_factory( $property_type, $inner_value );
+		foreach ($value as $inner_value) {
+			$mapped_objects[] = $this->map_to_object_using_factory($property_type, $inner_value);
 		}
 		return $mapped_objects;
 	}
 
-	private function map_to_object(string $property_type, $value ) {
-		if ( false === ( new ReflectionClass( $property_type ) )->isInstantiable() ) {
-			throw new JsonMapperException( "Unable to resolve uninstantiable \'{$property_type}\'." );
+	private function map_to_object(string $property_type, $value)
+	{
+		if (false === (new ReflectionClass($property_type))->isInstantiable()) {
+			throw new JsonMapperException("Unable to resolve uninstantiable \'{$property_type}\'.");
 		}
-		if ( false === is_array( $value ) ) {
-			return $this->hydrate( $value, $property_type );
+		if (false === is_array($value)) {
+			return $this->hydrate($value, $property_type);
 		}
 		$mapped_objects = array();
-		foreach ( $value as $inner_value ) {
-			$mapped_objects[] = $this->map_to_object( $property_type, $inner_value );
+		foreach ($value as $inner_value) {
+			$mapped_objects[] = $this->map_to_object($property_type, $inner_value);
 		}
 		return $mapped_objects;
 	}
 
-	private function set_value( ObjectWrapper $object, Property $property, $value ) {
-		if ( 'public' === $property->visibility ) {
+	private function set_value(ObjectWrapper $object, Property $property, $value)
+	{
+		if ('public' === $property->visibility) {
 			$object->getObject()->{$property->name} = $value;
 			return;
 		}
 
-		$method_name = 'set' . \ucfirst( $property->name );
-		if ( \method_exists( $object->getObject(), $method_name ) ) {
-			$method     = new ReflectionMethod( $object->getObject(), $method_name );
+		$method_name = 'set' . \ucfirst($property->name);
+		if (\method_exists($object->getObject(), $method_name)) {
+			$method = new ReflectionMethod($object->getObject(), $method_name);
 			$parameters = $method->getParameters();
 
-			if ( \is_array( $value ) && \count( $parameters ) === 1 && $parameters[0]->isVariadic() ) {
-				$object->getObject()->$method_name( ...$value );
+			if (\is_array($value) && \count($parameters) === 1 && $parameters[0]->isVariadic()) {
+				$object->getObject()->$method_name(...$value);
 				return;
 			}
 
-			$object->getObject()->$method_name( $value );
+			$object->getObject()->$method_name($value);
 			return;
 		}
 
@@ -185,56 +328,62 @@ class JsonMapper {
 		);
 	}
 
-	private function sanitise_class_name( string $class_name ): string {
+	private function sanitise_class_name(string $class_name): string
+	{
 		/* Erase leading slash as ::class doesn't contain leading slash */
-		if ( strpos( $class_name, '\\' ) === 0 ) {
-			$class_name = substr( $class_name, 1 );
+		if (strpos($class_name, '\\') === 0) {
+			$class_name = substr($class_name, 1);
 		}
 		return $class_name;
 	}
 
-	private function has_factory( string $class_name ): bool {
-		return array_key_exists( $this->sanitise_class_name( $class_name ), $this->factories );
+	private function has_factory(string $class_name): bool
+	{
+		return array_key_exists($this->sanitise_class_name($class_name), $this->factories);
 	}
 
-	private function use_factory( string $class_name, $params ) {
-		$factory = $this->factories[ $this->sanitise_class_name( $class_name ) ];
-		return $factory( $params );
+	private function use_factory(string $class_name, $params)
+	{
+		$factory = $this->factories[$this->sanitise_class_name($class_name)];
+		return $factory($params);
 	}
 
-	private function add_factory( string $class_name, callable $factory ) {
-		$this->factories[ $this->sanitise_class_name( $class_name ) ] = $factory;
+	private function add_factory(string $class_name, callable $factory)
+	{
+		$this->factories[$this->sanitise_class_name($class_name)] = $factory;
 	}
 
-	private function add_custom_factories( array $custom_factories ) {
-		foreach ( $custom_factories as $class_name => $custom_factory ) {
-			$this->add_factory( $class_name, $custom_factory );
+	private function add_custom_factories(array $custom_factories)
+	{
+		foreach ($custom_factories as $class_name => $custom_factory) {
+			$this->add_factory($class_name, $custom_factory);
 		}
 	}
 
-	private function add_factories_for_native_php_classes() {
+	private function add_factories_for_native_php_classes()
+	{
 		$this->add_factory(
 			\DateTime::class,
-			static function ( string $value ) {
-				return new \DateTime( $value );
+			static function (string $value) {
+				return new \DateTime($value);
 			}
 		);
 		$this->add_factory(
 			\DateTimeImmutable::class,
-			static function ( string $value ) {
-				return new \DateTimeImmutable( $value );
+			static function (string $value) {
+				return new \DateTimeImmutable($value);
 			}
 		);
 		$this->add_factory(
 			stdClass::class,
-			static function ( $value ) {
-				return (object) $value;
+			static function ($value) {
+				return (object)$value;
 			}
 		);
 		$this->add_factory(
 			\ArrayObject::class,
-			function ( $value ) {
-				return new \ArrayObject( $value );
+			function ($value) {
+				return new \ArrayObject($value);
 			}
 		);
 	}
@@ -244,9 +393,10 @@ class JsonMapper {
 	 * @param string $property_name
 	 * @return null|Property
 	 */
-	private static function get_property ( array $property_map, string $property_name ) {
-		foreach ( $property_map as $property ) {
-			if ( $property->name === $property_name ) {
+	private static function get_property(array $property_map, string $property_name)
+	{
+		foreach ($property_map as $property) {
+			if ($property->name === $property_name) {
 				return $property;
 			}
 		}
