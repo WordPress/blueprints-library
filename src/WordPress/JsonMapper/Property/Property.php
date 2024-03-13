@@ -19,7 +19,7 @@ class Property {
 		string $name,
 		string $visibility,
 		bool $is_nullable,
-		PropertyType ...$types
+		array $types = array()
 	) {
 		$this->name           = $name;
 		$this->visibility     = $visibility;

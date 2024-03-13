@@ -90,16 +90,16 @@ class NamespaceResolver implements PropertyMapperInterface {
 
 
 	/** @param Import[] $imports */
-	private function resolveSingleType( PropertyType $type, ObjectWrapper $object, array $imports ): PropertyType {
-		if ( $this->is_valid_scalar_type( $type ) ) {
-			return $type;
+	private function resolveSingleType(string $property_type, ObjectWrapper $object, array $imports ): string {
+		if ( $this->is_valid_scalar_type( $property_type ) ) {
+			return $property_type;
 		}
 
-		$pos = strpos( $type->getType(), '\\' );
+		$pos = strpos( $property_type, '\\' );
 		if ( $pos === false ) {
-			$pos = strlen( $type->getType() );
+			$pos = strlen( $property_type );
 		}
-		$nameSpacedFirstChunk = '\\' . substr( $type->getType(), 0, $pos );
+		$nameSpacedFirstChunk = '\\' . substr( $property_type, 0, $pos );
 
 		$matches = \array_filter(
 			$imports,
@@ -115,23 +115,20 @@ class NamespaceResolver implements PropertyMapperInterface {
 		if ( count( $matches ) > 0 ) {
 			$match = \array_shift( $matches );
 			if ( $match->hasAlias() ) {
-				$strippedType       = \substr( $type->getType(), strlen( $nameSpacedFirstChunk ) );
+				$strippedType       = \substr( $property_type, strlen( $nameSpacedFirstChunk ) );
 				$fullyQualifiedType = $match->getImport() . '\\' . $strippedType;
 			} else {
 				$strippedMatch      = \substr( $match->getImport(), 0, -strlen( $nameSpacedFirstChunk ) );
-				$fullyQualifiedType = $strippedMatch . '\\' . $type->getType();
+				$fullyQualifiedType = $strippedMatch . '\\' . $property_type;
 			}
 
-			return new PropertyType( rtrim( $fullyQualifiedType, '\\' ), $type->getArrayInformation() );
+			return rtrim( $fullyQualifiedType, '\\' );
 		}
 
 		$reflectedObject = $object->getReflectedObject();
 		while ( true ) {
-			if ( class_exists( $reflectedObject->getNamespaceName() . '\\' . $type->getType() ) ) {
-				return new PropertyType(
-					$reflectedObject->getNamespaceName() . '\\' . $type->getType(),
-					$type->getArrayInformation()
-				);
+			if ( class_exists( $reflectedObject->getNamespaceName() . '\\' . $property_type ) ) {
+				return $reflectedObject->getNamespaceName() . '\\' . $property_type;
 			}
 
 			$reflectedObject = $reflectedObject->getParentClass();
@@ -140,14 +137,14 @@ class NamespaceResolver implements PropertyMapperInterface {
 			}
 		}
 
-		return $type;
+		return $property_type;
 	}
 
 	/**
-	 * @param PropertyType $type
+	 * @param string $property_type
 	 * @return bool
 	 */
-	private function is_valid_scalar_type( PropertyType $type ): bool {
-		return in_array( $type->getType(), $this->scalar_types, true );
+	private function is_valid_scalar_type( string $property_type ): bool {
+		return in_array( $property_type, $this->scalar_types, true );
 	}
 }

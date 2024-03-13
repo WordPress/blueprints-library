@@ -51,7 +51,7 @@ class DocBlockAnnotations implements PropertyMapperInterface {
 
 			/* A union type that has one of its types defined as array is to complex to understand */
 			if ( in_array( 'array', $types, true ) ) {
-				$property->property_types[] = new PropertyType( 'mixed', ArrayInformation::singleDimension() );
+				$property->property_types[] = 'mixed';
 				$intermediate_property_map->addProperty( $property );
 				continue;
 			}
@@ -61,18 +61,17 @@ class DocBlockAnnotations implements PropertyMapperInterface {
 				$is_array = substr( $type, -2 ) === '[]';
 
 				if ( ! $is_array ) {
-					$property->property_types[] = new PropertyType( $type, ArrayInformation::notAnArray() );
+					$property->property_types[] = $type;
 					continue;
 				}
 
 				$first_bracket_index = strpos( $type, '[' );
-				$dimensions          = substr_count( $type, '[]' );
 
 				if ( false !== $first_bracket_index ) {
 					$type = substr( $type, 0, $first_bracket_index );
 				}
 
-				$property->property_types[] = new PropertyType( $type, ArrayInformation::multiDimension( $dimensions ) );
+				$property->property_types[] = $type;
 			}
 
 			$intermediate_property_map->addProperty( $property );

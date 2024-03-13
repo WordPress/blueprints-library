@@ -82,43 +82,43 @@ class JsonMapper {
 		}
 		// No match was found (or there was only one option) lets assume the first is the right one.
 		$types = $property->property_types;
-		$type  = \array_shift( $types );
+		$property_type  = \array_shift( $types );
 
-		if ( null === $type ) {
+		if ( null === $property_type ) {
 			// Return the value as is as there is no type info.
 			return $value;
 		}
 
-		if ( $this->is_valid_scalar_type( $type ) ) {
-			return $this->map_to_scalar( $type, $value );
+		if ( $this->is_valid_scalar_type( $property_type ) ) {
+			return $this->map_to_scalar( $property_type, $value );
 		}
 
-		if ( $this->has_factory( $type->getType() ) ) {
-			return $this->map_to_object_using_factory( $type, $value );
+		if ( $this->has_factory( $property_type ) ) {
+			return $this->map_to_object_using_factory( $property_type, $value );
 		}
 
-		if ( ( class_exists( $type->getType() ) || interface_exists( $type->getType() ) ) ) {
-			return $this->map_to_object( $type, $value );
+		if ( ( class_exists( $property_type ) || interface_exists( $property_type ) ) ) {
+			return $this->map_to_object( $property_type, $value );
 		}
 
-		throw new JsonMapperException( "Unable to map to \'{$type->getType()}\'" );
+		throw new JsonMapperException( "Unable to map to \'{$property_type}\'" );
 	}
 
 	/**
-	 * @param PropertyType $type
+	 * @param string $property_type
 	 * @return bool
 	 */
-	private function is_valid_scalar_type( PropertyType $type ): bool {
-		return in_array( $type->getType(), $this->scalar_types, true );
+	private function is_valid_scalar_type( string $property_type ): bool {
+		return in_array( $property_type, $this->scalar_types, true );
 	}
 
-	private function map_to_scalar( PropertyType $type, $value ) {
+	private function map_to_scalar(string $property_type, $value ) {
 		if ( false === is_array( $value ) ) {
-			return $this->cast_to_scalar_type( $type->getType(), $value );
+			return $this->cast_to_scalar_type( $property_type, $value );
 		}
 		$mapped_scalars = array();
 		foreach ( $value as $inner_value ) {
-			$mapped_scalars[] = $this->map_to_scalar( $type, $inner_value );
+			$mapped_scalars[] = $this->map_to_scalar( $property_type, $inner_value );
 		}
 		return $mapped_scalars;
 	}
@@ -140,27 +140,27 @@ class JsonMapper {
 		throw new JsonMapperException( "Casting to scalar type \'$type\' failed." );
 	}
 
-	private function map_to_object_using_factory( PropertyType $type, $value ) {
+	private function map_to_object_using_factory(string $property_type, $value ) {
 		if ( false === is_array( $value ) ) {
-			return $this->use_factory( $type->getType(), $value );
+			return $this->use_factory( $property_type, $value );
 		}
 		$mapped_objects = array();
 		foreach ( $value as $inner_value ) {
-			$mapped_objects[] = $this->map_to_object_using_factory( $type, $inner_value );
+			$mapped_objects[] = $this->map_to_object_using_factory( $property_type, $inner_value );
 		}
 		return $mapped_objects;
 	}
 
-	private function map_to_object( PropertyType $type, $value ) {
-		if ( false === ( new ReflectionClass( $type->getType() ) )->isInstantiable() ) {
-			throw new JsonMapperException( "Unable to resolve uninstantiable \'{$type->getType()}\'." );
+	private function map_to_object(string $property_type, $value ) {
+		if ( false === ( new ReflectionClass( $property_type ) )->isInstantiable() ) {
+			throw new JsonMapperException( "Unable to resolve uninstantiable \'{$property_type}\'." );
 		}
 		if ( false === is_array( $value ) ) {
-			return $this->mapper->hydrate( $value, $type->getType() );
+			return $this->hydrate( $value, $property_type );
 		}
 		$mapped_objects = array();
 		foreach ( $value as $inner_value ) {
-			$mapped_objects[] = $this->map_to_object( $type, $inner_value );
+			$mapped_objects[] = $this->map_to_object( $property_type, $inner_value );
 		}
 		return $mapped_objects;
 	}
