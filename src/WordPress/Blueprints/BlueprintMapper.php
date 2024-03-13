@@ -5,10 +5,10 @@ namespace WordPress\Blueprints;
 use stdClass;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\ModelInfo;
-use WordPress\JsonMapper\Evaluators\DocBlockAnnotations;
-use WordPress\JsonMapper\Evaluators\NamespaceResolver;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
+use WordPress\JsonMapper\Property\DocBlockAnnotations;
+use WordPress\JsonMapper\Property\NamespaceResolver;
 
 class BlueprintMapper {
 	/**

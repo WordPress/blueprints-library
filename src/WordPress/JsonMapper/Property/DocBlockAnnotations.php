@@ -1,15 +1,12 @@
 <?php
 
-namespace WordPress\JsonMapper\Evaluators;
+namespace WordPress\JsonMapper\Property;
 
 use ReflectionProperty;
 use WordPress\JsonMapper\ArrayInformation;
 use WordPress\JsonMapper\ObjectWrapper;
-use WordPress\JsonMapper\Property\Property;
-use WordPress\JsonMapper\Property\PropertyMap;
-use WordPress\JsonMapper\Property\PropertyType;
 
-class DocBlockAnnotations {
+class DocBlockAnnotations implements PropertyMapperInterface {
 
 	const DOC_BLOCK_REGEX = '/@(?P<name>[A-Za-z_-]+)[ \t]+(?P<value>[\w\[\]\\\\|]*).*$/m';
 

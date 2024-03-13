@@ -5,13 +5,20 @@ namespace WordPress\JsonMapper;
 use stdClass;
 use WordPress\JsonMapper\Property\Property;
 use WordPress\JsonMapper\Property\PropertyMap;
+use WordPress\JsonMapper\Property\PropertyMapperInterface;
 use WordPress\JsonMapper\Property\PropertyType;
 
 class JsonMapper {
 	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
 
+	/**
+	 * @var PropertyMapperInterface[]
+	 */
 	private $property_mappers;
 
+	/**
+	 * @var array{$class_name}
+	 */
 	private $factories = array();
 
 	public function __construct( array $property_mappers = array(), array $custom_factories = array() ) {
@@ -25,7 +32,9 @@ class JsonMapper {
 		$object_wrapper = new ObjectWrapper( null, $target );
 		$property_map   = new PropertyMap();
 
-		foreach ( $this->property_mappers as $property_mapper ) {
+
+		/** @var PropertyMapperInterface $property_mapper */
+		foreach ($this->property_mappers as $property_mapper ) {
 			$property_mapper->map_properties( $object_wrapper, $property_map );
 		}
 
@@ -51,13 +60,13 @@ class JsonMapper {
 
 			$property = $property_map->get_property( $key );
 
-			if ( false === $property->is_nullable() && null === $value ) {
+			if ( false === $property->is_nullable && null === $value ) {
 				throw new JsonMapperException(
 					"Null provided in json where \'{$object_wrapper->getName()}::{$key}\' doesn't allow null value"
 				);
 			}
 
-			if ( $property->is_nullable() && null === $value ) {
+			if ( $property->is_nullable && null === $value ) {
 				$this->set_value( $object_wrapper, $property, null );
 				continue;
 			}
@@ -68,11 +77,11 @@ class JsonMapper {
 	}
 
 	private function map_value( Property $property, $value ) {
-		if ( null === $value && $property->is_nullable() ) {
+		if ( null === $value && $property->is_nullable ) {
 			return null;
 		}
 		// No match was found (or there was only one option) lets assume the first is the right one.
-		$types = $property->get_property_types();
+		$types = $property->property_types;
 		$type  = \array_shift( $types );
 
 		if ( null === $type ) {
@@ -158,11 +167,11 @@ class JsonMapper {
 
 	private function set_value( ObjectWrapper $object, Property $property, $value ) {
 		if ( 'public' === $property->visibility ) {
-			$object->getObject()->{$property->get_name()} = $value;
+			$object->getObject()->{$property->name} = $value;
 			return;
 		}
 
-		$method_name = 'set' . \ucfirst( $property->get_name() );
+		$method_name = 'set' . \ucfirst( $property->name );
 		if ( \method_exists( $object->getObject(), $method_name ) ) {
 			$method     = new ReflectionMethod( $object->getObject(), $method_name );
 			$parameters = $method->getParameters();
@@ -177,7 +186,7 @@ class JsonMapper {
 		}
 
 		throw new JsonMapperException(
-			"{$object->getName()}::{$property->get_name()} is non-public and no setter method was found"
+			"{$object->getName()}::{$property->name} is non-public and no setter method was found"
 		);
 	}
 

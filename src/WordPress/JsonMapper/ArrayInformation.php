@@ -2,7 +2,7 @@
 
 namespace WordPress\JsonMapper;
 
-class ArrayInformation implements \JsonSerializable
+class ArrayInformation
 {
 	/** @var bool */
 	private $isArray;
@@ -28,24 +28,5 @@ class ArrayInformation implements \JsonSerializable
 	public static function multiDimension(int $dimension): self
 	{
 		return new self(true, $dimension);
-	}
-
-	public function isArray(): bool
-	{
-		return $this->isArray;
-	}
-
-	public function jsonSerialize(): array
-	{
-		return [
-			'isArray' => $this->isArray,
-			'dimensions' => $this->dimensions
-		];
-	}
-
-	public function equals(self $other): bool
-	{
-		return $this->isArray === $other->isArray
-			&& $this->dimensions === $other->dimensions;
 	}
 }

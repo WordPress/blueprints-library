@@ -15,8 +15,8 @@ class PropertyMap implements \IteratorAggregate, \JsonSerializable {
 	public function __construct() {}
 
 	public function addProperty( Property $property ) {
-		$this->map[ $property->get_name() ] = $property;
-		$this->iterator                     = null;
+		$this->map[ $property->name ] = $property;
+		$this->iterator               = null;
 	}
 
 	public function has_property( string $name ): bool {
@@ -32,26 +32,22 @@ class PropertyMap implements \IteratorAggregate, \JsonSerializable {
 	}
 
 	public function merge( self $other ) {
-		/** @var Property $property */
-		foreach ( $other as $property ) {
-			if ( ! $this->has_property( $property->get_name() ) ) {
-				$this->addProperty( $property );
+		/** @var Property $other_property */
+		foreach ( $other as $other_property ) {
+			$other_name = $other_property->name;
+			if ( false === $this->has_property( $other_name ) ) {
+				$this->addProperty( $other_property );
 				continue;
 			}
 
-			if ( $property == $this->get_property( $property->get_name() ) ) {
+			if ( $other_property === $this->get_property( $other_name ) ) {
 				continue;
 			}
 
-			$current = $this->get_property( $property->get_name() );
-			$builder = $current->as_builder();
-
-			$builder->setIsNullable( $current->is_nullable() || $property->is_nullable() );
-			foreach ( $property->get_property_types() as $propertyType ) {
-				$builder->addType( $propertyType->getType(), $propertyType->getArrayInformation() );
-			}
-
-			$this->addProperty( $builder->build() );
+			$property                 = $this->get_property( $other_name );
+			$property->is_nullable    = $property->is_nullable || $other_property->is_nullable;
+			$property->property_types = array_merge( $property->property_types, $other_property->property_types );
+			$this->addProperty( $property );
 		}
 		$this->iterator = null;
 	}

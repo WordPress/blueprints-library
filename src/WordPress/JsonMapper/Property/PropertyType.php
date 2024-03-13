@@ -20,19 +20,7 @@ class PropertyType {
 		return $this->type;
 	}
 
-	public function isArray(): bool {
-		return $this->arrayInformation->isArray();
-	}
-
 	public function getArrayInformation(): ArrayInformation {
 		return $this->arrayInformation;
-	}
-
-	public function jsonSerialize(): array {
-		return array(
-			'type'             => $this->type,
-			'isArray'          => $this->arrayInformation->isArray(),
-			'arrayInformation' => $this->arrayInformation,
-		);
 	}
 }

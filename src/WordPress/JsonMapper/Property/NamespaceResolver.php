@@ -1,18 +1,14 @@
 <?php
 
-namespace WordPress\JsonMapper\Evaluators;
+namespace WordPress\JsonMapper\Property;
 
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use WordPress\JsonMapper\Import;
-use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\ObjectWrapper;
-use WordPress\JsonMapper\Property\Property;
-use WordPress\JsonMapper\Property\PropertyMap;
-use WordPress\JsonMapper\Property\PropertyType;
 use WordPress\JsonMapper\UseNodeVisitor;
 
-class NamespaceResolver {
+class NamespaceResolver implements PropertyMapperInterface {
 
 	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
 
@@ -30,11 +26,12 @@ class NamespaceResolver {
 
 		/** @var Property $property */
 		foreach ( $originalPropertyMap as $property ) {
-			$types = $property->get_property_types();
+			$types = $property->property_types;
 			foreach ( $types as $index => $type ) {
 				$types[ $index ] = $this->resolveSingleType( $type, $object, $imports );
 			}
-			$intermediatePropertyMap->addProperty( $property->as_builder()->setTypes( ...$types )->build() );
+			$property->property_types = $types;
+			$intermediatePropertyMap->addProperty( $property );
 		}
 
 		return $intermediatePropertyMap;
