@@ -2,6 +2,7 @@
 
 namespace WordPress\JsonMapper\Property;
 
+use ReflectionClass;
 use ReflectionProperty;
 use WordPress\JsonMapper\ArrayInformation;
 use WordPress\JsonMapper\ObjectWrapper;
@@ -126,7 +127,7 @@ class DocBlockAnnotations implements PropertyMapperInterface {
 	 */
 	private static function get_properties( ObjectWrapper $object ): array {
 		$properties       = array();
-		$reflection_class = $object->getReflectedObject();
+		$reflection_class = new ReflectionClass( $object->getObject() );
 		do {
 			$properties = array_merge( $properties, $reflection_class->getProperties() );
 		} while ( $reflection_class = $reflection_class->getParentClass() );

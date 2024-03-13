@@ -2,11 +2,11 @@
 
 namespace WordPress\JsonMapper;
 
+use ReflectionClass;
 use stdClass;
 use WordPress\JsonMapper\Property\Property;
 use WordPress\JsonMapper\Property\PropertyMap;
 use WordPress\JsonMapper\Property\PropertyMapperInterface;
-use WordPress\JsonMapper\Property\PropertyType;
 
 class JsonMapper {
 	private $scalar_types = array( 'string', 'bool', 'boolean', 'int', 'integer', 'double', 'float' );
@@ -24,14 +24,12 @@ class JsonMapper {
 	public function __construct( array $property_mappers = array(), array $custom_factories = array() ) {
 		$this->property_mappers = $property_mappers;
 		$this->add_factories_for_native_php_classes();
-		$this->add_factory_for_arrays();
 		$this->add_custom_factories( $custom_factories );
 	}
 
 	public function hydrate( stdClass $json, string $target ) {
 		$object_wrapper = new ObjectWrapper( null, $target );
 		$property_map   = new PropertyMap();
-
 
 		/** @var PropertyMapperInterface $property_mapper */
 		foreach ($this->property_mappers as $property_mapper ) {
@@ -44,7 +42,6 @@ class JsonMapper {
 	}
 
 	public function map_json_to_object(stdClass $json, ObjectWrapper $object_wrapper, PropertyMap $property_map ) {
-		// If the type we are mapping has a last minute factory use it.
 		if ( $this->has_factory( $object_wrapper->getName() ) ) {
 			$result = $this->use_factory( $object_wrapper->getName(), $json );
 
@@ -237,9 +234,6 @@ class JsonMapper {
 				return (object) $value;
 			}
 		);
-	}
-
-	private function add_factory_for_arrays() {
 		$this->add_factory(
 			\ArrayObject::class,
 			function ( $value ) {

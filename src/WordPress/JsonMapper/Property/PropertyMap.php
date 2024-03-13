@@ -5,7 +5,7 @@ namespace WordPress\JsonMapper\Property;
 use ArrayIterator;
 use function array_key_exists;
 
-class PropertyMap implements \IteratorAggregate, \JsonSerializable {
+class PropertyMap implements \IteratorAggregate {
 	/** @var Property[] */
 	private $map = array();
 
@@ -59,13 +59,6 @@ class PropertyMap implements \IteratorAggregate, \JsonSerializable {
 		}
 
 		return $this->iterator;
-	}
-
-	// phpcs:ignore
-	public function jsonSerialize(): array {
-		return array(
-			'properties' => $this->map,
-		);
 	}
 
 	public function toString(): string {
