@@ -10,6 +10,7 @@ use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
+use WordPress\JsonMapper\JsonMapperException;
 
 class BlueprintMapperTest extends TestCase {
 
@@ -47,7 +48,7 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
+		$expected                   = new Blueprint();
 		$expected->WordPressVersion = 'https://wordpress.org/latest.zip';
 
 		$this->assertEquals( $expected, $result );
@@ -68,7 +69,7 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
+		$expected          = new Blueprint();
 		$expected->plugins = array(
 			'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
 			'https://downloads.wordpress.org/plugin/hello-dolly.zip',
@@ -91,13 +92,28 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
+		$expected          = new Blueprint();
 		$expected->plugins = array(
 			'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
-			( new UrlResource() ) ->setUrl( "https://mysite.com" ),
+			( new UrlResource() )->setUrl( 'https://mysite.com' ),
 		);
 
 		$this->assertEquals( $expected, $result );
+	}
+
+	public function testFailsWhenPluginsWithInvalidDataTypes() {
+		$raw_blueprint =
+			'{
+				"plugins": [
+					"https://downloads.wordpress.org/plugin/wordpress-importer.zip",
+					123
+        		]
+			}';
+
+		$parsed_json = json_decode( $raw_blueprint, false );
+
+		$this->expectException( JsonMapperException::class );
+		$this->blueprint_mapper->map( $parsed_json );
 	}
 
 	public function testMapsWhenSpecificStepAppearsTwice() {
@@ -115,11 +131,11 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
+		$expected        = new Blueprint();
 		$expected->steps = array(
-			0 => ( new MkdirStep() )->setPath('dir1'),
-			1 => ( new RmStep() )->setPath('dir1'),
-			2 => ( new MkdirStep() )->setPath('dir2')
+			0 => ( new MkdirStep() )->setPath( 'dir1' ),
+			1 => ( new RmStep() )->setPath( 'dir1' ),
+			2 => ( new MkdirStep() )->setPath( 'dir2' ),
 		);
 
 		$this->assertEquals( $expected, $result );
@@ -140,13 +156,15 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
-		$expected->constants = new ArrayObject(array(
-			'WP_DEBUG' => true,
-			'WP_DEBUG_LOG' => true,
-			'WP_DEBUG_DISPLAY' => true,
-			'WP_CACHE' => true
-		));
+		$expected            = new Blueprint();
+		$expected->constants = new ArrayObject(
+			array(
+				'WP_DEBUG'         => true,
+				'WP_DEBUG_LOG'     => true,
+				'WP_DEBUG_DISPLAY' => true,
+				'WP_CACHE'         => true,
+			)
+		);
 
 		$this->assertEquals( $expected, $result );
 	}
@@ -163,11 +181,13 @@ class BlueprintMapperTest extends TestCase {
 
 		$result = $this->blueprint_mapper->map( $parsed_json );
 
-		$expected = new Blueprint();
-		$expected->siteOptions = new \ArrayObject(array(
-				'blogname' => 'My Blog',
-				'blogdescription' => 'A great blog'
-		));
+		$expected              = new Blueprint();
+		$expected->siteOptions = new \ArrayObject(
+			array(
+				'blogname'        => 'My Blog',
+				'blogdescription' => 'A great blog',
+			)
+		);
 
 		$this->assertEquals( $expected, $result );
 	}
