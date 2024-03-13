@@ -59,7 +59,6 @@ class ObjectWrapper {
 		return $this->object;
 	}
 
-
 	/** @return class-string */
 	public function getClassName(): string {
 		return $this->class_name;

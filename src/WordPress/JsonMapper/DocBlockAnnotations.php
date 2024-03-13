@@ -47,7 +47,7 @@ class DocBlockAnnotations {
 			/* A union type that has one of its types defined as array is to complex to understand */
 			if ( in_array( 'array', $types, true ) ) {
 				$property->property_types[] = 'mixed';
-				$property_map[] = $property ;
+				$property_map[]             = $property;
 				continue;
 			}
 
@@ -69,7 +69,7 @@ class DocBlockAnnotations {
 				$property->property_types[] = $type;
 			}
 
-			$property_map[] = $property ;
+			$property_map[] = $property;
 		}
 
 		return $property_map;
@@ -94,7 +94,7 @@ class DocBlockAnnotations {
 	 * @return string|null
 	 */
 	private static function parse_var( string $doc_block ): string {
-		// Strip away the start "/**' and ending "*/".
+		// Strip away the start "/**" and ending "*/".
 		if ( strpos( $doc_block, '/**' ) === 0 ) {
 			$doc_block = \substr( $doc_block, 3 );
 		}
@@ -121,7 +121,7 @@ class DocBlockAnnotations {
 	 */
 	private static function get_properties( ObjectWrapper $object ): array {
 		$properties       = array();
-		$reflection_class = new ReflectionClass( $object->getObject() );
+		$reflection_class = $object->getReflectedObject();
 		do {
 			$properties = array_merge( $properties, $reflection_class->getProperties() );
 		} while ( $reflection_class = $reflection_class->getParentClass() );

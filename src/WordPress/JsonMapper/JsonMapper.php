@@ -3,6 +3,7 @@
 namespace WordPress\JsonMapper;
 
 use ReflectionClass;
+use ReflectionMethod;
 use stdClass;
 
 class JsonMapper {
@@ -18,8 +19,14 @@ class JsonMapper {
 		$this->add_custom_factories( $custom_factories );
 	}
 
-	public function hydrate( stdClass $json, string $target ) {
-		$object_wrapper = new ObjectWrapper( null, $target );
+	/**
+	 * @param stdClass $json
+	 * @param string $class_name
+	 * @return object
+	 * @throws JsonMapperException
+	 */
+	public function hydrate( stdClass $json, string $class_name ) {
+		$object_wrapper = new ObjectWrapper( null, $class_name );
 
 		$property_map = DocBlockAnnotations::compute_property_map( $object_wrapper );
 
@@ -35,7 +42,7 @@ class JsonMapper {
 	 * @return void
 	 * @throws JsonMapperException
 	 */
-	public function map_json_to_object(stdClass $json, ObjectWrapper $object_wrapper, array $property_map ) {
+	private function map_json_to_object( stdClass $json, ObjectWrapper $object_wrapper, array $property_map ) {
 		if ( $this->has_factory( $object_wrapper->getName() ) ) {
 			$result = $this->use_factory( $object_wrapper->getName(), $json );
 
@@ -128,7 +135,7 @@ class JsonMapper {
 		throw new JsonMapperException( "Casting to scalar type \'$type\' failed." );
 	}
 
-	private function map_to_object_using_factory(string $property_type, $value ) {
+	private function map_to_object_using_factory( string $property_type, $value ): array{
 		if ( false === is_array( $value ) ) {
 			return $this->use_factory( $property_type, $value );
 		}
@@ -183,7 +190,6 @@ class JsonMapper {
 		if ( strpos( $class_name, '\\' ) === 0 ) {
 			$class_name = substr( $class_name, 1 );
 		}
-
 		return $class_name;
 	}
 
@@ -200,7 +206,7 @@ class JsonMapper {
 		$this->factories[ $this->sanitise_class_name( $class_name ) ] = $factory;
 	}
 
-	public function add_custom_factories( array $custom_factories ) {
+	private function add_custom_factories( array $custom_factories ) {
 		foreach ( $custom_factories as $class_name => $custom_factory ) {
 			$this->add_factory( $class_name, $custom_factory );
 		}
@@ -238,7 +244,7 @@ class JsonMapper {
 	 * @param string $property_name
 	 * @return null|Property
 	 */
-	public static function get_property ( array $property_map, string $property_name ) {
+	private static function get_property ( array $property_map, string $property_name ) {
 		foreach ( $property_map as $property ) {
 			if ( $property->name === $property_name ) {
 				return $property;
