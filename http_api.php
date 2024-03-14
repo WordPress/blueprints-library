@@ -6,7 +6,6 @@ require __DIR__ . '/src/WordPress/Blueprints/Resources/ResourceMap.php';
 
 use WordPress\Streams\StreamPeeker;
 use WordPress\Streams\StreamPeekerContext;
-use WordPress\Blueprints\Resources\ResourceMap;
 
 function streams_http_open_nonblocking( $urls ) {
 	$streams = [];
@@ -222,12 +221,19 @@ function monitor_progress( $stream, $contentLength, $onProgress ) {
 	);
 }
 
-class AsyncStreamsCollection {
+/**
+ * Groups PHP streams.
+ * Whenever any stream is read, polls all the streams. Whenever other
+ * streams have data before the requested stream does, it is buffered
+ * for later. This means we'll read all the streams in parallel and will
+ * complete the downloading faster than if we were to read them sequentially.
+ */
+class StreamPollingGroup {
 	protected $nb_streams = 0;
 	protected array $streams;
 	protected array $buffers;
 
-	public function __construct( $streams ) {
+	public function __construct( $streams = [] ) {
 		foreach ( $streams as $stream ) {
 			$this->add_stream( $stream );
 		}
@@ -267,6 +273,152 @@ class AsyncStreamsCollection {
 	}
 }
 
+class VanillaStreamWrapperData {
+	public $fp;
+
+	public function __construct( $fp ) {
+		$this->fp = $fp;
+	}
+}
+
+class VanillaStreamWrapper {
+	protected $stream;
+
+	protected $context;
+
+	protected $wrapper_data;
+
+	protected static $isRegistered = false;
+
+	const SCHEME = 'vanilla';
+
+	static public function register() {
+		if ( static::$isRegistered ) {
+			return;
+		}
+		if ( ! stream_wrapper_register( static::SCHEME, static::class ) ) {
+			throw new \Exception( 'Failed to register protocol' );
+		}
+		static::$isRegistered = true;
+	}
+
+	static public function unregister() {
+		stream_wrapper_unregister( 'async' );
+	}
+
+	static public function wrap( VanillaStreamWrapperData $data ) {
+		static::register();
+
+		$context = stream_context_create( [
+			static::SCHEME => [
+				'wrapper_data' => $data,
+			],
+		] );
+
+		return fopen( static::SCHEME . '://', 'r', false, $context );
+	}
+
+	public function stream_set_option( int $option, int $arg1, ?int $arg2 ): bool {
+		if ( \STREAM_OPTION_BLOCKING === $option ) {
+			return stream_set_blocking( $this->stream, (bool) $arg1 );
+		} elseif ( \STREAM_OPTION_READ_TIMEOUT === $option ) {
+			return stream_set_timeout( $this->stream, $arg1, $arg2 );
+		}
+
+		return false;
+	}
+
+	// Opens the stream
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		$contextOptions = stream_context_get_options( $this->context );
+
+		if ( ! isset( $contextOptions[ static::SCHEME ]['wrapper_data'] ) || ! is_object( $contextOptions[ static::SCHEME ]['wrapper_data'] ) ) {
+			return false;
+		}
+
+		$this->wrapper_data = $contextOptions[ static::SCHEME ]['wrapper_data'];
+
+		if ( ! $this->wrapper_data->fp ) {
+			return false;
+		}
+		$this->stream = $this->wrapper_data->fp;
+
+		return true;
+	}
+
+	public function stream_cast( int $cast_as ) {
+		return $this->stream;
+	}
+
+	// Reads from the stream
+	public function stream_read( $count ) {
+		return fread( $this->stream, $count );
+	}
+
+	// Writes to the stream
+	public function stream_write( $data ) {
+		return fwrite( $this->stream, $data );
+	}
+
+	// Closes the stream
+	public function stream_close() {
+		fclose( $this->stream );
+	}
+
+	// Returns the current position of the stream
+	public function stream_tell() {
+		return ftell( $this->stream );
+	}
+
+	// Checks if the end of the stream has been reached
+	public function stream_eof() {
+		return feof( $this->stream );
+	}
+
+	// Seeks to a specific position in the stream
+	public function stream_seek( $offset, $whence ) {
+		return fseek( $this->stream, $offset, $whence );
+	}
+
+	// Stat information about the stream; providing dummy data
+	public function stream_stat() {
+		return [];
+	}
+}
+
+class AsyncStreamWrapperData extends VanillaStreamWrapperData {
+	public StreamPollingGroup $collection;
+
+	public function __construct( $fp, StreamPollingGroup $collection ) {
+		parent::__construct( $fp );
+		$this->collection = $collection;
+	}
+}
+
+class AsyncStreamWrapper extends VanillaStreamWrapper {
+	const SCHEME = 'async';
+	/** @var StreamPollingGroup */
+	private $collection;
+
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		if ( ! parent::stream_open( $path, $mode, $options, $opened_path ) ) {
+			return false;
+		}
+
+		if ( ! $this->wrapper_data->collection ) {
+			return false;
+		}
+		$this->collection = $this->wrapper_data->collection;
+
+		return true;
+	}
+
+	public function stream_read( $count ) {
+		return $this->collection->read_bytes( $this->stream, $count );
+	}
+
+}
+
 function start_downloads( $urls, $onProgress ) {
 	$streams = streams_http_open_nonblocking( $urls );
 	streams_http_requests_send( $streams );
@@ -283,13 +435,25 @@ function start_downloads( $urls, $onProgress ) {
 	);
 }
 
+function stream_add_to_polling_group( $streams, $collection ) {
+	$parallelized = [];
+	foreach ( $streams as $stream ) {
+		$collection->add_stream( $stream );
+		$parallelized[] = AsyncStreamWrapper::wrap( new AsyncStreamWrapperData( $stream, $collection ) );
+	}
+
+	return $parallelized;
+}
+
+$onProgress = function ( $downloaded, $total ) {
+//	echo "Downloaded: $downloaded / $total\n";
+};
+
 $streams = start_downloads( [
 	"https://downloads.wordpress.org/plugin/gutenberg.17.9.0.zip",
 	"https://downloads.wordpress.org/plugin/woocommerce.8.6.1.zip",
 	"https://downloads.wordpress.org/plugin/hello-dolly.1.7.3.zip",
-], function ( $downloaded, $total ) {
-	echo "Downloaded: $downloaded / $total\n";
-} );
+], $onProgress );
 
 // Non-blocking parallel processing – the fastest method.
 //while ( $results = sockets_http_response_await_bytes( $streams, 8096 ) ) {
@@ -306,29 +470,22 @@ $streams = start_downloads( [
 
 // Non-blocking parallelized sequential processing – the second fastest method.
 // Polls all the streams when any stream is read.
-$collection = new AsyncStreamsCollection( $streams );
+$collection = new StreamPollingGroup();
+$streams = stream_add_to_polling_group( $streams, $collection );
 
 // Download one file
-while ( false !== ( $bytes = $collection->read_bytes( $streams[0], 8096 ) ) ) {
-	file_put_contents( 'output0.zip', $bytes, FILE_APPEND );
-}
+file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
 
 // Start more downloads
 $more_streams = start_downloads( [
 	"https://downloads.wordpress.org/plugin/akismet.4.1.12.zip",
 	"https://downloads.wordpress.org/plugin/jetpack.10.0.zip",
 	"https://downloads.wordpress.org/plugin/wordpress-seo.17.9.zip",
-], function ( $downloaded, $total ) {
-	echo "Downloaded: $downloaded / $total\n";
-} );
-foreach ( $more_streams as $k => $stream ) {
-	$collection->add_stream( $stream );
-}
+], $onProgress );
+$more_streams = stream_add_to_polling_group( $more_streams, $collection );
 
 // Download the rest of the files
 $all_streams = array_merge( $streams, $more_streams );
 foreach ( $all_streams as $k => $stream ) {
-	while ( false !== ( $bytes = $collection->read_bytes( $stream, 8096 ) ) ) {
-		file_put_contents( 'output' . $k . '.zip', $bytes, FILE_APPEND );
-	}
+	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ), FILE_APPEND );
 }
