@@ -230,19 +230,27 @@ function monitor_progress( $stream, $contentLength, $onProgress ) {
  */
 class StreamPollingGroup {
 	protected $nb_streams = 0;
-	protected array $streams;
-	protected array $buffers;
+	protected array $streams = [];
+	protected array $buffers = [];
 
-	public function __construct( $streams = [] ) {
-		foreach ( $streams as $stream ) {
-			$this->add_stream( $stream );
-		}
+	public function __construct() {
 	}
 
 	public function add_stream( $stream ) {
 		$key = $this->nb_streams ++;
 		$this->streams[ $key ] = $stream;
 		$this->buffers[ $key ] = '';
+
+		return AsyncStreamWrapper::wrap( new AsyncStreamWrapperData( $stream, $this ) );
+	}
+
+	public function add_streams( array $streams ) {
+		$wrapped = [];
+		foreach ( $streams as $stream ) {
+			$wrapped[] = $this->add_stream( $stream );
+		}
+
+		return $wrapped;
 	}
 
 	public function read_bytes( $stream, $length ) {
@@ -435,15 +443,6 @@ function start_downloads( $urls, $onProgress ) {
 	);
 }
 
-function stream_add_to_polling_group( $streams, $group ) {
-	$parallelized = [];
-	foreach ( $streams as $stream ) {
-		$group->add_stream( $stream );
-		$parallelized[] = AsyncStreamWrapper::wrap( new AsyncStreamWrapperData( $stream, $group ) );
-	}
-
-	return $parallelized;
-}
 
 $onProgress = function ( $downloaded, $total ) {
 	echo "Downloaded: $downloaded / $total\n";
@@ -471,7 +470,7 @@ $streams = start_downloads( [
 // Non-blocking parallelized sequential processing – the second fastest method.
 // Polls all the streams when any stream is read.
 $group = new StreamPollingGroup();
-$streams = stream_add_to_polling_group( $streams, $group );
+$streams = $group->add_streams( $streams );
 
 // Download one file
 file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
@@ -482,7 +481,7 @@ $more_streams = start_downloads( [
 	"https://downloads.wordpress.org/plugin/jetpack.10.0.zip",
 	"https://downloads.wordpress.org/plugin/wordpress-seo.17.9.zip",
 ], $onProgress );
-$more_streams = stream_add_to_polling_group( $more_streams, $group );
+$more_streams = $group->add_streams( $more_streams );
 
 // Download the rest of the files
 $all_streams = array_merge( $streams, $more_streams );
