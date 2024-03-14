@@ -145,12 +145,8 @@ function poll_streams( $streams, $length, $timeout_microseconds = 500000 ) {
 
 function blocking_stream_get_contents( $stream, $timeout_microseconds = 500000 ) {
 	$contents = '';
-	while ( true ) {
-		$byte = blocking_read_from_stream( $stream, 1, $timeout_microseconds );
-		$contents .= $byte;
-		if ( feof( $stream ) ) {
-			break;
-		}
+	while ( $bytes = poll_streams( [ $stream ], 1024, $timeout_microseconds ) ) {
+		$contents .= $bytes[0];
 	}
 
 	return $contents;
@@ -261,11 +257,29 @@ REQUEST;
 	return str_replace( "\n", "\r\n", $request ) . "\r\n\r\n";
 }
 
-function consume_headers( $stream ) {
-	// Assume the response is 200, uncompressed etc
-	$headers_raw = blocking_read_headers( $stream );
-	$headers = parse_headers( $headers_raw );
-	handle_response_headers( $headers );
+function consume_headers( $streams ) {
+	$headers = [];
+	foreach ( $streams as $k => $stream ) {
+		$headers[ $k ] = '';
+	}
+	$remaining_streams = [ ...$streams ];
+	while ( true ) {
+		$bytes = poll_streams( $remaining_streams, 1 );
+		if ( false === $bytes ) {
+			break;
+		}
+		foreach ( $bytes as $k => $byte ) {
+			$headers[ $k ] .= $byte;
+			if ( str_ends_with( $headers[ $k ], "\r\n\r\n" ) ) {
+				unset( $remaining_streams[ $k ] );
+			}
+		}
+	}
+
+	foreach ( $headers as $k => $header ) {
+		$headers[ $k ] = parse_headers( $header );
+		handle_response_headers( $headers[ $k ] );
+	}
 
 	return $headers;
 }
@@ -291,15 +305,17 @@ $streams = start_downloads(
 	]
 );
 
+$headers = consume_headers( $streams );
 foreach ( $streams as $k => $stream ) {
-	$headers = consume_headers( $stream );
-	$streams[ $k ] = monitor_progress( $stream,
-		$headers['headers']['content-length'],
+	$streams[ $k ] = monitor_progress(
+		$stream,
+		$headers[ $k ]['headers']['content-length'],
 		function ( $downloaded, $total ) {
 			echo "onProgress callback " . $downloaded . "/$total\n";
-		} );
-	print_r( $headers );
+		}
+	);
 }
+print_r( $headers );
 
 while ( $results = poll_streams( $streams, 1024 ) ) {
 	foreach ( $results as $k => $chunk ) {
