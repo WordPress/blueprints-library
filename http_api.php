@@ -387,34 +387,34 @@ class VanillaStreamWrapper {
 }
 
 class AsyncStreamWrapperData extends VanillaStreamWrapperData {
-	public StreamPollingGroup $collection;
+	public StreamPollingGroup $group;
 
-	public function __construct( $fp, StreamPollingGroup $collection ) {
+	public function __construct( $fp, StreamPollingGroup $group ) {
 		parent::__construct( $fp );
-		$this->collection = $collection;
+		$this->group = $group;
 	}
 }
 
 class AsyncStreamWrapper extends VanillaStreamWrapper {
 	const SCHEME = 'async';
 	/** @var StreamPollingGroup */
-	private $collection;
+	private $group;
 
 	public function stream_open( $path, $mode, $options, &$opened_path ) {
 		if ( ! parent::stream_open( $path, $mode, $options, $opened_path ) ) {
 			return false;
 		}
 
-		if ( ! $this->wrapper_data->collection ) {
+		if ( ! $this->wrapper_data->group ) {
 			return false;
 		}
-		$this->collection = $this->wrapper_data->collection;
+		$this->group = $this->wrapper_data->group;
 
 		return true;
 	}
 
 	public function stream_read( $count ) {
-		return $this->collection->read_bytes( $this->stream, $count );
+		return $this->group->read_bytes( $this->stream, $count );
 	}
 
 }
@@ -435,18 +435,18 @@ function start_downloads( $urls, $onProgress ) {
 	);
 }
 
-function stream_add_to_polling_group( $streams, $collection ) {
+function stream_add_to_polling_group( $streams, $group ) {
 	$parallelized = [];
 	foreach ( $streams as $stream ) {
-		$collection->add_stream( $stream );
-		$parallelized[] = AsyncStreamWrapper::wrap( new AsyncStreamWrapperData( $stream, $collection ) );
+		$group->add_stream( $stream );
+		$parallelized[] = AsyncStreamWrapper::wrap( new AsyncStreamWrapperData( $stream, $group ) );
 	}
 
 	return $parallelized;
 }
 
 $onProgress = function ( $downloaded, $total ) {
-//	echo "Downloaded: $downloaded / $total\n";
+	echo "Downloaded: $downloaded / $total\n";
 };
 
 $streams = start_downloads( [
@@ -470,8 +470,8 @@ $streams = start_downloads( [
 
 // Non-blocking parallelized sequential processing – the second fastest method.
 // Polls all the streams when any stream is read.
-$collection = new StreamPollingGroup();
-$streams = stream_add_to_polling_group( $streams, $collection );
+$group = new StreamPollingGroup();
+$streams = stream_add_to_polling_group( $streams, $group );
 
 // Download one file
 file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
@@ -482,7 +482,7 @@ $more_streams = start_downloads( [
 	"https://downloads.wordpress.org/plugin/jetpack.10.0.zip",
 	"https://downloads.wordpress.org/plugin/wordpress-seo.17.9.zip",
 ], $onProgress );
-$more_streams = stream_add_to_polling_group( $more_streams, $collection );
+$more_streams = stream_add_to_polling_group( $more_streams, $group );
 
 // Download the rest of the files
 $all_streams = array_merge( $streams, $more_streams );
