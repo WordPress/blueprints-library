@@ -6,7 +6,7 @@ require __DIR__ . '/src/WordPress/Streams/StreamPeekerContext.php';
 use WordPress\Streams\StreamPeeker;
 use WordPress\Streams\StreamPeekerContext;
 
-function open_http_streams( $urls ) {
+function streams_http_open_nonblocking( $urls ) {
 	$streams = [];
 	foreach ( $urls as $url ) {
 		$streams[] = open_http_stream( $url );
@@ -53,7 +53,7 @@ function open_http_stream( $url ) {
 	return $stream;
 }
 
-function send_http_requests( $streams ) {
+function streams_http_requests_send( $streams ) {
 	$read = $except = null;
 	$remaining_streams = $streams;
 	while ( count( $remaining_streams ) ) {
@@ -84,7 +84,7 @@ function send_http_requests( $streams ) {
 }
 
 
-function poll_streams( $streams, $length, $timeout_microseconds = 500000 ) {
+function sockets_http_response_await_bytes( $streams, $length, $timeout_microseconds = 500000 ) {
 	$active_streams = array_filter( $streams, function ( $stream ) {
 		return ! feof( $stream );
 	} );
@@ -158,14 +158,14 @@ REQUEST;
 	return str_replace( "\n", "\r\n", $request ) . "\r\n\r\n";
 }
 
-function consume_headers( $streams ) {
+function streams_http_response_await_headers( $streams ) {
 	$headers = [];
 	foreach ( $streams as $k => $stream ) {
 		$headers[ $k ] = '';
 	}
 	$remaining_streams = $streams;
 	while ( true ) {
-		$bytes = poll_streams( $remaining_streams, 1 );
+		$bytes = sockets_http_response_await_bytes( $remaining_streams, 1 );
 		if ( false === $bytes ) {
 			break;
 		}
@@ -185,6 +185,21 @@ function consume_headers( $streams ) {
 	return $headers;
 }
 
+function streams_monitor_progress( $streams, $headers, $onProgress ) {
+	$monitored = [];
+	foreach ( $streams as $k => $stream ) {
+		$monitored[ $k ] = monitor_progress(
+			$stream,
+			$headers[ $k ]['headers']['content-length'],
+			function ( $downloaded, $total ) use ( $onProgress ) {
+				$onProgress( $downloaded, $total );
+			}
+		);
+	}
+
+	return $monitored;
+}
+
 function monitor_progress( $stream, $contentLength, $onProgress ) {
 	return StreamPeeker::wrap(
 		new StreamPeekerContext(
@@ -198,26 +213,24 @@ function monitor_progress( $stream, $contentLength, $onProgress ) {
 	);
 }
 
-$streams = open_http_streams( [
+$streams = streams_http_open_nonblocking( [
 	"https://downloads.wordpress.org/plugin/gutenberg.17.9.0.zip",
 	"https://downloads.wordpress.org/plugin/woocommerce.8.6.1.zip",
 	"https://downloads.wordpress.org/plugin/hello-dolly.1.7.3.zip",
 ] );
-send_http_requests( $streams );
+streams_http_requests_send( $streams );
 
-$headers = consume_headers( $streams );
-foreach ( $streams as $k => $stream ) {
-	$streams[ $k ] = monitor_progress(
-		$stream,
-		$headers[ $k ]['headers']['content-length'],
-		function ( $downloaded, $total ) {
-			echo "onProgress callback " . $downloaded . "/$total\n";
-		}
-	);
-}
+$headers = streams_http_response_await_headers( $streams );
+$streams = streams_monitor_progress(
+	$streams,
+	$headers,
+	function ( $downloaded, $total ) {
+		echo "onProgress callback " . $downloaded . "/$total\n";
+	}
+);
 print_r( $headers );
 
-while ( $results = poll_streams( $streams, 1024 ) ) {
+while ( $results = sockets_http_response_await_bytes( $streams, 1024 ) ) {
 	foreach ( $results as $k => $chunk ) {
 		file_put_contents( 'output' . $k . '.zip', $chunk, FILE_APPEND );
 	}
