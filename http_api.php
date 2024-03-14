@@ -6,6 +6,60 @@ require __DIR__ . '/src/WordPress/Streams/StreamPeekerContext.php';
 use WordPress\Streams\StreamPeeker;
 use WordPress\Streams\StreamPeekerContext;
 
+function stream_notification_callback(
+	$notification_code,
+	$severity,
+	$message,
+	$message_code,
+	$bytes_transferred,
+	$bytes_max
+) {
+	var_dump( $notification_code );
+	static $filesize = null;
+
+	switch ( $notification_code ) {
+		case STREAM_NOTIFY_RESOLVE:
+		case STREAM_NOTIFY_AUTH_REQUIRED:
+		case STREAM_NOTIFY_COMPLETED:
+		case STREAM_NOTIFY_FAILURE:
+		case STREAM_NOTIFY_AUTH_RESULT:
+			/* Ignore */
+			break;
+
+		case STREAM_NOTIFY_REDIRECTED:
+			echo "Being redirected to: ", $message, "\n";
+			break;
+
+		case STREAM_NOTIFY_CONNECT:
+			echo "Connected...\n";
+			break;
+
+		case STREAM_NOTIFY_FILE_SIZE_IS:
+			$filesize = $bytes_max;
+			echo "Filesize: ", $filesize, "\n";
+			break;
+
+		case STREAM_NOTIFY_MIME_TYPE_IS:
+			echo "Mime-type: ", $message, "\n";
+			break;
+
+		case STREAM_NOTIFY_PROGRESS:
+			if ( $bytes_transferred > 0 ) {
+				if ( ! isset( $filesize ) ) {
+					printf( "\rUnknown filesize.. %2d kb done..", $bytes_transferred / 1024 );
+				} else {
+					$length = (int) ( ( $bytes_transferred / $filesize ) * 100 );
+					printf( "\r[%-100s] %d%% (%2d/%2d kb)",
+						str_repeat( "=", $length ) . ">",
+						$length,
+						( $bytes_transferred / 1024 ),
+						$filesize / 1024 );
+				}
+			}
+			break;
+	}
+}
+
 function open_nonblocking_socket( $url ) {
 	$stream = stream_socket_client(
 		$url,
@@ -59,6 +113,47 @@ function blocking_read_from_stream( $stream, $length, $timeout_microseconds = 50
 	} else {
 		throw new Exception( "stream_select timed out" );
 	}
+}
+
+function poll_streams( $streams, $length, $timeout_microseconds = 500000 ) {
+	$active_streams = array_filter( $streams, function ( $stream ) {
+		return ! feof( $stream );
+	} );
+	if ( empty( $active_streams ) ) {
+		return false;
+	}
+
+	$read = $active_streams;
+	$write = [];
+	$except = null;
+	$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
+
+	if ( $ready === false ) {
+		$error = error_get_last();
+		throw new Exception( "Error: " . $error['message'] );
+	} elseif ( $ready <= 0 ) {
+		throw new Exception( "stream_select timed out" );
+	}
+
+	$chunks = [];
+	foreach ( $read as $k => $stream ) {
+		$chunks[ $k ] = fread( $stream, $length );
+	}
+
+	return $chunks;
+}
+
+function blocking_stream_get_contents( $stream, $timeout_microseconds = 500000 ) {
+	$contents = '';
+	while ( true ) {
+		$byte = blocking_read_from_stream( $stream, 1, $timeout_microseconds );
+		$contents .= $byte;
+		if ( feof( $stream ) ) {
+			break;
+		}
+	}
+
+	return $contents;
 }
 
 function blocking_read_headers( $stream ) {
@@ -198,7 +293,6 @@ $streams = start_downloads(
 
 foreach ( $streams as $k => $stream ) {
 	$headers = consume_headers( $stream );
-//	stream_set_timeout( $stream, 0, 50000 );
 	$streams[ $k ] = monitor_progress( $stream,
 		$headers['headers']['content-length'],
 		function ( $downloaded, $total ) {
@@ -207,6 +301,8 @@ foreach ( $streams as $k => $stream ) {
 	print_r( $headers );
 }
 
-foreach ( $streams as $k => $stream ) {
-	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ) );
+while ( $results = poll_streams( $streams, 1024 ) ) {
+	foreach ( $results as $k => $chunk ) {
+		file_put_contents( 'output' . $k . '.zip', $chunk, FILE_APPEND );
+	}
 }
