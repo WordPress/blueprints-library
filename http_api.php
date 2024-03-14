@@ -476,15 +476,15 @@ $streams = $group->add_streams( $streams );
 file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
 
 // Start more downloads
-$more_streams = start_downloads( [
-	"https://downloads.wordpress.org/plugin/akismet.4.1.12.zip",
-	"https://downloads.wordpress.org/plugin/jetpack.10.0.zip",
-	"https://downloads.wordpress.org/plugin/wordpress-seo.17.9.zip",
-], $onProgress );
-$more_streams = $group->add_streams( $more_streams );
+$more_streams = $group->add_streams(
+	start_downloads( [
+		"https://downloads.wordpress.org/plugin/akismet.4.1.12.zip",
+		"https://downloads.wordpress.org/plugin/jetpack.10.0.zip",
+		"https://downloads.wordpress.org/plugin/wordpress-seo.17.9.zip",
+	], $onProgress )
+);
 
 // Download the rest of the files
-$all_streams = array_merge( $streams, $more_streams );
-foreach ( $all_streams as $k => $stream ) {
+foreach ( array_merge( $streams, $more_streams ) as $k => $stream ) {
 	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ), FILE_APPEND );
 }
