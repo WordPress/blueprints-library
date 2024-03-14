@@ -78,27 +78,6 @@ function open_nonblocking_socket( $url ) {
 	return $stream;
 }
 
-function blocking_write_to_stream( $stream, $data, $timeout_microseconds = 50000 ) {
-	$read = [];
-	$write = [ $stream ];
-	$except = null;
-	// Silence PHP Warning: stream_select(): 960 bytes of buffered data lost during stream conversion!
-	// The warning doesn't seem to be useful in this context. It is trigerred when
-	// (stream->writepos - stream->readpos) > 0
-	// The warning is only trigerred when we use StreamPeeker, not when dealing with
-	// vanilla socket. Why?
-	$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
-
-	if ( $ready === false ) {
-		$error = error_get_last();
-		throw new Exception( "Error: " . $error['message'] );
-	} elseif ( $ready > 0 ) {
-		return fwrite( $stream, $data );
-	} else {
-		throw new Exception( "stream_select timed out" );
-	}
-}
-
 function blocking_read_from_stream( $stream, $length, $timeout_microseconds = 500000 ) {
 	$read = [ $stream ];
 	$write = [];
@@ -199,34 +178,13 @@ function start_downloads( array $urls, $timeout_microseconds = 500000 ) {
 		$streams[] = start_download( $url );
 	}
 
-	// Wait for all streams to be ready for writing
-	// and then write the request bytes to each stream.
-	$waiting_for_streams = [ ...$streams ];
-	while ( count( $waiting_for_streams ) > 0 ) {
-		$read = [];
-		$write = [ ...$waiting_for_streams ];
-		$except = null;
-		// Silence PHP Warning: stream_select(): 960 bytes of buffered data lost during stream conversion!
-		// The warning doesn't seem to be useful in this context. It is trigerred when
-		// (stream->writepos - stream->readpos) > 0
-		// The warning is only trigerred when we use StreamPeeker, not when dealing with
-		// vanilla socket. Why?
-		$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
-
-		if ( $ready === false ) {
-			$error = error_get_last();
-			throw new Exception( "Error: " . $error['message'] );
-		} elseif ( $ready > 0 ) {
-			// Stop waiting for the streams that are ready for writing
-			$waiting_for_streams = array_diff( $waiting_for_streams, $write );
-		} else {
-			throw new Exception( "stream_select timed out" );
-		}
-
-		foreach ( $write as $k => $stream ) {
-			$request = prepare_request_bytes( $urls[ $k ] );
-			blocking_write_to_stream( $stream, $request );
-		}
+	foreach ( $streams as $k => $stream ) {
+		$request = prepare_request_bytes( $urls[ $k ] );
+		// This shouldn't block in theory:
+		fwrite( $stream, $request );
+		// This shouldn't block, but I think it sends raw unencrypted data
+		// and ignores the SSL context:
+		// stream_socket_sendto( $stream, $request, STREAM_OOB );
 	}
 
 	return $streams;
