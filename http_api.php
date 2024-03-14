@@ -474,7 +474,7 @@ $group = new StreamPollingGroup();
 $streams = $group->add_streams( $streams );
 
 // Stream a single file, while streaming all the files
-file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
+file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ) );
 
 // Initiate more HTTPS requests
 $more_streams = $group->add_streams(
@@ -488,5 +488,5 @@ $more_streams = $group->add_streams(
 // Download the rest of the files. Foreach() seems like downloading things
 // sequentially, but we're actually streaming all the files in parallel.
 foreach ( array_merge( $streams, $more_streams ) as $k => $stream ) {
-	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ), FILE_APPEND );
+	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ) );
 }
