@@ -448,6 +448,7 @@ $onProgress = function ( $downloaded, $total ) {
 	echo "Downloaded: $downloaded / $total\n";
 };
 
+// Initiate a bunch of HTTPS requests
 $streams = start_downloads( [
 	"https://downloads.wordpress.org/plugin/gutenberg.17.9.0.zip",
 	"https://downloads.wordpress.org/plugin/woocommerce.8.6.1.zip",
@@ -472,10 +473,10 @@ $streams = start_downloads( [
 $group = new StreamPollingGroup();
 $streams = $group->add_streams( $streams );
 
-// Download one file
+// Stream a single file, while streaming all the files
 file_put_contents( 'output0.zip', stream_get_contents( $streams[0] ), FILE_APPEND );
 
-// Start more downloads
+// Initiate more HTTPS requests
 $more_streams = $group->add_streams(
 	start_downloads( [
 		"https://downloads.wordpress.org/plugin/akismet.4.1.12.zip",
@@ -484,7 +485,8 @@ $more_streams = $group->add_streams(
 	], $onProgress )
 );
 
-// Download the rest of the files
+// Download the rest of the files. Foreach() seems like downloading things
+// sequentially, but we're actually streaming all the files in parallel.
 foreach ( array_merge( $streams, $more_streams ) as $k => $stream ) {
 	file_put_contents( 'output' . $k . '.zip', stream_get_contents( $stream ), FILE_APPEND );
 }
