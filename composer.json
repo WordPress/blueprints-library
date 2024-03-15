@@ -1,22 +1,19 @@
 {
   "prefer-stable": true,
   "require": {
-    "json-mapper/json-mapper": "*",
-    "symfony/event-dispatcher": "*",
-    "symfony/filesystem": "*",
-    "symfony/process": "*",
-    "symfony/http-client": "*",
-    "symfony/http-kernel": "*",
-    "pimple/pimple": "*",
-    "psr/simple-cache": "*",
-    "opis/json-schema": "*"
+    "symfony/event-dispatcher": "v3.4.47",
+    "symfony/filesystem": "v3.4.47",
+    "symfony/process": "v3.4.47",
+    "symfony/http-kernel": "v3.4.49",
+    "pimple/pimple": "v3.2.0",
+    "psr/simple-cache": "1.0.1",
+    "opis/json-schema": "1.1.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "*",
-    "squizlabs/php_codesniffer":"*",
-    "nette/php-generator": "*",
-    "jane-php/json-schema": "*",
-    "bamarni/composer-bin-plugin": "*",
+    "phpunit/phpunit": "6.5.14",
+    "squizlabs/php_codesniffer": "3.9.0",
+    "nette/php-generator": "v3.0.5",
+    "bamarni/composer-bin-plugin": "v1.5.0",
     "wp-coding-standards/wpcs": "3.0"
   },
   "config": {
@@ -25,10 +22,11 @@
     "allow-plugins": {
       "php-http/discovery": true,
       "bamarni/composer-bin-plugin": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "pestphp/pest-plugin": true
     },
     "platform": {
-      "php": "7.4"
+      "php": "7.0.8"
     }
   },
   "autoload": {
@@ -42,6 +40,7 @@
     "files": [
       "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Zip/functions.php",
+      "src/WordPress/Streams/async_http_streams.php",
       "src/WordPress/Streams/stream_str_replace.php"
     ]
   },

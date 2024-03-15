@@ -7,10 +7,10 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpClient\Response\StreamWrapper;
 use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use WordPress\Streams\StreamPeeker;
-use WordPress\Streams\StreamPeekerContext;
+use WordPress\Streams\StreamPeekerWrapper;
+use WordPress\Streams\StreamPeekerData;
 
-class ResponseStreamPeekerContext extends StreamPeekerContext {
+class ResponseStreamPeekerData extends StreamPeekerData {
 
 	public function __construct( $fp, $onChunk, $onClose, protected $response ) {
 		parent::__construct( $fp, $onChunk, $onClose );
@@ -77,8 +77,8 @@ class UrlSource extends BaseDataSource {
 			$response->cancel();
 		};
 
-		return StreamPeeker::wrap(
-			new ResponseStreamPeekerContext(
+		return StreamPeekerWrapper::wrap(
+			new ResponseStreamPeekerData(
 				$stream,
 				$onChunk,
 				$onClose,
