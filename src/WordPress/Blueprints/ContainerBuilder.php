@@ -4,7 +4,6 @@ namespace WordPress\Blueprints;
 
 use InvalidArgumentException;
 use Pimple\Container;
-use Symfony\Component\HttpClient\HttpClient;
 use WordPress\Blueprints\Cache\FileCache;
 use WordPress\Blueprints\Compile\BlueprintCompiler;
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
@@ -63,6 +62,7 @@ use WordPress\DataSource\FileSource;
 use WordPress\DataSource\PlaygroundFetchSource;
 use WordPress\DataSource\DataSourceProgressEvent;
 use WordPress\DataSource\UrlSource;
+use WordPress\Streams\AsyncHttpClient;
 
 class ContainerBuilder {
 
@@ -93,12 +93,7 @@ class ContainerBuilder {
 				return new FileCache();
 			};
 			$container['http_client'] = function ( $c ) {
-				return HttpClient::create();
-			};
-			$container['progress_reporter'] = function ( $c ) {
-				return function ( DataSourceProgressEvent $event ) {
-					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-				};
+				return new AsyncHttpClient();
 			};
 			$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
 				return new UrlResourceResolver( $c['data_source.url'] );
@@ -106,11 +101,6 @@ class ContainerBuilder {
 		} elseif ( $environment === static::ENVIRONMENT_PLAYGROUND ) {
 			$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
 				return new UrlResourceResolver( $c['data_source.playground_fetch'] );
-			};
-			$container['progress_reporter'] = function ( $c ) {
-				return function ( DataSourceProgressEvent $event ) {
-					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-				};
 			};
 		} else {
 			throw new InvalidArgumentException( "Not implemented yet" );
@@ -270,23 +260,10 @@ class ContainerBuilder {
 		$container['data_source.url'] = function ( $c ) {
 			return new UrlSource( $c['http_client'], $c['downloads_cache'] );
 		};
-		$container['data_source.playground_fetch'] = function ( $c ) {
+
+		$container['data_source.playground_fetch'] = function () {
 			return new PlaygroundFetchSource();
 		};
-
-		// Add a progress listener to all data sources
-//		foreach ( $container->keys() as $key ) {
-//			if ( str_starts_with( $key, 'data_source.' ) ) {
-//				$container->extend( $key, function ( $urlSource, $c ) {
-//					$urlSource->events->addListener(
-//						ProgressEvent::class,
-//						$c['progress_reporter']
-//					);
-//
-//					return $urlSource;
-//				} );
-//			}
-//		}
 
 		return $container;
 	}

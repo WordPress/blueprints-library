@@ -123,7 +123,7 @@ class BlueprintBuilder {
 	public function withFile( $path, $data ) {
 		return $this->addStep(
 			( new WriteFileStep() )
-				->setPath( 'wordpress.txt' )
+				->setPath( $path )
 				->setData( $data )
 		);
 	}

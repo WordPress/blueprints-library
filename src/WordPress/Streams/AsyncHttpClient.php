@@ -7,6 +7,7 @@ use WordPress\Util\Map;
 class RequestInfo {
 	const STATE_ENQUEUED = 'STATE_ENQUEUED';
 	const STATE_STREAMING = 'STATE_STREAMING';
+	const STATE_FINISHED = 'STATE_FINISHED';
 	public $state = self::STATE_ENQUEUED;
 	public $stream;
 	public $buffer = '';
@@ -17,7 +18,11 @@ class RequestInfo {
 	public function __construct( $stream ) {
 		$this->stream = $stream;
 	}
-	
+
+	public function isFinished() {
+		return $this->state === self::STATE_FINISHED;
+	}
+
 }
 
 /**
@@ -33,12 +38,21 @@ class AsyncHttpClient {
 	protected $onProgress;
 	protected $queue_needs_processing = false;
 
-	public function __construct( $onProgress ) {
+	public function __construct() {
 		$this->requests = new Map();
+		$this->onProgress = function () {
+		};
+	}
+
+	public function set_progress_callback( $onProgress ) {
 		$this->onProgress = $onProgress;
 	}
 
-	public function enqueue( array $requests ) {
+	public function enqueue( $requests ) {
+		if ( ! is_array( $requests ) ) {
+			return $this->enqueue_request( $requests );
+		}
+
 		$enqueued_streams = array();
 		foreach ( $requests as $request ) {
 			$enqueued_streams[] = $this->enqueue_request( $request );
@@ -82,7 +96,7 @@ class AsyncHttpClient {
 	public function process_queue() {
 		$this->queue_needs_processing = false;
 
-		$active_requests = count( $this->get_active_requests() );
+		$active_requests = count( $this->get_streamed_requests() );
 		$backfill = $this->concurrency - $active_requests;
 		if ( $backfill <= 0 ) {
 			return;
@@ -116,10 +130,10 @@ class AsyncHttpClient {
 		return $enqueued_requests;
 	}
 
-	protected function get_active_requests() {
+	protected function get_streamed_requests() {
 		$active_requests = [];
 		foreach ( $this->requests as $request => $info ) {
-			if ( $info->state === RequestInfo::STATE_STREAMING ) {
+			if ( $info->state !== RequestInfo::STATE_ENQUEUED ) {
 				$active_requests[] = $request;
 			}
 		}
@@ -147,29 +161,39 @@ class AsyncHttpClient {
 
 		$request_info = $this->requests[ $request ];
 		$stream = $request_info->stream;
+
+		$active_requests = $this->get_streamed_requests();
+		$active_streams = array_map( function ( $request ) {
+			return $this->requests[ $request ]->stream;
+		}, $active_requests );
+		if ( ! count( $active_streams ) ) {
+			return false;
+		}
+
 		while ( true ) {
+			if ( ! $request_info->isFinished() && feof( $stream ) ) {
+				$request_info->state = RequestInfo::STATE_FINISHED;
+				fclose( $stream );
+				$this->queue_needs_processing = true;
+			}
+
 			if ( strlen( $request_info->buffer ) >= $length ) {
 				$buffered = substr( $request_info->buffer, 0, $length );
 				$request_info->buffer = substr( $request_info->buffer, $length );
 
 				return $buffered;
-			} elseif ( feof( $stream ) ) {
-				$buffered = $request_info->buffer;
+			} elseif ( $request_info->isFinished() ) {
 				unset( $this->requests[ $request ] );
-				fclose( $stream );
 
-				$this->queue_needs_processing = true;
-
-				return strlen( $buffered ) ? $buffered : false;
+				return $request_info->buffer;
 			}
-			$remaining_length = $length - strlen( $request_info->buffer );
-
-			$active_requests = $this->get_active_requests();
-			$active_streams = array_map( function ( $request ) {
-				return $this->requests[ $request ]->stream;
-			}, $active_requests );
-
-			$bytes = streams_http_response_await_bytes( $active_streams, $remaining_length );
+			$active_streams = array_filter( $active_streams, function ( $stream ) {
+				return ! feof( $stream );
+			} );
+			$bytes = streams_http_response_await_bytes(
+				$active_streams,
+				$length - strlen( $request_info->buffer )
+			);
 			foreach ( $bytes as $k => $chunk ) {
 				$this->requests[ $active_requests[ $k ] ]->buffer .= $chunk;
 			}

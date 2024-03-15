@@ -196,8 +196,8 @@ function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
 
 function streams_send_http_requests( array $requests ) {
 	$urls = [];
-	foreach ( $requests as $request ) {
-		$urls[] = $request->url;
+	foreach ( $requests as $k => $request ) {
+		$urls[ $k ] = $request->url;
 	}
 	$redirects = $urls;
 	$final_streams = [];
@@ -209,8 +209,9 @@ function streams_send_http_requests( array $requests ) {
 		$redirects = [];
 		$headers = streams_http_response_await_headers( $streams );
 		foreach ( array_keys( $headers ) as $k ) {
-			if ( $headers[ $k ]['status']['code'] > 399 || $headers[ $k ]['status']['code'] < 200 ) {
-				throw new Exception( "Failed to download file" );
+			$code = $headers[ $k ]['status']['code'];
+			if ( $code > 399 || $code < 200 ) {
+				throw new Exception( "Failed to download file " . $requests[ $k ]->url . ": Server responded with HTTP code " . $code );
 			}
 			if ( isset( $headers[ $k ]['headers']['location'] ) ) {
 				$redirects[ $k ] = $headers[ $k ]['headers']['location'];

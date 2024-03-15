@@ -3,38 +3,31 @@
 namespace WordPress\DataSource;
 
 use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\HttpClient\Response\StreamWrapper;
-use Symfony\Contracts\EventDispatcher\Event;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use WordPress\Streams\AsyncHttpClient;
+use WordPress\Streams\Request;
 use WordPress\Streams\StreamPeekerWrapper;
 use WordPress\Streams\StreamPeekerData;
-
-class ResponseStreamPeekerData extends StreamPeekerData {
-
-	public function __construct( $fp, $onChunk, $onClose, protected $response ) {
-		parent::__construct( $fp, $onChunk, $onClose );
-	}
-
-	public function getResponse() {
-		return $this->response;
-	}
-
-}
-
 
 class UrlSource extends BaseDataSource {
 
 	public function __construct(
-		protected HttpClientInterface $client,
+		protected AsyncHttpClient $client,
 		protected CacheInterface $cache
 	) {
 		parent::__construct();
+		$client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
+			$this->events->dispatch( new DataSourceProgressEvent(
+				$request->url,
+				$downloaded,
+				$total
+			) );
+		} );
 	}
 
 	public function stream( $resourceIdentifier ) {
 		$url = $resourceIdentifier;
-		if ( $this->cache->has( $url ) ) {
+		// @TODO: Enable cache
+		if ( false && $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
 			$cached = $this->cache->get( $url );
@@ -51,20 +44,12 @@ class UrlSource extends BaseDataSource {
 			return $stream;
 		}
 
-		$response = $this->client->request( 'GET', $url, [
-			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
-				$this->events->dispatch( new DataSourceProgressEvent(
-					$url,
-					$dlNow,
-					$dlSize
-				) );
-			},
-		] );
-		$stream = StreamWrapper::createResource( $response, $this->client );
-		if ( ! $stream ) {
-			throw new \Exception( 'Failed to download file' );
-		}
-		$onChunk = function ( $chunk ) use ( $url, $response, $stream ) {
+		$stream = $this->client->enqueue( new Request( $url ) );
+
+		return $stream;
+
+		// Cache
+		$onChunk = function ( $chunk ) use ( $url, $stream ) {
 			// Handle response caching
 			static $bufferedChunks = [];
 			$bufferedChunks[] = $chunk;
@@ -73,90 +58,13 @@ class UrlSource extends BaseDataSource {
 				$bufferedChunks = [];
 			}
 		};
-		$onClose = function () use ( $response ) {
-			$response->cancel();
-		};
 
 		return StreamPeekerWrapper::create_resource(
-			new ResponseStreamPeekerData(
+			new StreamPeekerData(
 				$stream,
 				$onChunk,
-				$onClose,
-				$response
 			)
 		);
 	}
 
-
-	/**
-	 * This much simpler version throws a "Idle timeout reached" exception
-	 * when reading from the stream :(
-	 *
-	 * @param string $url
-	 *
-	 * @return mixed
-	 */
-	public function fetchBugWithIdleTimeout( string $url ) {
-		$passthru = function ( ChunkInterface $chunk, AsyncContext $context ) use ( $url ): \Generator {
-			static $bufferedChunks = [];
-			$bufferedChunks[] = $chunk->getContent();
-			if ( $chunk->isLast() ) {
-				$this->cache->set( $url, implode( '', $bufferedChunks ) );
-			}
-			// do what you want with chunks, e.g. split them
-			// in smaller chunks, group them, skip some, etc.
-			yield $chunk;
-		};
-
-		$response = new AsyncResponse( $this->client, 'GET', $url, [
-			'timeout'     => 60000,
-			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
-				$this->events->dispatch( new DataSourceProgressEvent(
-					$url,
-					$dlNow,
-					$dlSize
-				) );
-			},
-		], $passthru );
-
-		return $response->toStream();
-	}
 }
-
-function get_header( array $headers, string $header ) {
-	foreach ( $headers as $line ) {
-		$parts = explode( ': ', $line );
-		if ( count( $parts ) === 2 && strtolower( $parts[0] ) === strtolower( $header ) ) {
-			return $parts[1];
-		}
-	}
-}
-/*
-class HttpDownloader {
-
-	public EventDispatcher $events;
-
-	public function __construct( protected HttpClientInterface $client ) {
-		$this->events = new EventDispatcher();
-	}
-
-	public function fetch( string $url ) {
-		$response = $this->client->request( 'GET', $url, [
-			'on_progress' => function ( int $dlNow, int $dlSize, array $info ) use ( $url ): void {
-				$this->events->dispatch( new ProgressEvent(
-					$url,
-					$dlNow,
-					$dlSize
-				) );
-			},
-		] );
-		$stream   = StreamWrapper::createResource( $response, $this->client );
-		if ( ! $stream ) {
-			throw new \Exception( 'Failed to download file' );
-		}
-
-		return $stream;
-	}
-
-}
- */

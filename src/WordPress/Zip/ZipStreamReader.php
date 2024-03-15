@@ -193,26 +193,15 @@ class ZipStreamReader {
 	 * @return false|string
 	 */
 	static protected function read_bytes( $stream, $length ): string|bool {
-		if ( $length === 0 ) {
-			return '';
-		}
-
 		$data = '';
-		while ( true ) {
-			$chunk = fread( $stream, $length );
+		$remaining_length = $length;
+		while ( $remaining_length > 0 ) {
+			$chunk = fread( $stream, $remaining_length );
 			if ( false === $chunk ) {
-				return false;
+				return strlen( $data ) ? $data : false;
 			}
-			$length -= strlen( $chunk );
+			$remaining_length -= strlen( $chunk );
 			$data .= $chunk;
-
-			if ( $length === 0 ) {
-				break;
-			}
-
-			if ( feof( $stream ) ) {
-				return false;
-			}
 		}
 
 		return $data;

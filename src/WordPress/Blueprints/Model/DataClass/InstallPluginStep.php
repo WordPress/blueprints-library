@@ -2,8 +2,7 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class InstallPluginStep implements StepDefinitionInterface
-{
+class InstallPluginStep implements StepDefinitionInterface {
 	public const DISCRIMINATOR = 'installPlugin';
 
 	/** @var Progress */
@@ -28,37 +27,37 @@ class InstallPluginStep implements StepDefinitionInterface
 	public $activate = true;
 
 
-	public function setProgress(Progress $progress)
-	{
+	public function setProgress( Progress $progress ) {
 		$this->progress = $progress;
+
 		return $this;
 	}
 
 
-	public function setContinueOnError(bool $continueOnError)
-	{
+	public function setContinueOnError( bool $continueOnError ) {
 		$this->continueOnError = $continueOnError;
+
 		return $this;
 	}
 
 
-	public function setStep(string $step)
-	{
+	public function setStep( string $step ) {
 		$this->step = $step;
+
 		return $this;
 	}
 
 
-	public function setPluginZipFile($pluginZipFile)
-	{
+	public function setPluginZipFile( $pluginZipFile ) {
 		$this->pluginZipFile = $pluginZipFile;
+
 		return $this;
 	}
 
 
-	public function setActivate(bool $activate)
-	{
+	public function setActivate( bool $activate ) {
 		$this->activate = $activate;
+
 		return $this;
 	}
 }

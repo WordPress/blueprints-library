@@ -53,6 +53,6 @@ class Map implements ArrayAccess, IteratorAggregate {
 	}
 
 	public function getIterator(): Traversable {
-		return new ArrayPairIterator( $this->pairs );
+		return new ArrayPairIterator( array_values( $this->pairs ) );
 	}
 }

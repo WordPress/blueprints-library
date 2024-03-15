@@ -17,8 +17,8 @@ use WordPress\Blueprints\Resources\Resolver\ResourceResolverInterface;
 use WordPress\Blueprints\Progress\Tracker;
 
 class BlueprintCompiler {
-    protected $stepRunnerFactory;
-    protected ResourceResolverInterface $resourceResolver;
+	protected $stepRunnerFactory;
+	protected ResourceResolverInterface $resourceResolver;
 
 	public function __construct(
 		$stepRunnerFactory,
@@ -60,11 +60,12 @@ class BlueprintCompiler {
 					( new UrlResource() )
 						->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' )
 				);
-			$additional_steps[] = ( new WriteFileStep() )
-				->setPath( 'wp-cli.phar' )
-				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
-			$additional_steps[] = ( new RunWordPressInstallerStep() )
-				->setOptions( new WordPressInstallationOptions() );
+			// @TODO: stream_select times out here:
+//			$additional_steps[] = ( new WriteFileStep() )
+//				->setPath( 'wp-cli.phar' )
+//				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
+//			$additional_steps[] = ( new RunWordPressInstallerStep() )
+//				->setOptions( new WordPressInstallationOptions() );
 		}
 		if ( $blueprint->constants ) {
 			$step = new DefineWpConfigConstsStep();
