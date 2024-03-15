@@ -2,7 +2,7 @@
 
 namespace WordPress\Streams;
 
-class VanillaStreamWrapper {
+class VanillaStreamWrapper implements StreamWrapperInterface {
 	protected $stream;
 
 	protected $context;
@@ -11,7 +11,7 @@ class VanillaStreamWrapper {
 
 	const SCHEME = 'vanilla';
 
-	static public function wrap( VanillaStreamWrapperData $data ) {
+	static public function create_resource( VanillaStreamWrapperData $data ) {
 		static::register();
 
 		$context = stream_context_create( [
@@ -48,7 +48,6 @@ class VanillaStreamWrapper {
 		return false;
 	}
 
-	// Opens the stream
 	public function stream_open( $path, $mode, $options, &$opened_path ) {
 		$contextOptions = stream_context_get_options( $this->context );
 
@@ -58,10 +57,9 @@ class VanillaStreamWrapper {
 
 		$this->wrapper_data = $contextOptions[ static::SCHEME ]['wrapper_data'];
 
-		if ( ! $this->wrapper_data->fp ) {
-			return false;
+		if ( $this->wrapper_data->fp ) {
+			$this->stream = $this->wrapper_data->fp;
 		}
-		$this->stream = $this->wrapper_data->fp;
 
 		return true;
 	}
@@ -70,37 +68,30 @@ class VanillaStreamWrapper {
 		return $this->stream;
 	}
 
-	// Reads from the stream
 	public function stream_read( $count ) {
 		return fread( $this->stream, $count );
 	}
 
-	// Writes to the stream
 	public function stream_write( $data ) {
 		return fwrite( $this->stream, $data );
 	}
 
-	// Closes the stream
 	public function stream_close() {
-		fclose( $this->stream );
+		return fclose( $this->stream );
 	}
 
-	// Returns the current position of the stream
 	public function stream_tell() {
 		return ftell( $this->stream );
 	}
 
-	// Checks if the end of the stream has been reached
 	public function stream_eof() {
 		return feof( $this->stream );
 	}
 
-	// Seeks to a specific position in the stream
 	public function stream_seek( $offset, $whence ) {
 		return fseek( $this->stream, $offset, $whence );
 	}
 
-	// Stat information about the stream; providing dummy data
 	public function stream_stat() {
 		return [];
 	}

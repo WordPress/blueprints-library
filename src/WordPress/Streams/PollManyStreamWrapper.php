@@ -2,9 +2,9 @@
 
 namespace WordPress\Streams;
 
-class AsyncStreamWrapper extends VanillaStreamWrapper {
+class PollManyStreamWrapper extends VanillaStreamWrapper {
 	const SCHEME = 'async';
-	/** @var StreamPollingGroup */
+	/** @var AsyncHttpClient */
 	private $group;
 
 	public function stream_open( $path, $mode, $options, &$opened_path ) {

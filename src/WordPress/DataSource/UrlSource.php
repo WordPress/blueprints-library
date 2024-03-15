@@ -77,7 +77,7 @@ class UrlSource extends BaseDataSource {
 			$response->cancel();
 		};
 
-		return StreamPeekerWrapper::wrap(
+		return StreamPeekerWrapper::create_resource(
 			new ResponseStreamPeekerData(
 				$stream,
 				$onChunk,

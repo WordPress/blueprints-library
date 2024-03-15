@@ -10,7 +10,7 @@ it( 'can peek at the stream', function () {
 	rewind( $originalStream );
 
 	$loggedData = '';
-	$handle = StreamPeekerWrapper::wrap(
+	$handle = StreamPeekerWrapper::create_resource(
 		new StreamPeekerData(
 			$originalStream,
 			function ( $data ) use ( &$loggedData ) {

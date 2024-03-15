@@ -1,10 +1,12 @@
 <?php
 
-namespace WordPress\Blueprints\Resources;
+namespace WordPress\Util;
 
 use ArrayAccess;
+use IteratorAggregate;
+use Traversable;
 
-class ResourceMap implements ArrayAccess {
+class Map implements ArrayAccess, IteratorAggregate {
 	private array $pairs = [];
 
 	public function __construct() {
@@ -50,4 +52,7 @@ class ResourceMap implements ArrayAccess {
 		}
 	}
 
+	public function getIterator(): Traversable {
+		return new ArrayPairIterator( $this->pairs );
+	}
 }

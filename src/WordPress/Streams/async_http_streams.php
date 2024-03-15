@@ -8,11 +8,12 @@
 namespace WordPress\Streams;
 
 use Exception;
+use InvalidArgumentException;
 
 function streams_http_open_nonblocking( $urls ) {
 	$streams = [];
-	foreach ( $urls as $url ) {
-		$streams[] = stream_http_open_nonblocking( $url );
+	foreach ( $urls as $k => $url ) {
+		$streams[ $k ] = stream_http_open_nonblocking( $url );
 	}
 
 	return $streams;
@@ -38,7 +39,7 @@ function stream_http_open_nonblocking( $url ) {
 			],
 		]
 	);
-	var_dump( 'tcp://' . $host . ':' . $port );
+
 	$stream = stream_socket_client(
 		'tcp://' . $host . ':' . $port,
 		$errno,
@@ -61,7 +62,7 @@ function streams_http_requests_send( $streams ) {
 	$remaining_streams = $streams;
 	while ( count( $remaining_streams ) ) {
 		$write = $remaining_streams;
-		$ready = @stream_select( $read, $write, $except, 0, 500000 );
+		$ready = @stream_select( $read, $write, $except, 0, 5000000 );
 		if ( $ready === false ) {
 			$error = error_get_last();
 			throw new Exception( "Error: " . $error['message'] );
@@ -87,19 +88,14 @@ function streams_http_requests_send( $streams ) {
 }
 
 
-function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 500000 ) {
-	$active_streams = array_filter( $streams, function ( $stream ) {
-		return ! feof( $stream );
-	} );
-	if ( empty( $active_streams ) ) {
+function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 5000000 ) {
+	$read = $streams;
+	if ( count( $read ) === 0 ) {
 		return false;
 	}
-
-	$read = $active_streams;
 	$write = [];
 	$except = null;
 	$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
-
 	if ( $ready === false ) {
 		$error = error_get_last();
 		throw new Exception( "Error: " . $error['message'] );
@@ -140,16 +136,6 @@ function parse_http_headers( string $headers ) {
 	];
 }
 
-function stream_http_handle_response_headers( array $headers ) {
-	// Assume it's alright
-	if ( $headers['status']['code'] > 399 || $headers['status']['code'] < 200 ) {
-		throw new Exception( "Failed to download file" );
-	}
-	if ( isset( $headers['headers']['location'] ) ) {
-		// @TODO: Handle redirects
-		throw new Exception( "HTTP redirects are not supported yet" );
-	}
-}
 
 function stream_http_prepare_request_bytes( $url ) {
 	$parts = parse_url( $url );
@@ -195,23 +181,8 @@ function streams_http_response_await_headers( $streams ) {
 	return $headers;
 }
 
-function streams_monitor_progress( $streams, $headers, $onProgress ) {
-	$monitored = [];
-	foreach ( $streams as $k => $stream ) {
-		$monitored[ $k ] = stream_monitor_progress(
-			$stream,
-			$headers[ $k ]['headers']['content-length'],
-			function ( $downloaded, $total ) use ( $onProgress ) {
-				$onProgress( $downloaded, $total );
-			}
-		);
-	}
-
-	return $monitored;
-}
-
 function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
-	return StreamPeekerWrapper::wrap(
+	return StreamPeekerWrapper::create_resource(
 		new StreamPeekerData(
 			$stream,
 			function ( $data ) use ( $onProgress, $contentLength ) {
@@ -223,19 +194,34 @@ function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
 	);
 }
 
-
-function start_downloads( $urls, $onProgress ) {
-	$streams = streams_http_open_nonblocking( $urls );
-	streams_http_requests_send( $streams );
-
-	$stream_headers = streams_http_response_await_headers( $streams );
-	foreach ( $stream_headers as $k => $headers ) {
-		stream_http_handle_response_headers( $headers );
+function streams_send_http_requests( array $requests ) {
+	$urls = [];
+	foreach ( $requests as $request ) {
+		$urls[] = $request->url;
 	}
+	$redirects = $urls;
+	$final_streams = [];
+	$response_headers = [];
+	do {
+		$streams = streams_http_open_nonblocking( $redirects );
+		streams_http_requests_send( $streams );
 
-	return streams_monitor_progress(
-		$streams,
-		$stream_headers,
-		$onProgress
-	);
+		$redirects = [];
+		$headers = streams_http_response_await_headers( $streams );
+		foreach ( array_keys( $headers ) as $k ) {
+			if ( $headers[ $k ]['status']['code'] > 399 || $headers[ $k ]['status']['code'] < 200 ) {
+				throw new Exception( "Failed to download file" );
+			}
+			if ( isset( $headers[ $k ]['headers']['location'] ) ) {
+				$redirects[ $k ] = $headers[ $k ]['headers']['location'];
+				fclose( $streams[ $k ] );
+				continue;
+			}
+
+			$final_streams[ $k ] = $streams[ $k ];
+			$response_headers[ $k ] = $headers[ $k ];
+		}
+	} while ( count( $redirects ) );
+
+	return [ $final_streams, $response_headers ];
 }
