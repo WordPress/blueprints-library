@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class CpStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'cp';
+	const DISCRIMINATOR = 'cp';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'cp';
@@ -19,13 +19,13 @@ class CpStep implements StepDefinitionInterface
 	 * Source path
 	 * @var string
 	 */
-	public $fromPath;
+	public $fromPath = null;
 
 	/**
 	 * Target path
 	 * @var string
 	 */
-	public $toPath;
+	public $toPath = null;
 
 
 	public function setProgress(Progress $progress)

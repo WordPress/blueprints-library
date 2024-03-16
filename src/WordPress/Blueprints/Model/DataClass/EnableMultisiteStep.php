@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class EnableMultisiteStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'enableMultisite';
+	const DISCRIMINATOR = 'enableMultisite';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'enableMultisite';

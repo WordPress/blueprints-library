@@ -4,7 +4,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class FilesystemResource implements ResourceDefinitionInterface
 {
-	public const DISCRIMINATOR = 'filesystem';
+	const DISCRIMINATOR = 'filesystem';
 
 	/**
 	 * Identifies the file resource as Virtual File System (VFS)
@@ -16,7 +16,7 @@ class FilesystemResource implements ResourceDefinitionInterface
 	 * The path to the file in the VFS
 	 * @var string
 	 */
-	public $path;
+	public $path = null;
 
 
 	public function setResource(string $resource)

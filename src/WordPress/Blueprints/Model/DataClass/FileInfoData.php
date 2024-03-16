@@ -5,19 +5,19 @@ namespace WordPress\Blueprints\Model\DataClass;
 class FileInfoData
 {
 	/** @var float */
-	public $BYTES_PER_ELEMENT;
+	public $BYTES_PER_ELEMENT = null;
 
 	/** @var FileInfoDataBuffer */
-	public $buffer;
+	public $buffer = null;
 
 	/** @var float */
-	public $byteLength;
+	public $byteLength = null;
 
 	/** @var float */
-	public $byteOffset;
+	public $byteOffset = null;
 
 	/** @var float */
-	public $length;
+	public $length = null;
 
 
 	public function setBYTES_PER_ELEMENT(float $BYTES_PER_ELEMENT)

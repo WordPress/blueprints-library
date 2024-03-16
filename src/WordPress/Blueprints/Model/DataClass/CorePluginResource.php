@@ -4,7 +4,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class CorePluginResource implements ResourceDefinitionInterface
 {
-	public const DISCRIMINATOR = 'wordpress.org/plugins';
+	const DISCRIMINATOR = 'wordpress.org/plugins';
 
 	/**
 	 * Identifies the file resource as a WordPress Core plugin
@@ -16,7 +16,7 @@ class CorePluginResource implements ResourceDefinitionInterface
 	 * The slug of the WordPress Core plugin
 	 * @var string
 	 */
-	public $slug;
+	public $slug = null;
 
 
 	public function setResource(string $resource)

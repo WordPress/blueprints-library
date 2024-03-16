@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class EvalPHPCallbackStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'evalPHPCallback';
+	const DISCRIMINATOR = 'evalPHPCallback';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.
@@ -22,7 +22,7 @@ class EvalPHPCallbackStep implements StepDefinitionInterface
 	 * The PHP function.
 	 * @var mixed
 	 */
-	public $callback;
+	public $callback = null;
 
 
 	public function setProgress(Progress $progress)

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class SetSiteOptionsStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'setSiteOptions';
+	const DISCRIMINATOR = 'setSiteOptions';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The name of the step. Must be "setSiteOptions".
@@ -22,7 +22,7 @@ class SetSiteOptionsStep implements StepDefinitionInterface
 	 * The options to set on the site.
 	 * @var \ArrayObject
 	 */
-	public $options;
+	public $options = null;
 
 
 	public function setProgress(Progress $progress)

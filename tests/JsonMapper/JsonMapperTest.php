@@ -2,10 +2,11 @@
 
 namespace JsonMapper;
 
-use WordPress\Blueprints\Model\BlueprintBuilder;
-use WordPress\Blueprints\Model\DataClass\Blueprint;
+use ArrayObject;
+use JsonMapper\resources\TestResourceClassSetValue;
 use WordPress\JsonMapper\JsonMapper;
 use PHPUnit\Framework\TestCase;
+use WordPress\JsonMapper\JsonMapperException;
 
 class JsonMapperTest extends TestCase {
 
@@ -21,16 +22,90 @@ class JsonMapperTest extends TestCase {
 		$this->json_mapper = new JsonMapper();
 	}
 
-	public function testMapsEmptyBlueprint() {
+	/**
+	 * Test checks if mapper works at all.
+	 *
+	 * @return void
+	 */
+	public function testMapsToArrayObject() {
 		$raw_json = '{}';
 
 		$parsed_json = json_decode( $raw_json, false );
 
-		$blueprint = $this->json_mapper->hydrate( $parsed_json, Blueprint::class );
+		$result = $this->json_mapper->hydrate( $parsed_json, ArrayObject::class );
 
-		$expected = BlueprintBuilder::create()
-			->toBlueprint();
+		$expected = new ArrayObject();
 
-		$this->assertEquals( $expected, $blueprint );
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function testSetValue() {
+		$raw_json = '{}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
+
+		$expected = new TestResourceClassSetValue();
+
+		$this->assertEquals( $expected, $result );
+	}
+	public function testSetsPublicProperties() {
+		$raw_json = '{"publicProperty":"test"}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
+
+		$expected                 = new TestResourceClassSetValue();
+		$expected->publicProperty = 'test';
+
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function testSetsPrivatePropertiesWithSetter() {
+		$raw_json = '{"privateProperty":"test"}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
+
+		$expected = new TestResourceClassSetValue();
+		$expected->setPrivateProperty( 'test' );
+
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function testSetsProtectedPropertiesWithSetter() {
+		$raw_json = '{"protectedProperty":"test"}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
+
+		$expected = new TestResourceClassSetValue();
+		$expected->setProtectedProperty( 'test' );
+
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function testFailsSettingPrivatePropertyWithNoSetter() {
+		$raw_json = '{"setterlessPrivateProperty":"test"}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$this->expectException( JsonMapperException::class );
+		$this->expectExceptionMessage( "Property: 'JsonMapper\\resources\TestResourceClassSetValue::setterlessPrivateProperty' is non-public and no setter method was found." );
+		$this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
+	}
+
+	public function testFailsSettingProtectedPropertyWithNoSetter() {
+		$raw_json = '{"setterlessProtectedProperty":"test"}';
+
+		$parsed_json = json_decode( $raw_json, false );
+
+		$this->expectException( JsonMapperException::class );
+		$this->expectExceptionMessage( "Property: 'JsonMapper\\resources\TestResourceClassSetValue::setterlessProtectedProperty' is non-public and no setter method was found." );
+		$this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
 	}
 }

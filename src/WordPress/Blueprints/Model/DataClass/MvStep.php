@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class MvStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'mv';
+	const DISCRIMINATOR = 'mv';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'mv';
@@ -19,13 +19,13 @@ class MvStep implements StepDefinitionInterface
 	 * Source path
 	 * @var string
 	 */
-	public $fromPath;
+	public $fromPath = null;
 
 	/**
 	 * Target path
 	 * @var string
 	 */
-	public $toPath;
+	public $toPath = null;
 
 
 	public function setProgress(Progress $progress)

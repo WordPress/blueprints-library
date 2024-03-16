@@ -5,7 +5,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class FileInfoDataBuffer
 {
 	/** @var float */
-	public $byteLength;
+	public $byteLength = null;
 
 
 	public function setByteLength(float $byteLength)

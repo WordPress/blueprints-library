@@ -8,10 +8,10 @@ class BlueprintOnBoot
 	 * The URL to navigate to after the blueprint has been run.
 	 * @var string
 	 */
-	public $openUrl;
+	public $openUrl = null;
 
 	/** @var bool */
-	public $login;
+	public $login = null;
 
 
 	public function setOpenUrl(string $openUrl)

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class RunPHPStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'runPHP';
+	const DISCRIMINATOR = 'runPHP';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.
@@ -22,7 +22,7 @@ class RunPHPStep implements StepDefinitionInterface
 	 * The PHP code to run.
 	 * @var string
 	 */
-	public $code;
+	public $code = null;
 
 
 	public function setProgress(Progress $progress)

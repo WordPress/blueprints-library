@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class ActivateThemeStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'activateTheme';
+	const DISCRIMINATOR = 'activateTheme';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'activateTheme';
@@ -19,7 +19,7 @@ class ActivateThemeStep implements StepDefinitionInterface
 	 * Theme slug, like 'twentytwentythree'.
 	 * @var string
 	 */
-	public $slug;
+	public $slug = null;
 
 
 	public function setProgress(Progress $progress)

@@ -5,7 +5,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 class WordPressInstallationOptions
 {
 	/** @var string */
-	public $adminUsername;
+	public $adminUsername = null;
 
 	/** @var string */
 	public $adminPassword = 'admin';

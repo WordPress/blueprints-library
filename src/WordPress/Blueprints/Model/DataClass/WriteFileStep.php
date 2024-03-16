@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class WriteFileStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'writeFile';
+	const DISCRIMINATOR = 'writeFile';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'writeFile';
@@ -19,13 +19,13 @@ class WriteFileStep implements StepDefinitionInterface
 	 * The path of the file to write to
 	 * @var string
 	 */
-	public $path;
+	public $path = null;
 
 	/**
 	 * The data to write
 	 * @var string|ResourceDefinitionInterface
 	 */
-	public $data;
+	public $data = null;
 
 
 	public function setProgress(Progress $progress)

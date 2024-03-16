@@ -46,6 +46,11 @@
       "src/WordPress/Streams/stream_str_replace.php"
     ]
   },
+  "autoload-dev": {
+    "classmap": [
+      "tests/"
+    ]
+  },
   "scripts": {
     "phpcs": "phpcs --standard=WordPress"
   }

@@ -5,16 +5,16 @@ namespace WordPress\Blueprints\Model\DataClass;
 class FileInfo
 {
 	/** @var string */
-	public $key;
+	public $key = null;
 
 	/** @var string */
-	public $name;
+	public $name = null;
 
 	/** @var string */
-	public $type;
+	public $type = null;
 
 	/** @var FileInfoData */
-	public $data;
+	public $data = null;
 
 
 	public function setKey(string $key)

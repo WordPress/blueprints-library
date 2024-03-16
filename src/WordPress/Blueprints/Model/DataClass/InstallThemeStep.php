@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class InstallThemeStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'installTheme';
+	const DISCRIMINATOR = 'installTheme';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.
