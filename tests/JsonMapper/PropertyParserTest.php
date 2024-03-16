@@ -12,7 +12,7 @@ use WordPress\JsonMapper\Property;
 // phpcs:disable Generic.Commenting
 class PropertyParserTest extends TestCase {
 
-	public function testMapsPropertiesForScalars() {
+	public function testParsesPropertiesWithScalarTypes() {
 		$class = new class() {
 			/**
 			 * @var string
@@ -27,7 +27,7 @@ class PropertyParserTest extends TestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testMapsPropertiesForArraysOfScalars() {
+	public function testParsesPropertiesWithArraysOfScalarTypes() {
 		$class = new class() {
 			/**
 			 * @var string
@@ -53,7 +53,7 @@ class PropertyParserTest extends TestCase {
 		);
 		$this->assertEquals( $expected, $result );
 	}
-	public function testMapsPropertiesForArrays() {
+	public function testParsesPropertiesWithArrays() {
 		$class = new class() {
 			/**
 			 * @var string|array
@@ -68,7 +68,7 @@ class PropertyParserTest extends TestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testMapsPropertiesWithNoDocBlocks() {
+	public function testParsesPropertiesWithNoDocBlocks() {
 		$class = new class() {
 			private $no_docblock;
 		};
@@ -81,7 +81,7 @@ class PropertyParserTest extends TestCase {
 	}
 
 	//test visibility parsing
-	public function testMapsPropertiesForPublic() {
+	public function testParsesPropertiesWithPublicVisibility() {
 		$class = new class() {
 			/**
 			 * @var string
@@ -95,7 +95,7 @@ class PropertyParserTest extends TestCase {
 		);
 		$this->assertEquals( $expected, $result );
 	}
-	public function testMapsPropertiesForProtected() {
+	public function testParsesPropertiesWithProtectedVisibility() {
 		$class = new class() {
 			/**
 			 * @var string
@@ -110,7 +110,7 @@ class PropertyParserTest extends TestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testMapsPropertiesForPrivate() {
+	public function testParsesPropertiesWithPrivateVisibility() {
 		$class = new class() {
 			/**
 			 * @var string
@@ -125,7 +125,7 @@ class PropertyParserTest extends TestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testMapsPropertiesForUnionDocBlock() {
+	public function testParsesPropertiesWithUnionTypes() {
 		$class = new class() {
 			/**
 			 * @var string|array|bool
@@ -141,7 +141,7 @@ class PropertyParserTest extends TestCase {
 	}
 
 	/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-	public function testMapsPropertiesWhenTypeWithGlobalNamespacePrefix() {
+	public function testParsesPropertiesWithGlobalNamespacePrefixedType() {
 		$class = new class() {
 			/**
 			 * @var \stdClass
@@ -162,7 +162,7 @@ class PropertyParserTest extends TestCase {
 		$this->assertEquals( $expected, $result );
 	}
 
-	public function testMapsPropertiesWhenTypeNullable() {
+	public function testParsesPropertiesWithNullType() {
 		$class = new class() {
 			/**
 			 * @var null|string

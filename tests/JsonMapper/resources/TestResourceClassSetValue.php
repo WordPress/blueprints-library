@@ -2,6 +2,7 @@
 
 namespace JsonMapper\resources;
 
+// phpcs:disable
 class TestResourceClassSetValue {
 	public $publicProperty;
 

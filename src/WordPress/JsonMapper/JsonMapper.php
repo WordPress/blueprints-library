@@ -4,6 +4,7 @@ namespace WordPress\JsonMapper;
 
 use ArrayObject;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use stdClass;
 /**
@@ -45,13 +46,48 @@ class JsonMapper {
 		$this->add_custom_factories( $custom_factories );
 	}
 
+	/**
+	 * Creates an instance of the given class and populates it with data from the given JSON object.
+	 *
+	 * This method first checks if a factory exists for the given class. If a factory exists, it uses the factory
+	 * to create the instance and populate it with data. If no factory exists, it creates the instance and populates
+	 * it manually by calling the `hydrate_manually` method.
+	 *
+	 * @param stdClass $json The JSON object containing the data to populate the new object with.
+	 * @param string   $class_name The fully qualified name of the class to create an instance of.
+	 * @return object An instance of the class specified by $class_name, populated with data from $json.
+	 * @throws ReflectionException If the class does not exist and the instance is being created manually.
+	 * @throws JsonMapperException If mapping the value to an associated property type failed or if setting was
+	 * impossible.
+	 */
 	public function hydrate( stdClass $json, string $class_name ) {
 		return $this->has_factory( $class_name )
 			? $this->use_factory( $class_name, $json )
-			: $this->hydrate_manually( $class_name, $json );
+			: $this->hydrate_manually( $json, $class_name );
 	}
 
-	private function hydrate_manually( string $class_name, stdClass $json ) {
+	/**
+	 * Creates an instance of the given class and populates its properties with data from the given JSON object.
+	 *
+	 * This method uses PHP's Reflection API to create a new instance of the class specified by $class_name.
+	 * It then uses the PropertyParser to compute a property map for the class, which is an associative array
+	 * where the keys are property names and the values are {@link Property} objects.
+	 *
+	 * The method then iterates over the properties of the JSON object. For each property, it retrieves the
+	 * corresponding Property object from the property map, maps the JSON value to the type of the Property,
+	 * and sets the value of the Property on the newly created object.
+	 *
+	 * If the JSON object contains a property that is not defined in the class, or if the value of a property
+	 * in the JSON object is null, that property is ignored.
+	 *
+	 * @param stdClass $json The JSON object containing the data to populate the new object with.
+	 * @param string   $class_name The fully qualified name of the class to create an instance of.
+	 * @return object An instance of the class specified by $class_name, populated with data from $json.
+	 * @throws ReflectionException If the class does not exist.
+	 * @throws JsonMapperException If mapping the value to an associated property type failed or if setting was
+	 * impossible.
+	 */
+	private function hydrate_manually( stdClass $json, string $class_name ) {
 		$reflection_class = new ReflectionClass( $class_name );
 		$object           = $reflection_class->newInstance();
 		$property_map     = PropertyParser::compute_property_map( $reflection_class );
@@ -75,6 +111,45 @@ class JsonMapper {
 		return $object;
 	}
 
+	/**
+	 * Retrieves the Property object associated with a given value name from a property map.
+	 *
+	 * This method iterates over the provided property map and returns the Property object
+	 * whose name matches the provided value name. If no matching Property is found, it returns null.
+	 *
+	 * @param string     $value_name The name of the value for which to find the corresponding Property.
+	 * @param Property[] $property_map An associative array where the keys are property names
+	 * and the values are Property objects.
+	 * @return Property|null The Property object associated with the given value name,
+	 * or null if no matching Property is found.
+	 */
+	private static function get_property_for_value( string $value_name, array $property_map ) {
+		foreach ( $property_map as $property_name => $property ) {
+			if ( $property_name === $value_name ) {
+				return $property;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Maps a value from the JSON object to one of the types listed for that Property.
+	 *
+	 * This method uses the type of the {@link Property} to determine how to map the value from the JSON object.
+	 *
+	 * If the Property is:
+	 *
+	 * - of a basic type (like string, int, bool, etc.), the method simply casts the value to that type.
+	 *
+	 * - of a type the mapper has a factory for, the method
+	 * - of a class type, the method creates a new instance of that class and populates it with data from the JSON
+	 * value.
+	 *
+	 * @param Property $property The Property object to which the value should be mapped.
+	 * @param mixed    $value The value from the JSON object to map.
+	 * @return mixed The mapped value, of the type specified by the Property.
+	 * @throws JsonMapperException If the value cannot be mapped to any of the types listed for that Property.
+	 */
 	private function map_value( Property $property, $value ) {
 		if ( 0 === count( $property->property_types ) ) {
 			// Return the value as is - there is no type info.
@@ -136,11 +211,16 @@ class JsonMapper {
 	}
 
 	private function is_property_and_value_same_scalar( string $property_type, $value ) {
-		if ( false === is_scalar( $value ) || false === $this->is_valid_scalar_type( $property_type ) ) {
+		$copy_value = $value;
+		while ( true === is_array( $copy_value ) ) {
+			$copy_value = $copy_value[0];
+		}
+
+		if ( false === is_scalar( $copy_value ) || false === $this->is_valid_scalar_type( $property_type ) ) {
 			return false;
 		}
 
-		$value_type = gettype( $value );
+		$value_type = gettype( $copy_value );
 
 		if ( 'boolean' === $value_type ) {
 			return 'boolean' === $property_type || 'bool' === $property_type;
@@ -206,7 +286,8 @@ class JsonMapper {
 
 	private function map_to_object( string $property_type, $value ) {
 		if ( false === ( new ReflectionClass( $property_type ) )->isInstantiable() ) {
-			throw new JsonMapperException( "Unable to resolve uninstantiable \'{$property_type}\'." );
+			// phpcs:ignore
+			throw new JsonMapperException( "Unable to resolve uninstantiable \'$property_type\'." );
 		}
 		if ( false === is_array( $value ) ) {
 			return $this->hydrate( $value, $property_type );
@@ -276,20 +357,5 @@ class JsonMapper {
 				return new ArrayObject( $value );
 			}
 		);
-	}
-
-	/**
-	 * @param string     $value_name
-	 * @param Property[] $property_map
-	 * @return Property|null
-	 */
-	private static function get_property_for_value( string $value_name, array $property_map ) {
-		/** @var Property $property */
-		foreach ( $property_map as $property_name => $property ) {
-			if ( $property_name === $value_name ) {
-				return $property;
-			}
-		}
-		return null;
 	}
 }
