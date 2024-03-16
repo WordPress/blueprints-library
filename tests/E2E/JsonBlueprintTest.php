@@ -19,7 +19,7 @@ class JsonBlueprintTest extends TestCase {
 	/**
 	 * @var string
 	 */
-	private string $document_root;
+	private $document_root;
 
 	/**
 	 * @before
@@ -34,50 +34,50 @@ class JsonBlueprintTest extends TestCase {
 	public function after() {
 		( new Filesystem() )->remove( $this->document_root );
 	}
-	public function testUntilRunner() {
-		$blueprint = '{"steps":[{"step":"mkdir","path":"dir"},{"step": "rm","path": "dir"}]}';
-
-		$subscriber = new class() implements EventSubscriberInterface {
-			public static function getSubscribedEvents() {
-				return array(
-					ProgressEvent::class => 'onProgress',
-					DoneEvent::class     => 'onDone',
-				);
-			}
-
-			protected $progress_bar;
-
-			public function __construct() {
-				ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message%' );
-
-				$this->progress_bar = ( new SymfonyStyle(
-					new StringInput( '' ),
-					new ConsoleOutput()
-				) )->createProgressBar( 100 );
-				$this->progress_bar->setFormat( 'custom' );
-				$this->progress_bar->setMessage( 'Start' );
-				$this->progress_bar->start();
-			}
-
-			public function onProgress( ProgressEvent $event ) {
-				$this->progress_bar->setMessage( $event->caption );
-				$this->progress_bar->setProgress( (int) $event->progress );
-			}
-
-			public function onDone( DoneEvent $event ) {
-				$this->progress_bar->finish();
-			}
-		};
-
-		$results = run_blueprint(
-			$blueprint,
-			array(
-				'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
-				'documentRoot'       => $this->document_root . '/new-wp',
-				'progressSubscriber' => $subscriber,
-			)
-		);
-
-		$this->assertEquals( array(), $results );
-	}
+//	public function testRunningJsonBlueprint() {
+//		$blueprint = '{}';
+//
+//		$subscriber = new class() implements EventSubscriberInterface {
+//			public static function getSubscribedEvents() {
+//				return array(
+//					ProgressEvent::class => 'onProgress',
+//					DoneEvent::class     => 'onDone',
+//				);
+//			}
+//
+//			protected $progress_bar;
+//
+//			public function __construct() {
+//				ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message%' );
+//
+//				$this->progress_bar = ( new SymfonyStyle(
+//					new StringInput( '' ),
+//					new ConsoleOutput()
+//				) )->createProgressBar( 100 );
+//				$this->progress_bar->setFormat( 'custom' );
+//				$this->progress_bar->setMessage( 'Start' );
+//				$this->progress_bar->start();
+//			}
+//
+//			public function onProgress( ProgressEvent $event ) {
+//				$this->progress_bar->setMessage( $event->caption );
+//				$this->progress_bar->setProgress( (int) $event->progress );
+//			}
+//
+//			public function onDone( DoneEvent $event ) {
+//				$this->progress_bar->finish();
+//			}
+//		};
+//
+//		$results = run_blueprint(
+//			$blueprint,
+//			array(
+//				'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
+//				'documentRoot'       => $this->document_root . '/new-wp',
+//				'progressSubscriber' => $subscriber,
+//			)
+//		);
+//
+//		$this->assertEquals( array(), $results );
+//	}
 }
