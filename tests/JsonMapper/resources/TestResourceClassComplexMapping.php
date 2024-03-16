@@ -4,6 +4,11 @@ namespace JsonMapper\resources;
 // phpcs:disable
 class TestResourceClassComplexMapping {
 	/**
+	 * @var string;
+	 */
+	public $string;
+
+	/**
 	 * @var string[][]
 	 */
 	public $arrayOfStringArrays;
@@ -13,4 +18,14 @@ class TestResourceClassComplexMapping {
 	 * @var mixed[][]
 	 */
 	public $arrayOfMixedArrays;
+
+	/**
+	 * @var array[]
+	 */
+	public $arrayOfArrays;
+
+	/**
+	 * @var array
+	 */
+	public $array;
 }

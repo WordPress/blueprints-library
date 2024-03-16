@@ -130,4 +130,53 @@ class JsonMapperTest extends TestCase {
 
 		$this->assertEquals( $expected, $result );
 	}
+
+	public function testFailsWhenArrayWrongScalarType() {
+		$raw_json = '{"arrayOfStringArrays":[["test1", 42],["test3", true]]}';
+
+		$parsed_json = json_decode( $raw_json );
+
+		$this->expectException( JsonMapperException::class );
+		$this->expectExceptionMessage( "Unable to map [[\"test1\",42],[\"test3\",true]] to 'arrayOfStringArrays'." );
+		$this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
+	}
+
+	public function testFailsWhenWrongScalarType() {
+		$raw_json = '{"string":42}';
+
+		$parsed_json = json_decode( $raw_json );
+
+		$this->expectException( JsonMapperException::class );
+		$this->expectExceptionMessage( "Unable to map 42 to 'string'." );
+		$this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
+	}
+
+	public function testMapsToArrayOfArrays() {
+		$raw_json = '{"arrayOfArrays":[["test1", 42],["test3", true]]}';
+
+		$parsed_json = json_decode( $raw_json );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
+
+		$expected                = new TestResourceClassComplexMapping();
+		$expected->arrayOfArrays = array(
+			array( 'test1', 42 ),
+			array( 'test3', true ),
+		);
+
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function testMapsToArray() {
+		$raw_json = '{"array":["test1","test2"]}';
+
+		$parsed_json = json_decode( $raw_json );
+
+		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
+
+		$expected        = new TestResourceClassComplexMapping();
+		$expected->array = array('test1','test2');
+
+		$this->assertEquals( $expected, $result );
+	}
 }

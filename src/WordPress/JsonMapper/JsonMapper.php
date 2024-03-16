@@ -16,6 +16,8 @@ use stdClass;
  * @package WordPress\JsonMapper
  */
 class JsonMapper {
+	const ARRAY_TYPE       = '/^array(\[])*$/';
+	const MIXED_ARRAY_TYPE = '/^mixed(\[])+$/';
 	/**
 	 * Array of strings representing valid scalar types.
 	 *
@@ -132,24 +134,7 @@ class JsonMapper {
 		return null;
 	}
 
-	/**
-	 * Maps a value from the JSON object to one of the types listed for that Property.
-	 *
-	 * This method uses the type of the {@link Property} to determine how to map the value from the JSON object.
-	 *
-	 * If the Property is:
-	 *
-	 * - of a basic type (like string, int, bool, etc.), the method simply casts the value to that type.
-	 *
-	 * - of a type the mapper has a factory for, the method
-	 * - of a class type, the method creates a new instance of that class and populates it with data from the JSON
-	 * value.
-	 *
-	 * @param Property $property The Property object to which the value should be mapped.
-	 * @param mixed    $value The value from the JSON object to map.
-	 * @return mixed The mapped value, of the type specified by the Property.
-	 * @throws JsonMapperException If the value cannot be mapped to any of the types listed for that Property.
-	 */
+
 	private function map_value( Property $property, $value ) {
 		if ( 0 === count( $property->property_types ) ) {
 			// Return the value as is - there is no type info.
@@ -158,8 +143,8 @@ class JsonMapper {
 
 		foreach ( $property->property_types as $property_type ) {
 			$array_depth   = substr_count( $property_type, '[]' );
-			$is_array      = 'array' === $property_type || $array_depth > 0;
 			$property_type = str_replace( '[]', '', $property_type );
+			$is_array      = 'array' === $property_type || $array_depth > 0;
 
 			if ( is_array( $value ) && $is_array && count( $value ) === 0 ) {
 				return array();
@@ -178,10 +163,27 @@ class JsonMapper {
 			}
 		}
 
+		// If nothing more precise worked, value is an array, and one of the types is an array or mixed[], try it.
+		// Will work for deeper arrays. Does not check if depth matches.
+		if ( is_array( $value )
+			&& ( $this->is_matching_property( $property->property_types, self::ARRAY_TYPE ) )
+			|| $this->is_matching_property( $property->property_types, self::MIXED_ARRAY_TYPE ) ) {
+			return $value;
+		}
+
 		throw new JsonMapperException(
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			'Unable to map ' . json_encode( $value ) . " to '$property->name'."
 		);
+	}
+
+	private function is_matching_property( $property_types, $pattern ) {
+		foreach ( $property_types as $property_type ) {
+			if ( preg_match( $pattern, $property_type ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function set_value( $object, Property $property, $value ) {
@@ -211,30 +213,35 @@ class JsonMapper {
 	}
 
 	private function is_property_and_value_same_scalar( string $property_type, $value ) {
-		$copy_value = $value;
-		while ( true === is_array( $copy_value ) ) {
-			$copy_value = $copy_value[0];
+		if ( false === is_array( $value ) ) {
+			if ( false === is_scalar( $value ) || false === $this->is_valid_scalar_type( $property_type ) ) {
+				return false;
+			}
+
+			$value_type = gettype( $value );
+
+			if ( 'boolean' === $value_type ) {
+				return 'boolean' === $property_type || 'bool' === $property_type;
+			}
+
+			if ( 'integer' === $value_type ) {
+				return 'integer' === $property_type || 'int' === $property_type;
+			}
+
+			if ( 'double' === $value_type ) {
+				return 'float' === $property_type || 'double' === $property_type;
+			}
+
+			return $value_type === $property_type;
 		}
 
-		if ( false === is_scalar( $copy_value ) || false === $this->is_valid_scalar_type( $property_type ) ) {
-			return false;
+		foreach ( $value as $inner_value ) {
+			if ( false === $this->is_property_and_value_same_scalar( $property_type, $inner_value ) ) {
+				return false;
+			}
 		}
 
-		$value_type = gettype( $copy_value );
-
-		if ( 'boolean' === $value_type ) {
-			return 'boolean' === $property_type || 'bool' === $property_type;
-		}
-
-		if ( 'integer' === $value_type ) {
-			return 'integer' === $property_type || 'int' === $property_type;
-		}
-
-		if ( 'double' === $value_type ) {
-			return 'float' === $property_type || 'double' === $property_type;
-		}
-
-		return $value_type === $property_type;
+		return true;
 	}
 
 	/**
@@ -347,12 +354,6 @@ class JsonMapper {
 		);
 		$this->add_factory(
 			ArrayObject::class,
-			function ( $value ) {
-				return new ArrayObject( $value );
-			}
-		);
-		$this->add_factory(
-			'array',
 			function ( $value ) {
 				return new ArrayObject( $value );
 			}
