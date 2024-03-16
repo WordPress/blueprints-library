@@ -190,6 +190,9 @@ class AsyncHttpClient {
 			$active_streams = array_filter( $active_streams, function ( $stream ) {
 				return ! feof( $stream );
 			} );
+			if ( ! count( $active_streams ) ) {
+				continue;
+			}
 			$bytes = streams_http_response_await_bytes(
 				$active_streams,
 				$length - strlen( $request_info->buffer )
