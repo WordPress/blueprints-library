@@ -10,6 +10,13 @@ namespace WordPress\Streams;
 use Exception;
 use InvalidArgumentException;
 
+/**
+ * Opens multiple HTTP streams in a non-blocking manner.
+ *
+ * @see stream_http_open_nonblocking
+ * @param array $urls An array of URLs to open streams for.
+ * @return array An array of opened streams.
+ */
 function streams_http_open_nonblocking( $urls ) {
 	$streams = [];
 	foreach ( $urls as $k => $url ) {
@@ -19,6 +26,20 @@ function streams_http_open_nonblocking( $urls ) {
 	return $streams;
 }
 
+/**
+ * Opens a HTTP or HTTPS stream using stream_socket_client() without blocking,
+ * and returns nearly immediately. 
+ * 
+ * The act of opening a stream is non-blocking itself. This function uses
+ * a tcp:// stream wrapper, because both https:// and ssl:// wrappers would block
+ * until the SSL handshake is complete.
+ * The actual socket it then switched to non-blocking mode using stream_set_blocking().
+ *
+ * @param string $url The URL to open the stream for.
+ * @return resource|false The opened stream resource or false on failure.
+ * @throws InvalidArgumentException If the URL scheme is invalid.
+ * @throws Exception If unable to open the stream.
+ */
 function stream_http_open_nonblocking( $url ) {
 	$parts = parse_url( $url );
 	$scheme = $parts['scheme'];
@@ -49,7 +70,7 @@ function stream_http_open_nonblocking( $url ) {
 		$context
 	);
 	if ( $stream === false ) {
-		throw new Exception( 'Unable to open stream' );
+		throw new Exception( 'stream_socket_client() was unable to open a stream to ' . $url );
 	}
 
 	stream_set_blocking( $stream, 0 );
@@ -57,6 +78,15 @@ function stream_http_open_nonblocking( $url ) {
 	return $stream;
 }
 
+/**
+ * Sends HTTP requests using streams.
+ *
+ * Takes an array of asynchronous streams open using stream_http_open_nonblocking(),
+ * enables crypto on the streams, and sends the request headers asynchronously.
+ *
+ * @param array $streams An array of streams to send the requests.
+ * @throws Exception If there is an error enabling crypto or if stream_select times out.
+ */
 function streams_http_requests_send( $streams ) {
 	$read = $except = null;
 	$remaining_streams = $streams;
@@ -64,8 +94,7 @@ function streams_http_requests_send( $streams ) {
 		$write = $remaining_streams;
 		$ready = @stream_select( $read, $write, $except, 0, 5000000 );
 		if ( $ready === false ) {
-			$error = error_get_last();
-			throw new Exception( "Error: " . $error['message'] );
+			throw new Exception( "Error: " . error_get_last()['message'] );
 		} elseif ( $ready <= 0 ) {
 			throw new Exception( "stream_select timed out" );
 		}
@@ -73,7 +102,7 @@ function streams_http_requests_send( $streams ) {
 		foreach ( $write as $k => $stream ) {
 			$enabled_crypto = stream_socket_enable_crypto( $stream, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT );
 			if ( false === $enabled_crypto ) {
-				throw new Exception( "Failed to enable crypto" );
+				throw new Exception( "Failed to enable crypto: " . error_get_last()['message'] );
 			} elseif ( 0 === $enabled_crypto ) {
 				// Wait for the handshake to complete
 			} else {
@@ -88,6 +117,15 @@ function streams_http_requests_send( $streams ) {
 }
 
 
+/**
+ * Waits for response bytes to be available in the given streams.
+ *
+ * @param array $streams The array of streams to wait for.
+ * @param int $length The number of bytes to read from each stream.
+ * @param int $timeout_microseconds The timeout in microseconds for the stream_select function.
+ * @return array|false An array of chunks read from the streams, or false if no streams are available.
+ * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
+ */
 function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 5000000 ) {
 	$read = $streams;
 	if ( count( $read ) === 0 ) {
@@ -97,8 +135,7 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
 	$except = null;
 	$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
 	if ( $ready === false ) {
-		$error = error_get_last();
-		throw new Exception( "Error: " . $error['message'] );
+		throw new Exception( "Could not retrieve response bytes: " . error_get_last()['message'] );
 	} elseif ( $ready <= 0 ) {
 		throw new Exception( "stream_select timed out" );
 	}
@@ -111,6 +148,12 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
 	return $chunks;
 }
 
+/**
+ * Parses an HTTP headers string into an array containing the status and headers.
+ *
+ * @param string $headers The HTTP headers to parse.
+ * @return array An array containing the parsed status and headers.
+ */
 
 function parse_http_headers( string $headers ) {
 	$lines = explode( "\r\n", $headers );
@@ -136,6 +179,12 @@ function parse_http_headers( string $headers ) {
 	];
 }
 
+/**
+ * Prepares an HTTP request string for a given URL.
+ *
+ * @param string $url The URL to prepare the request for.
+ * @return string The prepared HTTP request string.
+ */
 
 function stream_http_prepare_request_bytes( $url ) {
 	$parts = parse_url( $url );
@@ -155,6 +204,12 @@ REQUEST;
 	return str_replace( "\n", "\r\n", $request ) . "\r\n\r\n";
 }
 
+/**
+ * Awaits and retrieves the HTTP response headers for multiple streams.
+ *
+ * @param array $streams An array of streams.
+ * @return array An array of HTTP response headers for each stream.
+ */
 function streams_http_response_await_headers( $streams ) {
 	$headers = [];
 	foreach ( $streams as $k => $stream ) {
@@ -180,6 +235,16 @@ function streams_http_response_await_headers( $streams ) {
 
 	return $headers;
 }
+/**
+ * Monitors the progress of a stream while reading its content.
+ *
+ * @param resource $stream The stream to monitor.
+ * @param int $contentLength The total length of the content being read.
+ * @param callable $onProgress The callback function to be called on each progress update.
+ *                            It should accept two parameters: the number of bytes streamed so far,
+ *                            and the total content length.
+ * @return resource The wrapped stream resource.
+ */
 
 function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
 	return StreamPeekerWrapper::create_resource(
@@ -194,6 +259,13 @@ function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
 	);
 }
 
+/**
+ * Sends multiple HTTP requests asynchronously and returns the response streams.
+ *
+ * @param array $requests An array of HTTP requests.
+ * @return array An array containing the final streams and response headers.
+ * @throws Exception If any of the requests fail with a non-successful HTTP code.
+ */
 function streams_send_http_requests( array $requests ) {
 	$urls = [];
 	foreach ( $requests as $k => $request ) {

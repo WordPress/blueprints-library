@@ -13,5 +13,4 @@ class Request {
 		$this->url = $url;
 	}
 
-
 }

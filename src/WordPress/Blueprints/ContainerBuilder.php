@@ -56,11 +56,8 @@ use WordPress\Blueprints\Runner\Step\SetSiteOptionsStepRunner;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
-use WordPress\Blueprints\Runtime\Runtime;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
-use WordPress\DataSource\FileSource;
 use WordPress\DataSource\PlaygroundFetchSource;
-use WordPress\DataSource\DataSourceProgressEvent;
 use WordPress\DataSource\UrlSource;
 use WordPress\Streams\AsyncHttpClient;
 

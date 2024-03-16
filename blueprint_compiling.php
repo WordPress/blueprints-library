@@ -7,7 +7,6 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Model\BlueprintBuilder;
-use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Progress\DoneEvent;
 use WordPress\Blueprints\Progress\ProgressEvent;
 use function WordPress\Blueprints\run_blueprint;

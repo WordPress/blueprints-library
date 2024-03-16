@@ -4,27 +4,6 @@ namespace WordPress\Streams;
 
 use WordPress\Util\Map;
 
-class RequestInfo {
-	const STATE_ENQUEUED = 'STATE_ENQUEUED';
-	const STATE_STREAMING = 'STATE_STREAMING';
-	const STATE_FINISHED = 'STATE_FINISHED';
-	public $state = self::STATE_ENQUEUED;
-	public $stream;
-	public $buffer = '';
-
-	/**
-	 * @param $stream
-	 */
-	public function __construct( $stream ) {
-		$this->stream = $stream;
-	}
-
-	public function isFinished() {
-		return $this->state === self::STATE_FINISHED;
-	}
-
-}
-
 /**
  * Groups PHP streams.
  * Whenever any stream is read, polls all the streams. Whenever other
@@ -48,6 +27,12 @@ class AsyncHttpClient {
 		$this->onProgress = $onProgress;
 	}
 
+	/**
+	 * Enqueues one or multiple HTTP requests for asynchronous processing.
+	 *
+	 * @param mixed $requests The HTTP request(s) to enqueue. Can be a single request or an array of requests.
+	 * @return array The enqueued streams.
+	 */
 	public function enqueue( $requests ) {
 		if ( ! is_array( $requests ) ) {
 			return $this->enqueue_request( $requests );
@@ -93,6 +78,11 @@ class AsyncHttpClient {
 		return $stream;
 	}
 
+	/**
+	 * Starts a next batch of enqueued requests up to the concurrency limit.
+	 *
+	 * @return void
+	 */
 	public function process_queue() {
 		$this->queue_needs_processing = false;
 
@@ -142,7 +132,7 @@ class AsyncHttpClient {
 	}
 
 	/**
-	 * Reads $length bytes from the stream while polling all the active streams.
+	 * Reads up to $length bytes from the stream while polling all the active streams.
 	 *
 	 * @param $stream
 	 * @param $length
@@ -166,6 +156,7 @@ class AsyncHttpClient {
 		$active_streams = array_map( function ( $request ) {
 			return $this->requests[ $request ]->stream;
 		}, $active_requests );
+
 		if ( ! count( $active_streams ) ) {
 			return false;
 		}
@@ -187,6 +178,7 @@ class AsyncHttpClient {
 
 				return $request_info->buffer;
 			}
+
 			$active_streams = array_filter( $active_streams, function ( $stream ) {
 				return ! feof( $stream );
 			} );
