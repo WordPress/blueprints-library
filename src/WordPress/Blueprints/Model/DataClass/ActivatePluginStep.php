@@ -19,7 +19,7 @@ class ActivatePluginStep implements StepDefinitionInterface
 	 * Plugin slug, like 'gutenberg' or 'hello-dolly'.
 	 * @var string
 	 */
-	public $slug = null;
+	public $slug;
 
 
 	public function setProgress(Progress $progress)

@@ -19,7 +19,7 @@ class RmStep implements StepDefinitionInterface
 	 * The path to remove
 	 * @var string
 	 */
-	public $path = null;
+	public $path;
 
 
 	public function setProgress(Progress $progress)

@@ -19,13 +19,13 @@ class WriteFileStep implements StepDefinitionInterface
 	 * The path of the file to write to
 	 * @var string
 	 */
-	public $path = null;
+	public $path;
 
 	/**
 	 * The data to write
 	 * @var string|ResourceDefinitionInterface
 	 */
-	public $data = null;
+	public $data;
 
 
 	public function setProgress(Progress $progress)

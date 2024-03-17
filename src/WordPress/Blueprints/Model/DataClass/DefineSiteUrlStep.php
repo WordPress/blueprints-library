@@ -19,7 +19,7 @@ class DefineSiteUrlStep implements StepDefinitionInterface
 	 * The URL
 	 * @var string
 	 */
-	public $siteUrl = null;
+	public $siteUrl;
 
 
 	public function setProgress(Progress $progress)

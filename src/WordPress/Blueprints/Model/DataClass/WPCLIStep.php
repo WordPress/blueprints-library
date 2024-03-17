@@ -20,9 +20,9 @@ class WPCLIStep implements StepDefinitionInterface
 
 	/**
 	 * The WP CLI command to run.
-	 * @var string[]
+	 * @var list<string>
 	 */
-	public $command = null;
+	public $command;
 
 
 	public function setProgress(Progress $progress)

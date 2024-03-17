@@ -22,7 +22,7 @@ class SetSiteOptionsStep implements StepDefinitionInterface
 	 * The options to set on the site.
 	 * @var \ArrayObject
 	 */
-	public $options = null;
+	public $options;
 
 
 	public function setProgress(Progress $progress)

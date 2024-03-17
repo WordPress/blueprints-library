@@ -19,13 +19,13 @@ class MvStep implements StepDefinitionInterface
 	 * Source path
 	 * @var string
 	 */
-	public $fromPath = null;
+	public $fromPath;
 
 	/**
 	 * Target path
 	 * @var string
 	 */
-	public $toPath = null;
+	public $toPath;
 
 
 	public function setProgress(Progress $progress)

@@ -19,7 +19,7 @@ class DefineWpConfigConstsStep implements StepDefinitionInterface
 	 * The constants to define
 	 * @var \ArrayObject
 	 */
-	public $consts = null;
+	public $consts;
 
 
 	public function setProgress(Progress $progress)

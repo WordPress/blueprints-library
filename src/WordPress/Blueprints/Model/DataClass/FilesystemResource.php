@@ -16,7 +16,7 @@ class FilesystemResource implements ResourceDefinitionInterface
 	 * The path to the file in the VFS
 	 * @var string
 	 */
-	public $path = null;
+	public $path;
 
 
 	public function setResource(string $resource)

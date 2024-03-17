@@ -22,7 +22,7 @@ class RunPHPStep implements StepDefinitionInterface
 	 * The PHP code to run.
 	 * @var string
 	 */
-	public $code = null;
+	public $code;
 
 
 	public function setProgress(Progress $progress)

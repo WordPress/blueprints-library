@@ -16,7 +16,7 @@ class CoreThemeResource implements ResourceDefinitionInterface
 	 * The slug of the WordPress Core theme
 	 * @var string
 	 */
-	public $slug = null;
+	public $slug;
 
 
 	public function setResource(string $resource)

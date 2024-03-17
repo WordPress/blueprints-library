@@ -16,7 +16,7 @@ class CorePluginResource implements ResourceDefinitionInterface
 	 * The slug of the WordPress Core plugin
 	 * @var string
 	 */
-	public $slug = null;
+	public $slug;
 
 
 	public function setResource(string $resource)

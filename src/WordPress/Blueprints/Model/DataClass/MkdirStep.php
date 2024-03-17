@@ -19,7 +19,7 @@ class MkdirStep implements StepDefinitionInterface
 	 * The path of the directory you want to create
 	 * @var string
 	 */
-	public $path = null;
+	public $path;
 
 
 	public function setProgress(Progress $progress)

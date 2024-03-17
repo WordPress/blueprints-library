@@ -19,7 +19,7 @@ class ActivateThemeStep implements StepDefinitionInterface
 	 * Theme slug, like 'twentytwentythree'.
 	 * @var string
 	 */
-	public $slug = null;
+	public $slug;
 
 
 	public function setProgress(Progress $progress)

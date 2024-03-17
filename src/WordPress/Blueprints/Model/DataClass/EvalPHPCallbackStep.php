@@ -22,7 +22,7 @@ class EvalPHPCallbackStep implements StepDefinitionInterface
 	 * The PHP function.
 	 * @var mixed
 	 */
-	public $callback = null;
+	public $callback;
 
 
 	public function setProgress(Progress $progress)

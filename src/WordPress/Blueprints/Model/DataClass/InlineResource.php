@@ -16,7 +16,7 @@ class InlineResource implements ResourceDefinitionInterface
 	 * The contents of the file
 	 * @var string
 	 */
-	public $contents = null;
+	public $contents;
 
 
 	public function setResource(string $resource)

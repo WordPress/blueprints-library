@@ -5,10 +5,10 @@ namespace WordPress\Blueprints\Model\DataClass;
 class Progress
 {
 	/** @var float */
-	public $weight = null;
+	public $weight;
 
 	/** @var string */
-	public $caption = null;
+	public $caption;
 
 
 	public function setWeight(float $weight)

@@ -16,13 +16,13 @@ class UrlResource implements ResourceDefinitionInterface
 	 * The URL of the file
 	 * @var string
 	 */
-	public $url = null;
+	public $url;
 
 	/**
 	 * Optional caption for displaying a progress message
 	 * @var string
 	 */
-	public $caption = null;
+	public $caption;
 
 
 	public function setResource(string $resource)

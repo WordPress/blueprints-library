@@ -22,7 +22,7 @@ class UnzipStep implements StepDefinitionInterface
 	 * The path to extract the zip file to
 	 * @var string
 	 */
-	public $extractToPath = null;
+	public $extractToPath;
 
 
 	public function setProgress(Progress $progress)

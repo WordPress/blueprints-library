@@ -196,7 +196,11 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 
 		$schema = $janeProperty->getObject();
 		if ( $schema instanceof JsonSchema ) {
-			$property->setValue( $schema->getDefault() );
+			// Don't set "null" as the default value since it's already a default
+			// value of all class properties.
+			if ( $schema->getDefault() !== null ) {
+				$property->setValue( $schema->getDefault() );
+			}
 			if ( $schema->getConst() ) {
 				$property->setValue( $schema->getConst() );
 				// Assume that a class with an interface uses a const property
