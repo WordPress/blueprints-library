@@ -5,6 +5,8 @@ namespace WordPress\Blueprints;
 use stdClass;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\ModelInfo;
+use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
+use WordPress\Blueprints\Model\DataClass\StepDefinitionInterface;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
 
@@ -19,16 +21,17 @@ class BlueprintMapper {
 	 */
 	public function __construct() {
 		$custom_factories = array(
-			'ResourceDefinitionInterface' => array( $this, 'resource_factory' ),
-			'StepDefinitionInterface'     => array( $this, 'step_factory' ),
+			ResourceDefinitionInterface::class => array( $this, 'resource_factory' ),
+			StepDefinitionInterface::class     => array( $this, 'step_factory' ),
 		);
-		$this->mapper     = new JsonMapper( $custom_factories );
+		$this->mapper = new JsonMapper( $custom_factories );
 	}
 
 	/**
 	 * Maps a parsed and validated JSON object to a Blueprint class instance.
 	 *
 	 * @param stdClass $blueprint a parsed and validated JSON object.
+	 *
 	 * @return Blueprint
 	 */
 	public function map( stdClass $blueprint ): Blueprint {
@@ -37,6 +40,7 @@ class BlueprintMapper {
 
 	/**
 	 * @param $value
+	 *
 	 * @return object|string
 	 * @throws JsonMapperException
 	 */
@@ -61,6 +65,7 @@ class BlueprintMapper {
 
 	/**
 	 * @param $value
+	 *
 	 * @return object
 	 * @throws JsonMapperException
 	 */

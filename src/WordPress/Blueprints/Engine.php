@@ -28,9 +28,9 @@ class Engine {
 		BlueprintCompiler $compiler,
 		BlueprintRunner $runner
 	) {
-		$this->runner   = $runner;
+		$this->runner = $runner;
 		$this->compiler = $compiler;
-		$this->parser   = $parser;
+		$this->parser = $parser;
 	}
 
 	public function parseAndCompile( $raw_blueprint ) {

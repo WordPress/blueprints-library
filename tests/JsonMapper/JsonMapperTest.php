@@ -3,6 +3,8 @@
 namespace JsonMapper;
 
 use ArrayObject;
+use JsonMapper\resources\Bag;
+use JsonMapper\resources\Item;
 use JsonMapper\resources\TestResourceClassComplexMapping;
 use JsonMapper\resources\TestResourceClassSetValue;
 use WordPress\JsonMapper\JsonMapper;
@@ -21,6 +23,29 @@ class JsonMapperTest extends TestCase {
 	 */
 	public function before() {
 		$this->json_mapper = new JsonMapper();
+	}
+
+	public function testCustomFactory() {
+		$mapper = new JsonMapper( array(
+			Item::class => function ( $json ) {
+				$item = new Item();
+				$item->name = $json->name;
+
+				return $item;
+			},
+		) );
+
+		$result = $mapper->hydrate(
+			json_decode( '{"name":"test","items":[{"name":"test"}]}' ),
+			Bag::class
+		);
+
+		$expected = new Bag();
+		$expected->name = 'test';
+		$expected->items = [ new Item() ];
+		$expected->items[0]->name = 'test';
+
+		$this->assertEquals( $expected, $result );
 	}
 
 	/**
@@ -47,7 +72,7 @@ class JsonMapperTest extends TestCase {
 
 		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
 
-		$expected                 = new TestResourceClassSetValue();
+		$expected = new TestResourceClassSetValue();
 		$expected->publicProperty = 'test';
 
 		$this->assertEquals( $expected, $result );
@@ -100,13 +125,12 @@ class JsonMapperTest extends TestCase {
 	}
 
 	public function testMapsToDeepScalarArray() {
-		$raw_json = '{"arrayOfStringArrays":[["test1","test2"],["test3","test4"]]}';
+		$result = $this->json_mapper->hydrate(
+			json_decode( '{"arrayOfStringArrays":[["test1","test2"],["test3","test4"]]}' ),
+			TestResourceClassComplexMapping::class
+		);
 
-		$parsed_json = json_decode( $raw_json );
-
-		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
-
-		$expected                      = new TestResourceClassComplexMapping();
+		$expected = new TestResourceClassComplexMapping();
 		$expected->arrayOfStringArrays = array(
 			array( 'test1', 'test2' ),
 			array( 'test3', 'test4' ),
@@ -122,7 +146,7 @@ class JsonMapperTest extends TestCase {
 
 		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
 
-		$expected                      = new TestResourceClassComplexMapping();
+		$expected = new TestResourceClassComplexMapping();
 		$expected->arrayOfMixedArrays = array(
 			array( 'test1', 42 ),
 			array( 'test3', true ),
@@ -158,7 +182,7 @@ class JsonMapperTest extends TestCase {
 
 		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
 
-		$expected                = new TestResourceClassComplexMapping();
+		$expected = new TestResourceClassComplexMapping();
 		$expected->arrayOfArrays = array(
 			array( 'test1', 42 ),
 			array( 'test3', true ),
@@ -174,8 +198,8 @@ class JsonMapperTest extends TestCase {
 
 		$result = $this->json_mapper->hydrate( $parsed_json, TestResourceClassComplexMapping::class );
 
-		$expected        = new TestResourceClassComplexMapping();
-		$expected->array = array('test1','test2');
+		$expected = new TestResourceClassComplexMapping();
+		$expected->array = array( 'test1', 'test2' );
 
 		$this->assertEquals( $expected, $result );
 	}
