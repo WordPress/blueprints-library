@@ -20,7 +20,7 @@ class WPCLIStep implements StepDefinitionInterface
 
 	/**
 	 * The WP CLI command to run.
-	 * @var list<string>
+	 * @var string[]
 	 */
 	public $command;
 

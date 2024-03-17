@@ -33,7 +33,7 @@ class Blueprint
 
 	/**
 	 * WordPress plugins to install and activate
-	 * @var list<string>|list<FilesystemResource>|list<InlineResource>|list<CoreThemeResource>|list<CorePluginResource>|list<UrlResource>
+	 * @var string[]|ResourceDefinitionInterface[]
 	 */
 	public $plugins = [];
 
@@ -45,7 +45,7 @@ class Blueprint
 
 	/**
 	 * The steps to run after every other operation in this Blueprint was executed.
-	 * @var list<ActivatePluginStep>|list<ActivateThemeStep>|list<CpStep>|list<DefineWpConfigConstsStep>|list<DefineSiteUrlStep>|list<EnableMultisiteStep>|list<EvalPHPCallbackStep>|list<ImportFileStep>|list<InstallPluginStep>|list<InstallThemeStep>|list<MkdirStep>|list<MvStep>|list<RmStep>|list<RunPHPStep>|list<RunWordPressInstallerStep>|list<RunSQLStep>|list<SetSiteOptionsStep>|list<UnzipStep>|list<DownloadWordPressStep>|list<InstallSqliteIntegrationStep>|list<WriteFileStep>|list<WPCLIStep>
+	 * @var StepDefinitionInterface[]
 	 */
 	public $steps = [];
 
