@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Streams;
+namespace WordPress\AsyncHttp;
 
 class RequestInfo {
 	const STATE_ENQUEUED = 'STATE_ENQUEUED';

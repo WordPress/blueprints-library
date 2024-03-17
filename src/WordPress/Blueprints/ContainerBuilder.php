@@ -4,6 +4,7 @@ namespace WordPress\Blueprints;
 
 use InvalidArgumentException;
 use Pimple\Container;
+use WordPress\AsyncHttp\Client;
 use WordPress\Blueprints\Cache\FileCache;
 use WordPress\Blueprints\Compile\BlueprintCompiler;
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
@@ -29,7 +30,6 @@ use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\Blueprints\Model\DataClass\WPCLIStep;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
-use WordPress\Blueprints\BlueprintMapper;
 use WordPress\Blueprints\Resources\Resolver\FilesystemResourceResolver;
 use WordPress\Blueprints\Resources\Resolver\InlineResourceResolver;
 use WordPress\Blueprints\Resources\Resolver\ResourceResolverCollection;
@@ -59,7 +59,6 @@ use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
 use WordPress\DataSource\PlaygroundFetchSource;
 use WordPress\DataSource\UrlSource;
-use WordPress\Streams\AsyncHttpClient;
 
 class ContainerBuilder {
 
@@ -90,7 +89,7 @@ class ContainerBuilder {
 				return new FileCache();
 			};
 			$container['http_client'] = function ( $c ) {
-				return new AsyncHttpClient();
+				return new Client();
 			};
 			$container[ "resource.resolver." . UrlResource::DISCRIMINATOR ] = function ( $c ) {
 				return new UrlResourceResolver( $c['data_source.url'] );

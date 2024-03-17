@@ -2,13 +2,8 @@
 
 namespace WordPress\DataSource;
 
-use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpClient\Response\StreamWrapper;
-use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use WordPress\Streams\StreamPeekerWrapper;
-use WordPress\Streams\StreamPeekerData;
 
 class PlaygroundFetchSource extends BaseDataSource {
 

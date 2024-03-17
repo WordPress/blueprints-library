@@ -1,6 +1,6 @@
 <?php
 
-namespace WordPress\Streams;
+namespace WordPress\AsyncHttp;
 
 class Request {
 

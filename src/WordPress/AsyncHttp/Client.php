@@ -1,8 +1,11 @@
 <?php
 
-namespace WordPress\Streams;
+namespace WordPress\AsyncHttp;
 
 use WordPress\Util\Map;
+use function WordPress\Streams\stream_monitor_progress;
+use function WordPress\Streams\streams_http_response_await_bytes;
+use function WordPress\Streams\streams_send_http_requests;
 
 /**
  * Groups PHP streams.
@@ -11,7 +14,7 @@ use WordPress\Util\Map;
  * for later. This means we'll read all the streams in parallel and will
  * complete the downloading faster than if we were to read them sequentially.
  */
-class AsyncHttpClient {
+class Client {
 	protected $concurrency = 10;
 	protected Map $requests;
 	protected $onProgress;
@@ -70,8 +73,8 @@ class AsyncHttpClient {
 	}
 
 	protected function enqueue_request( Request $request ) {
-		$stream = AsyncHttpStreamWrapper::create_resource(
-			new AsyncHttpStreamData( $request, $this )
+		$stream = StreamWrapper::create_resource(
+			new StreamData( $request, $this )
 		);
 		$this->requests[ $request ] = new RequestInfo( $stream );
 		$this->queue_needs_processing = true;

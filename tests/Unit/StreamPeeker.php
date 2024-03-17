@@ -1,7 +1,7 @@
 <?php
 
-use WordPress\Streams\StreamPeekerWrapper;
 use WordPress\Streams\StreamPeekerData;
+use WordPress\Streams\StreamPeekerWrapper;
 
 it( 'can peek at the stream', function () {
 	// Prepare the stream and mapper function

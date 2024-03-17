@@ -3,15 +3,15 @@
 namespace WordPress\DataSource;
 
 use Psr\SimpleCache\CacheInterface;
-use WordPress\Streams\AsyncHttpClient;
-use WordPress\Streams\Request;
-use WordPress\Streams\StreamPeekerWrapper;
+use WordPress\AsyncHttp\Client;
+use WordPress\AsyncHttp\Request;
 use WordPress\Streams\StreamPeekerData;
+use WordPress\Streams\StreamPeekerWrapper;
 
 class UrlSource extends BaseDataSource {
 
 	public function __construct(
-		protected AsyncHttpClient $client,
+		protected Client $client,
 		protected CacheInterface $cache
 	) {
 		parent::__construct();

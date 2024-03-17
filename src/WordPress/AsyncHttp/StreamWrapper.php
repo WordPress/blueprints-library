@@ -1,12 +1,14 @@
 <?php
 
-namespace WordPress\Streams;
+namespace WordPress\AsyncHttp;
 
-class AsyncHttpStreamWrapper extends VanillaStreamWrapper {
+use WordPress\Streams\VanillaStreamWrapper;
+
+class StreamWrapper extends VanillaStreamWrapper {
 
 	const SCHEME = 'async-http';
 
-	/** @var AsyncHttpClient */
+	/** @var Client */
 	private $client;
 
 	protected function initialize() {

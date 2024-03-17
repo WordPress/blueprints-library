@@ -1,11 +1,11 @@
 <?php
 
-use WordPress\Streams\AsyncHttpClient;
-use WordPress\Streams\Request;
+use WordPress\AsyncHttp\Client;
+use WordPress\AsyncHttp\Request;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$client = new AsyncHttpClient();
+$client = new Client();
 $client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
 	echo "$request->url – Downloaded: $downloaded / $total\n";
 } );
