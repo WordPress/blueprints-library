@@ -196,11 +196,6 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 
 		$schema = $janeProperty->getObject();
 		if ( $schema instanceof JsonSchema ) {
-			// Don't set "null" as the default value since it's already a default
-			// value of all class properties.
-			if ( $schema->getDefault() !== null ) {
-				$property->setValue( $schema->getDefault() );
-			}
 			if ( $schema->getConst() ) {
 				$property->setValue( $schema->getConst() );
 				// Assume that a class with an interface uses a const property
@@ -214,6 +209,10 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 					// So, we have to manually set it back to null.
 					$class->getConstants()['DISCRIMINATOR']->setVisibility( null );
 				}
+			} elseif ( $schema->getDefault() !== null ) {
+				// Don't set "null" as the default value since it's already a default
+				// value of all class properties.
+				$property->setValue( $schema->getDefault() );
 			} elseif ( $schema->getType() === 'array' ) {
 				$property->setValue( [] );
 			}
