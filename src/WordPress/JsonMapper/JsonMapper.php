@@ -134,7 +134,16 @@ class JsonMapper {
 		return null;
 	}
 
-
+	/**
+	 * Maps a value from the JSON object to the type of the given Property.
+	 *
+	 * Warning - array depths are not fully checked during mapping.
+	 *
+	 * @param Property $property The Property object with a list of possible types the value could be mapped to.
+	 * @param mixed    $value The value from the JSON object.
+	 * @return mixed The mapped value, of the type specified by the Property.
+	 * @throws JsonMapperException If the Property type is not supported, or if the value cannot be mapped to the Property type.
+	 */
 	private function map_value( Property $property, $value ) {
 		if ( 0 === count( $property->property_types ) ) {
 			// Return the value as is - there is no type info.
@@ -155,7 +164,7 @@ class JsonMapper {
 			}
 
 			if ( $this->has_factory( $property_type ) ) {
-				return $this->map_to_object_using_factory( $property_type, $value );
+				return $this->map_using_factory( $property_type, $value );
 			}
 
 			if ( ( class_exists( $property_type ) || interface_exists( $property_type ) ) ) {
@@ -163,8 +172,8 @@ class JsonMapper {
 			}
 		}
 
-		// If nothing more precise worked, value is an array, and one of the types is an array or mixed[], try it.
-		// Will work for deeper arrays. Does not check if depth matches.
+		// If nothing more precise worked, the value is an array, and one of the types is an array or mixed[],
+		// just return the values as is. This will work for arrays of any depth.
 		if ( is_array( $value )
 			&& ( $this->is_matching_property( $property->property_types, self::ARRAY_TYPE ) )
 			|| $this->is_matching_property( $property->property_types, self::MIXED_ARRAY_TYPE ) ) {
@@ -280,13 +289,13 @@ class JsonMapper {
 		return $mapped;
 	}
 
-	private function map_to_object_using_factory( string $property_type, $value ) {
+	private function map_using_factory(string $property_type, $value ) {
 		if ( false === is_array( $value ) ) {
 			return $this->use_factory( $property_type, $value );
 		}
 		$mapped = array();
 		foreach ( $value as $inner_value ) {
-			$mapped[] = $this->map_to_object_using_factory( $property_type, $inner_value );
+			$mapped[] = $this->map_using_factory( $property_type, $inner_value );
 		}
 		return $mapped;
 	}

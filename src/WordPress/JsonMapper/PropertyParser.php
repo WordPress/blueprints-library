@@ -61,7 +61,7 @@ class PropertyParser {
 	 *
 	 * Examples:
 	 *
-	 * For types: PointlessInterface[]|null will return: array('PointlessInterface[]')
+	 * For types: AnInterface[]|null will return: array('AnInterface[]')
 	 *
 	 * For types: string|int[][] will return: array('string', 'int[][]')
 	 *
@@ -101,7 +101,6 @@ class PropertyParser {
 		}
 
 		$property_types = array();
-		/** @var string $property_type */
 		foreach ( explode( '|', $var ) as $property_type ) {
 			// Filter out 'null' type.
 			if ( 'null' === $property_type ) {
