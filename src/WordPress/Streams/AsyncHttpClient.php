@@ -31,6 +31,7 @@ class AsyncHttpClient {
 	 * Enqueues one or multiple HTTP requests for asynchronous processing.
 	 *
 	 * @param mixed $requests The HTTP request(s) to enqueue. Can be a single request or an array of requests.
+	 *
 	 * @return array The enqueued streams.
 	 */
 	public function enqueue( $requests ) {
@@ -97,11 +98,11 @@ class AsyncHttpClient {
 
 		foreach ( $streams as $k => $stream ) {
 			$request = $enqueued[ $k ];
+			$total = $response_headers[ $k ]['headers']['content-length'];
 			$this->requests[ $request ]->state = RequestInfo::STATE_STREAMING;
 			$this->requests[ $request ]->stream = stream_monitor_progress(
 				$stream,
-				$response_headers[ $k ]['headers']['content-length'],
-				function ( $downloaded, $total ) use ( $request ) {
+				function ( $downloaded ) use ( $request, $total ) {
 					$onProgress = $this->onProgress;
 					$onProgress( $request, $downloaded, $total );
 				}

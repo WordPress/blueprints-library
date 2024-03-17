@@ -13,9 +13,10 @@ use InvalidArgumentException;
 /**
  * Opens multiple HTTP streams in a non-blocking manner.
  *
- * @see stream_http_open_nonblocking
  * @param array $urls An array of URLs to open streams for.
+ *
  * @return array An array of opened streams.
+ * @see stream_http_open_nonblocking
  */
 function streams_http_open_nonblocking( $urls ) {
 	$streams = [];
@@ -28,14 +29,15 @@ function streams_http_open_nonblocking( $urls ) {
 
 /**
  * Opens a HTTP or HTTPS stream using stream_socket_client() without blocking,
- * and returns nearly immediately. 
- * 
+ * and returns nearly immediately.
+ *
  * The act of opening a stream is non-blocking itself. This function uses
  * a tcp:// stream wrapper, because both https:// and ssl:// wrappers would block
  * until the SSL handshake is complete.
  * The actual socket it then switched to non-blocking mode using stream_set_blocking().
  *
  * @param string $url The URL to open the stream for.
+ *
  * @return resource|false The opened stream resource or false on failure.
  * @throws InvalidArgumentException If the URL scheme is invalid.
  * @throws Exception If unable to open the stream.
@@ -85,6 +87,7 @@ function stream_http_open_nonblocking( $url ) {
  * enables crypto on the streams, and sends the request headers asynchronously.
  *
  * @param array $streams An array of streams to send the requests.
+ *
  * @throws Exception If there is an error enabling crypto or if stream_select times out.
  */
 function streams_http_requests_send( $streams ) {
@@ -123,6 +126,7 @@ function streams_http_requests_send( $streams ) {
  * @param array $streams The array of streams to wait for.
  * @param int $length The number of bytes to read from each stream.
  * @param int $timeout_microseconds The timeout in microseconds for the stream_select function.
+ *
  * @return array|false An array of chunks read from the streams, or false if no streams are available.
  * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
  */
@@ -152,6 +156,7 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
  * Parses an HTTP headers string into an array containing the status and headers.
  *
  * @param string $headers The HTTP headers to parse.
+ *
  * @return array An array containing the parsed status and headers.
  */
 
@@ -183,6 +188,7 @@ function parse_http_headers( string $headers ) {
  * Prepares an HTTP request string for a given URL.
  *
  * @param string $url The URL to prepare the request for.
+ *
  * @return string The prepared HTTP request string.
  */
 
@@ -208,6 +214,7 @@ REQUEST;
  * Awaits and retrieves the HTTP response headers for multiple streams.
  *
  * @param array $streams An array of streams.
+ *
  * @return array An array of HTTP response headers for each stream.
  */
 function streams_http_response_await_headers( $streams ) {
@@ -235,25 +242,24 @@ function streams_http_response_await_headers( $streams ) {
 
 	return $headers;
 }
+
 /**
  * Monitors the progress of a stream while reading its content.
  *
  * @param resource $stream The stream to monitor.
- * @param int $contentLength The total length of the content being read.
  * @param callable $onProgress The callback function to be called on each progress update.
- *                            It should accept two parameters: the number of bytes streamed so far,
- *                            and the total content length.
+ *                             It should accept a single parameters: the number of bytes streamed so far.
+ *
  * @return resource The wrapped stream resource.
  */
-
-function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
+function stream_monitor_progress( $stream, $onProgress ) {
 	return StreamPeekerWrapper::create_resource(
 		new StreamPeekerData(
 			$stream,
-			function ( $data ) use ( $onProgress, $contentLength ) {
+			function ( $data ) use ( $onProgress ) {
 				static $streamedBytes = 0;
 				$streamedBytes += strlen( $data );
-				$onProgress( $streamedBytes, $contentLength );
+				$onProgress( $streamedBytes );
 			}
 		)
 	);
@@ -263,6 +269,7 @@ function stream_monitor_progress( $stream, $contentLength, $onProgress ) {
  * Sends multiple HTTP requests asynchronously and returns the response streams.
  *
  * @param array $requests An array of HTTP requests.
+ *
  * @return array An array containing the final streams and response headers.
  * @throws Exception If any of the requests fail with a non-successful HTTP code.
  */
