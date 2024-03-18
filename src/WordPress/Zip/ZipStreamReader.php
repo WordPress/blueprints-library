@@ -201,7 +201,7 @@ class ZipStreamReader {
 		$remaining_length = $length;
 		while ( $remaining_length > 0 ) {
 			$chunk = fread( $stream, $remaining_length );
-			if ( false === $chunk ) {
+			if ( false === $chunk || ( '' === $chunk && feof( $stream ) ) ) {
 				return strlen( $data ) ? $data : false;
 			}
 			$remaining_length -= strlen( $chunk );

@@ -44,7 +44,7 @@ class UnzipStepRunnerTest extends TestCase {
 	 */
 	public function before() {
 		$this->document_root = Path::makeAbsolute( 'test', sys_get_temp_dir() );
-		$this->runtime       = new Runtime( $this->document_root );
+		$this->runtime = new Runtime( $this->document_root );
 
 		$this->resource_manager = $this->createStub( ResourceManager::class );
 
