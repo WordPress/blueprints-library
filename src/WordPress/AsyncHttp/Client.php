@@ -2,17 +2,90 @@
 
 namespace WordPress\AsyncHttp;
 
+use Exception;
 use WordPress\Util\Map;
 use function WordPress\Streams\stream_monitor_progress;
 use function WordPress\Streams\streams_http_response_await_bytes;
 use function WordPress\Streams\streams_send_http_requests;
 
 /**
- * Groups PHP streams.
- * Whenever any stream is read, polls all the streams. Whenever other
- * streams have data before the requested stream does, it is buffered
- * for later. This means we'll read all the streams in parallel and will
- * complete the downloading faster than if we were to read them sequentially.
+ * An asynchronous HTTP client library designed for WordPress. Main features:
+ *
+ * **Streaming support**
+ * Enqueuing a request returns a PHP resource that can be read by PHP functions like `fopen()`
+ * and `stream_get_contents()`
+ *
+ * ```php
+ * $client = new AsyncHttpClient();
+ * $fp = $client->enqueue(
+ *      new Request( "https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip" ),
+ * );
+ * // Read some data
+ * $first_4_kilobytes = fread($fp, 4096);
+ * // We've only waited for the first four kilobytes. The download
+ * // is still in progress at this point, and yet we're free to do
+ * // other work.
+ * ```
+ *
+ * **Delayed execution and concurrent downloads**
+ * The actual socket are not open until the first time the stream is read from:
+ *
+ * ```php
+ * $client = new AsyncHttpClient();
+ * // Enqueuing the requests does not start the data transmission yet.
+ * $batch = $client->enqueue( [
+ *     new Request( "https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip" ),
+ *     new Request( "https://downloads.wordpress.org/theme/pendant.zip" ),
+ * ] );
+ * // Even though stream_get_contents() will return just the response body for
+ * // one request, it also opens the network sockets and starts streaming
+ * // both enqueued requests. The response data for $batch[1] is buffered.
+ * $gutenberg_zip = stream_get_contents( $batch[0] )
+ *
+ * // At least a chunk of the pendant.zip have already been downloaded, let's
+ * // wait for the rest of the data:
+ * $pendant_zip = stream_get_contents( $batch[1] )
+ * ```
+ *
+ * **Concurrency limits**
+ * The `AsyncHttpClient` will only keep up to `$concurrency` connections open. When one of the
+ * requests finishes, it will automatically start the next one.
+ *
+ * For example:
+ * ```php
+ * $client = new AsyncHttpClient();
+ * // Process at most 10 concurrent request at a time.
+ * $client->set_concurrency_limit( 10 );
+ * ```
+ *
+ * **Progress monitoring**
+ * A developer-provided callback (`AsyncHttpClient->set_progress_callback()`) receives progress
+ * information about every HTTP request.
+ *
+ * ```php
+ * $client = new AsyncHttpClient();
+ * $client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
+ *      // $total is computed based on the Content-Length response header and
+ *      // null if it's missing.
+ *      echo "$request->url – Downloaded: $downloaded / $total\n";
+ * } );
+ * ```
+ *
+ * **HTTPS support**
+ * TLS connections work out of the box.
+ *
+ * **Non-blocking sockets**
+ * The act of opening each socket connection is non-blocking and happens nearly
+ * instantly. The streams themselves are also set to non-blocking mode via `stream_set_blocking($fp, 0);`
+ *
+ * **Asynchronous downloads**
+ * Start downloading now, do other work in your code, only block once you need the data.
+ *
+ * **PHP 7.0 support and no dependencies**
+ * `AsyncHttpClient` works on any WordPress installation with vanilla PHP only.
+ * It does not require any PHP extensions, CURL, or any external PHP libraries.
+ *
+ * **Supports custom request headers and body**
  */
 class Client {
 	protected $concurrency = 10;
@@ -26,12 +99,31 @@ class Client {
 		};
 	}
 
+	/**
+	 * Sets the limit of concurrent connections this client will open.
+	 *
+	 * @param int $concurrency
+	 */
+	public function set_concurrency_limit( $concurrency ) {
+		$this->concurrency = $concurrency;
+	}
+
+	/**
+	 * Sets the callback called when response bytes are received on any of the enqueued
+	 * requests.
+	 *
+	 * @param callable $onProgress A function of three arguments:
+	 *                             Request $request, int $downloaded, int $total.
+	 */
 	public function set_progress_callback( $onProgress ) {
 		$this->onProgress = $onProgress;
 	}
 
 	/**
 	 * Enqueues one or multiple HTTP requests for asynchronous processing.
+	 * It does not open the network sockets, only adds the Request objects to
+	 * an internal queue. Network transmission is delayed until one of the returned
+	 * streams is read from.
 	 *
 	 * @param mixed $requests The HTTP request(s) to enqueue. Can be a single request or an array of requests.
 	 *
@@ -51,14 +143,12 @@ class Client {
 	}
 
 	/**
-	 * Calling this function for a bunch of streams that are enqueued but not active
-	 * yet may lead to exceeding the concurrency limit if those streams are then
-	 * immediately read from.
+	 * Returns the response stream associated with the given Request object.
+	 * Enqueues the Request if it hasn't been enqueued yet.
 	 *
-	 * In practice, it should be fine. The Blueprint executor will consume
-	 * the streams in the same order as they were enqueued.
+	 * @param Request $request
 	 *
-	 * @param $request
+	 * @return resource
 	 */
 	public function get_stream( Request $request ) {
 		if ( ! isset( $this->requests[ $request ] ) ) {
@@ -83,9 +173,7 @@ class Client {
 	}
 
 	/**
-	 * Starts a next batch of enqueued requests up to the concurrency limit.
-	 *
-	 * @return void
+	 * Starts n enqueued request up to the $concurrency_limit.
 	 */
 	public function process_queue() {
 		$this->queue_needs_processing = false;
@@ -138,13 +226,13 @@ class Client {
 	/**
 	 * Reads up to $length bytes from the stream while polling all the active streams.
 	 *
-	 * @param $stream
+	 * @param Request $request
 	 * @param $length
 	 *
-	 * @return false|mixed|string
-	 * @throws \Exception
+	 * @return false|string
+	 * @throws Exception
 	 */
-	public function read_bytes( $request, $length ) {
+	public function read_bytes( Request $request, $length ) {
 		if ( ! isset( $this->requests[ $request ] ) ) {
 			return false;
 		}

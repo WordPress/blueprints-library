@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @TODO Better error messages, e.g throw new AsyncResourceException($resource)
+ * @TODO Improve the error messages, e.g  implement
+ * `throw new AsyncResourceException($resource)`
  * that would report which URL failed to download.
  */
 
