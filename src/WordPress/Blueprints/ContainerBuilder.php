@@ -4,7 +4,7 @@ namespace WordPress\Blueprints;
 
 use InvalidArgumentException;
 use Pimple\Container;
-use Symfony\Component\HttpClient\HttpClient;
+use WordPress\AsyncHttp\Client;
 use WordPress\Blueprints\Cache\FileCache;
 use WordPress\Blueprints\Compile\BlueprintCompiler;
 use WordPress\Blueprints\Model\DataClass\ActivatePluginStep;
@@ -59,17 +59,15 @@ use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
 use WordPress\Blueprints\Runner\Step\WPCLIStepRunner;
 use WordPress\Blueprints\Runner\Step\WriteFileStepRunner;
 use WordPress\Blueprints\Runtime\RuntimeInterface;
-use WordPress\DataSource\FileSource;
 use WordPress\DataSource\PlaygroundFetchSource;
-use WordPress\DataSource\DataSourceProgressEvent;
 use WordPress\DataSource\UrlSource;
 
 class ContainerBuilder {
 
-	const ENVIRONMENT_NATIVE     = 'native';
+	const ENVIRONMENT_NATIVE = 'native';
 	const ENVIRONMENT_PLAYGROUND = 'playground';
-	const ENVIRONMENT_WP_NOW     = 'wp-now';
-	const ENVIRONMENTS           = array(
+	const ENVIRONMENT_WP_NOW = 'wp-now';
+	const ENVIRONMENTS = array(
 		self::ENVIRONMENT_NATIVE,
 		self::ENVIRONMENT_PLAYGROUND,
 		self::ENVIRONMENT_WP_NOW,
@@ -83,22 +81,17 @@ class ContainerBuilder {
 
 
 	public function build( string $environment, RuntimeInterface $runtime ) {
-		$container            = $this->container;
+		$container = $this->container;
 		$container['runtime'] = function () use ( $runtime ) {
 			return $runtime;
 		};
 
 		if ( $environment === static::ENVIRONMENT_NATIVE ) {
-			$container['downloads_cache']                                   = function ( $c ) {
+			$container['downloads_cache'] = function ( $c ) {
 				return new FileCache();
 			};
-			$container['http_client']                                       = function ( $c ) {
-				return HttpClient::create();
-			};
-			$container['progress_reporter']                                 = function ( $c ) {
-				return function ( DataSourceProgressEvent $event ) {
-					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-				};
+			$container['http_client'] = function ( $c ) {
+				return new Client();
 			};
 			$container[ 'resource.resolver.' . UrlResource::DISCRIMINATOR ] = function ( $c ) {
 				return new UrlResourceResolver( $c['data_source.url'] );
@@ -106,11 +99,6 @@ class ContainerBuilder {
 		} elseif ( $environment === static::ENVIRONMENT_PLAYGROUND ) {
 			$container[ 'resource.resolver.' . UrlResource::DISCRIMINATOR ] = function ( $c ) {
 				return new UrlResourceResolver( $c['data_source.playground_fetch'] );
-			};
-			$container['progress_reporter']                                 = function ( $c ) {
-				return function ( DataSourceProgressEvent $event ) {
-					echo $event->url . ' ' . $event->downloadedBytes . '/' . $event->totalBytes . "                         \r";
-				};
 			};
 		} else {
 			throw new InvalidArgumentException( 'Not implemented yet' );
@@ -149,7 +137,7 @@ class ContainerBuilder {
 		$container['blueprint.json_schema_path'] = function () {
 			return __DIR__ . '/schema.json';
 		};
-		$container['blueprint.json_schema']      = function ( $c ) {
+		$container['blueprint.json_schema'] = function ( $c ) {
 			return json_decode( file_get_contents( $c['blueprint.json_schema_path'] ) );
 		};
 
@@ -158,10 +146,10 @@ class ContainerBuilder {
 				$c['blueprint.json_schema_path']
 			);
 		};
-		$container['blueprint.mapper']    = function ( $c ) {
+		$container['blueprint.mapper'] = function ( $c ) {
 			return new BlueprintMapper();
 		};
-		$container['blueprint.parser']    = function ( $c ) {
+		$container['blueprint.parser'] = function ( $c ) {
 			return new BlueprintParser(
 				$c['blueprint.validator'],
 				$c['blueprint.mapper']
@@ -171,71 +159,71 @@ class ContainerBuilder {
 		$container[ 'step.runner.' . InstallSqliteIntegrationStep::DISCRIMINATOR ] = function () {
 			return new InstallSqliteIntegrationStepRunner();
 		};
-		$container[ 'step.runner.' . DownloadWordPressStep::DISCRIMINATOR ]        = function () {
+		$container[ 'step.runner.' . DownloadWordPressStep::DISCRIMINATOR ] = function () {
 			return new DownloadWordPressStepRunner();
 		};
-		$container[ 'step.runner.' . UnzipStep::DISCRIMINATOR ]                    = function () {
+		$container[ 'step.runner.' . UnzipStep::DISCRIMINATOR ] = function () {
 			return new UnzipStepRunner();
 		};
-		$container[ 'step.runner.' . WriteFileStep::DISCRIMINATOR ]                = function () {
+		$container[ 'step.runner.' . WriteFileStep::DISCRIMINATOR ] = function () {
 			return new WriteFileStepRunner();
 		};
-		$container[ 'step.runner.' . RunPHPStep::DISCRIMINATOR ]                   = function () {
+		$container[ 'step.runner.' . RunPHPStep::DISCRIMINATOR ] = function () {
 			return new RunPHPStepRunner();
 		};
-		$container[ 'step.runner.' . DefineWpConfigConstsStep::DISCRIMINATOR ]     = function () {
+		$container[ 'step.runner.' . DefineWpConfigConstsStep::DISCRIMINATOR ] = function () {
 			return new DefineWpConfigConstsStepRunner();
 		};
-		$container[ 'step.runner.' . EnableMultisiteStep::DISCRIMINATOR ]          = function () {
+		$container[ 'step.runner.' . EnableMultisiteStep::DISCRIMINATOR ] = function () {
 			return new EnableMultisiteStepRunner();
 		};
-		$container[ 'step.runner.' . DefineSiteUrlStep::DISCRIMINATOR ]            = function () {
+		$container[ 'step.runner.' . DefineSiteUrlStep::DISCRIMINATOR ] = function () {
 			return new DefineSiteUrlStepRunner();
 		};
-		$container[ 'step.runner.' . MkdirStep::DISCRIMINATOR ]                    = function () {
+		$container[ 'step.runner.' . MkdirStep::DISCRIMINATOR ] = function () {
 			return new MkdirStepRunner();
 		};
-		$container[ 'step.runner.' . RmStep::DISCRIMINATOR ]                       = function () {
+		$container[ 'step.runner.' . RmStep::DISCRIMINATOR ] = function () {
 			return new RmStepRunner();
 		};
-		$container[ 'step.runner.' . MvStep::DISCRIMINATOR ]                       = function () {
+		$container[ 'step.runner.' . MvStep::DISCRIMINATOR ] = function () {
 			return new MvStepRunner();
 		};
-		$container[ 'step.runner.' . CpStep::DISCRIMINATOR ]                       = function () {
+		$container[ 'step.runner.' . CpStep::DISCRIMINATOR ] = function () {
 			return new CpStepRunner();
 		};
-		$container[ 'step.runner.' . WPCLIStep::DISCRIMINATOR ]                    = function () {
+		$container[ 'step.runner.' . WPCLIStep::DISCRIMINATOR ] = function () {
 			return new WPCLIStepRunner();
 		};
-		$container[ 'step.runner.' . SetSiteOptionsStep::DISCRIMINATOR ]           = function () {
+		$container[ 'step.runner.' . SetSiteOptionsStep::DISCRIMINATOR ] = function () {
 			return new SetSiteOptionsStepRunner();
 		};
-		$container[ 'step.runner.' . ActivatePluginStep::DISCRIMINATOR ]           = function () {
+		$container[ 'step.runner.' . ActivatePluginStep::DISCRIMINATOR ] = function () {
 			return new ActivatePluginStepRunner();
 		};
-		$container[ 'step.runner.' . ActivateThemeStep::DISCRIMINATOR ]            = function () {
+		$container[ 'step.runner.' . ActivateThemeStep::DISCRIMINATOR ] = function () {
 			return new ActivateThemeStepRunner();
 		};
-		$container[ 'step.runner.' . InstallPluginStep::DISCRIMINATOR ]            = function () {
+		$container[ 'step.runner.' . InstallPluginStep::DISCRIMINATOR ] = function () {
 			return new InstallPluginStepRunner();
 		};
-		$container[ 'step.runner.' . InstallThemeStep::DISCRIMINATOR ]             = function () {
+		$container[ 'step.runner.' . InstallThemeStep::DISCRIMINATOR ] = function () {
 			return new InstallThemeStepRunner();
 		};
-		$container[ 'step.runner.' . ImportFileStep::DISCRIMINATOR ]               = function () {
+		$container[ 'step.runner.' . ImportFileStep::DISCRIMINATOR ] = function () {
 			return new ImportFileStepRunner();
 		};
-		$container[ 'step.runner.' . RunWordPressInstallerStep::DISCRIMINATOR ]    = function () {
+		$container[ 'step.runner.' . RunWordPressInstallerStep::DISCRIMINATOR ] = function () {
 			return new RunWordPressInstallerStepRunner();
 		};
-		$container[ 'step.runner.' . RunSQLStep::DISCRIMINATOR ]                   = function () {
+		$container[ 'step.runner.' . RunSQLStep::DISCRIMINATOR ] = function () {
 			return new RunSQLStepRunner();
 		};
 
 		$container[ 'resource.resolver.' . FilesystemResource::DISCRIMINATOR ] = function () {
 			return new FilesystemResourceResolver();
 		};
-		$container[ 'resource.resolver.' . InlineResource::DISCRIMINATOR ]     = function () {
+		$container[ 'resource.resolver.' . InlineResource::DISCRIMINATOR ] = function () {
 			return new InlineResourceResolver();
 		};
 
@@ -264,18 +252,19 @@ class ContainerBuilder {
 
 		$container['step.runner_factory'] = function ( $c ) {
 			return function ( $slug ) use ( $c ) {
-				if ( ! isset( $c[ "step.runner.$slug" ] ) ) {
+				if ( ! isset( $c["step.runner.$slug"] ) ) {
 					throw new InvalidArgumentException( "No runner registered for step {$slug}" );
 				}
 
-				return $c[ "step.runner.$slug" ];
+				return $c["step.runner.$slug"];
 			};
 		};
 
-		$container['data_source.url']              = function ( $c ) {
+		$container['data_source.url'] = function ( $c ) {
 			return new UrlSource( $c['http_client'], $c['downloads_cache'] );
 		};
-		$container['data_source.playground_fetch'] = function ( $c ) {
+
+		$container['data_source.playground_fetch'] = function () {
 			return new PlaygroundFetchSource();
 		};
 

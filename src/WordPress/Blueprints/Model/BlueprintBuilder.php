@@ -128,7 +128,7 @@ class BlueprintBuilder {
 	public function withFile( $path, $data ) {
 		return $this->addStep(
 			( new WriteFileStep() )
-				->setPath( 'WordPress.txt' )
+				->setPath( $path )
 				->setData( $data )
 		);
 	}
@@ -136,9 +136,9 @@ class BlueprintBuilder {
 	public function downloadWordPress( $wpZip = null ) {
 		$this->prependStep(
 			( new DownloadWordPressStep() )
-			->setWordPressZip(
-				$wpZip ?? 'https://wordpress.org/latest.zip'
-			)
+				->setWordPressZip(
+					$wpZip ?? 'https://wordpress.org/latest.zip'
+				)
 		);
 
 		return $this;
@@ -155,9 +155,9 @@ class BlueprintBuilder {
 	) {
 		$this->addStep(
 			( new InstallSqliteIntegrationStep() )
-			->setSqlitePluginZip(
-				$sqlitePluginSource
-			)
+				->setSqlitePluginZip(
+					$sqlitePluginSource
+				)
 		);
 
 		return $this;
@@ -166,8 +166,8 @@ class BlueprintBuilder {
 	public function downloadWpCli() {
 		return $this->addStep(
 			( new WriteFileStep() )
-			->setPath( 'wp-cli.phar' )
-			->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) )
+				->setPath( 'wp-cli.phar' )
+				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) )
 		);
 	}
 

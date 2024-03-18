@@ -4,8 +4,6 @@
     "symfony/event-dispatcher": "*",
     "symfony/filesystem": "*",
     "symfony/process": "*",
-    "symfony/http-client": "*",
-    "symfony/http-kernel": "*",
     "pimple/pimple": "*",
     "psr/simple-cache": "*",
     "opis/json-schema": "*",
@@ -14,7 +12,7 @@
   },
   "require-dev": {
     "phpunit/phpunit": "*",
-    "squizlabs/php_codesniffer":"*",
+    "squizlabs/php_codesniffer": "*",
     "nette/php-generator": "*",
     "jane-php/json-schema": "*",
     "bamarni/composer-bin-plugin": "*",
@@ -43,7 +41,8 @@
     "files": [
       "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Zip/functions.php",
-      "src/WordPress/Streams/stream_str_replace.php"
+      "src/WordPress/Streams/stream_str_replace.php",
+      "src/WordPress/AsyncHttp/async_http_streams.php"
     ]
   },
   "autoload-dev": {

@@ -1,7 +1,7 @@
 <?php
 
-use WordPress\Streams\StreamPeeker;
-use WordPress\Streams\StreamPeekerContext;
+use WordPress\Streams\StreamPeekerData;
+use WordPress\Streams\StreamPeekerWrapper;
 
 it( 'can peek at the stream', function () {
 	// Prepare the stream and mapper function
@@ -10,8 +10,8 @@ it( 'can peek at the stream', function () {
 	rewind( $originalStream );
 
 	$loggedData = '';
-	$handle     = StreamPeeker::wrap(
-		new StreamPeekerContext(
+	$handle = StreamPeekerWrapper::create_resource(
+		new StreamPeekerData(
 			$originalStream,
 			function ( $data ) use ( &$loggedData ) {
 				$loggedData .= $data;

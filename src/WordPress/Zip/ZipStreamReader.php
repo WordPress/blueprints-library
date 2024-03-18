@@ -198,21 +198,14 @@ class ZipStreamReader {
 		}
 
 		$data = '';
-		while ( true ) {
-			$chunk = fread( $stream, $length );
-			if ( false === $chunk ) {
-				return false;
+		$remaining_length = $length;
+		while ( $remaining_length > 0 ) {
+			$chunk = fread( $stream, $remaining_length );
+			if ( false === $chunk || ( '' === $chunk && feof( $stream ) ) ) {
+				return strlen( $data ) ? $data : false;
 			}
-			$length -= strlen( $chunk );
+			$remaining_length -= strlen( $chunk );
 			$data .= $chunk;
-
-			if ( $length === 0 ) {
-				break;
-			}
-
-			if ( feof( $stream ) ) {
-				return false;
-			}
 		}
 
 		return $data;

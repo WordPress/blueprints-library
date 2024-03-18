@@ -5,11 +5,12 @@ namespace WordPress\Blueprints\Resources;
 use Symfony\Component\Filesystem\Filesystem;
 use WordPress\Blueprints\Compile\CompiledResource;
 use WordPress\Blueprints\Resources\Resolver\ResourceResolverCollection;
+use WordPress\Util\Map;
 
 class ResourceManager {
 
 	protected Filesystem $fs;
-	protected ResourceMap $map;
+	protected Map $map;
 	protected ResourceResolverCollection $resource_resolvers;
 
 	public function __construct(
@@ -17,7 +18,7 @@ class ResourceManager {
 	) {
 		$this->resource_resolvers = $resource_resolvers;
 		$this->fs = new Filesystem();
-		$this->map = new ResourceMap();
+		$this->map = new Map();
 	}
 
 	public function enqueue( array $compiledResources ) {
