@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class UnzipStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'unzip';
+	const DISCRIMINATOR = 'unzip';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'unzip';

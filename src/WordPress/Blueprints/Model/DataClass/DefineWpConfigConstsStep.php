@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class DefineWpConfigConstsStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'defineWpConfigConsts';
+	const DISCRIMINATOR = 'defineWpConfigConsts';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'defineWpConfigConsts';

@@ -36,7 +36,6 @@ class ResourceManager {
 		return $this->map[ $key ];
 	}
 
-
 	public function bufferToTemporaryFile( $resource, $callback, $suffix = null ) {
 		$fp = $this->getStream( $resource );
 		$path = $this->fs->tempnam( sys_get_temp_dir(), 'resource', $suffix );
@@ -48,5 +47,4 @@ class ResourceManager {
 			$this->fs->remove( $path );
 		}
 	}
-
 }

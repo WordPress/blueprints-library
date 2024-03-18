@@ -2,6 +2,8 @@
 
 namespace WordPress\Blueprints;
 
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Filesystem\Exception\IOException;
 use WordPress\Blueprints\Runtime\Runtime;
 
@@ -18,7 +20,7 @@ function run_blueprint( $json, $options = [] ) {
 
 	$engine = $c['blueprint.engine'];
 	$compiledBlueprint = $engine->parseAndCompile( $json );
-	
+
 	/** @var $engine Engine */
 	if ( $progressSubscriber ) {
 		if ( $progressType === 'steps' ) {
@@ -42,16 +44,18 @@ function list_files( string $path, $omitDotFiles = false ): array {
 }
 
 function move_files_from_directory_to_directory( string $from, string $to ) {
+	$fs = new Filesystem();
 	$files = scandir( $from );
 	foreach ( $files as $file ) {
 		if ( '.' === $file || '..' === $file ) {
 			continue;
 		}
-		$fromPath = $from . '/' . $file;
-		$toPath = $to . '/' . $file;
-		$success = rename( $fromPath, $toPath );
-		if ( ! $success ) {
-			throw new IOException( "Failed to move the file from {$fromPath} at {$toPath}" );
+		$fromPath = Path::canonicalize( $from . '/' . $file );
+		$toPath = Path::canonicalize( $to . '/' . $file );
+		try {
+			$fs->rename( $fromPath, $toPath );
+		} catch ( IOException $exception ) {
+			throw new BlueprintException( "Failed to move the file from {$fromPath} at {$toPath}", 0, $exception );
 		}
 	}
 }

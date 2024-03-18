@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class InstallSqliteIntegrationStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'installSqliteIntegration';
+	const DISCRIMINATOR = 'installSqliteIntegration';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'installSqliteIntegration';

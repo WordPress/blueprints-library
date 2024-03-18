@@ -38,10 +38,10 @@ $blueprint = BlueprintBuilder::create()
 //	->withContent( 'https://raw.githubusercontent.com/WordPress/theme-test-data/master/themeunittestdata.wordpress.xml' )
 	->withSiteUrl( 'http://localhost:8081' )
 	->andRunSQL( <<<'SQL'
-		CREATE TABLE `tmp_table` ( id INT );
-		INSERT INTO `tmp_table` VALUES (1);
-		INSERT INTO `tmp_table` VALUES (2);
-		SQL
+CREATE TABLE `tmp_table` ( id INT );
+INSERT INTO `tmp_table` VALUES (1);
+INSERT INTO `tmp_table` VALUES (2);
+SQL
 	)
 	->withFile( 'wordpress.txt', 'Data' )
 	->toBlueprint();
@@ -54,7 +54,7 @@ $subscriber = new class implements EventSubscriberInterface {
 		];
 	}
 
-	protected ProgressBar $progress_bar;
+	protected $progress_bar;
 
 	public function __construct() {
 		ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message%' );
@@ -84,5 +84,3 @@ $results = run_blueprint(
 		'progressSubscriber' => $subscriber,
 	]
 );
-
-//var_dump( $results );

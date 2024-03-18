@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class EvalPHPCallbackStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'evalPHPCallback';
+	const DISCRIMINATOR = 'evalPHPCallback';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.

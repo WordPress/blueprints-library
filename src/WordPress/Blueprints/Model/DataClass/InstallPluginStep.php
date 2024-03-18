@@ -3,13 +3,13 @@
 namespace WordPress\Blueprints\Model\DataClass;
 
 class InstallPluginStep implements StepDefinitionInterface {
-	public const DISCRIMINATOR = 'installPlugin';
+	const DISCRIMINATOR = 'installPlugin';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.

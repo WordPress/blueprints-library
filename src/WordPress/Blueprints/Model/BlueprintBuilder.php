@@ -10,7 +10,9 @@ use WordPress\Blueprints\Model\DataClass\ImportFileStep;
 use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
 use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use WordPress\Blueprints\Model\DataClass\InstallThemeStep;
+use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
+use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Model\DataClass\RunSQLStep;
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
@@ -22,13 +24,16 @@ use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 
 class BlueprintBuilder {
 
-	private Blueprint $blueprint;
+	/**
+	 * @var Blueprint
+	 */
+	private $blueprint;
 
 	public function __construct() {
 		$this->blueprint = new Blueprint();
 	}
 
-	static public function create() {
+	public static function create() {
 		return new static();
 	}
 
@@ -63,7 +68,7 @@ class BlueprintBuilder {
 	}
 
 	public function withPlugin( $pluginZip ) {
-		$this->withPlugins( [ $pluginZip ] );
+		$this->withPlugins( array( $pluginZip ) );
 
 		return $this;
 	}
@@ -85,7 +90,7 @@ class BlueprintBuilder {
 
 	public function withContent( $wxrs ) {
 		if ( ! is_array( $wxrs ) ) {
-			$wxrs = [ $wxrs ];
+			$wxrs = array( $wxrs );
 		}
 		// @TODO: Should this automatically add the importer plugin if it's not already installed?
 		foreach ( $wxrs as $wxr ) {
@@ -128,14 +133,15 @@ class BlueprintBuilder {
 		);
 	}
 
-	public function downloadWordPress( string|ResourceDefinitionInterface $wpZip = null ) {
-		$this->prependStep( ( new DownloadWordPressStep() )
-			->setWordPressZip(
-				$wpZip ?? 'https://wordpress.org/latest.zip'
-			) );
+	public function downloadWordPress( $wpZip = null ) {
+		$this->prependStep(
+			( new DownloadWordPressStep() )
+				->setWordPressZip(
+					$wpZip ?? 'https://wordpress.org/latest.zip'
+				)
+		);
 
 		return $this;
-
 	}
 
 	public function runInstallationWizard() {
@@ -145,21 +151,24 @@ class BlueprintBuilder {
 	}
 
 	public function useSqlite(
-		string|ResourceDefinitionInterface $sqlitePluginSource = 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip'
+		$sqlitePluginSource = 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip'
 	) {
-		$this->addStep( ( new InstallSqliteIntegrationStep() )
-			->setSqlitePluginZip(
-				$sqlitePluginSource
-			) );
+		$this->addStep(
+			( new InstallSqliteIntegrationStep() )
+				->setSqlitePluginZip(
+					$sqlitePluginSource
+				)
+		);
 
 		return $this;
-
 	}
 
 	public function downloadWpCli() {
-		return $this->addStep( ( new WriteFileStep() )
-			->setPath( 'wp-cli.phar' )
-			->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) ) );
+		return $this->addStep(
+			( new WriteFileStep() )
+				->setPath( 'wp-cli.phar' )
+				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) )
+		);
 	}
 
 	private function prependStep( StepDefinitionInterface $builder ) {
@@ -174,4 +183,3 @@ class BlueprintBuilder {
 		return $this;
 	}
 }
-

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class ImportFileStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'importFile';
+	const DISCRIMINATOR = 'importFile';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'importFile';

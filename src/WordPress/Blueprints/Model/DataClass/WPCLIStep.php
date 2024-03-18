@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class WPCLIStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'wp-cli';
+	const DISCRIMINATOR = 'wp-cli';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.

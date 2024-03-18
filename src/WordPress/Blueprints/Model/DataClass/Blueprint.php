@@ -8,7 +8,7 @@ class Blueprint
 	 * Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what.
 	 * @var string
 	 */
-	public $description;
+	public $description = '';
 
 	/**
 	 * Version of WordPress to use. Also accepts URL to a WordPress zip file.
@@ -29,7 +29,7 @@ class Blueprint
 	 * PHP Constants to define on every request
 	 * @var \ArrayObject
 	 */
-	public $constants;
+	public $constants = [];
 
 	/**
 	 * WordPress plugins to install and activate
@@ -41,7 +41,7 @@ class Blueprint
 	 * WordPress site options to define
 	 * @var \ArrayObject
 	 */
-	public $siteOptions;
+	public $siteOptions = [];
 
 	/**
 	 * The steps to run after every other operation in this Blueprint was executed.

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class MkdirStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'mkdir';
+	const DISCRIMINATOR = 'mkdir';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'mkdir';

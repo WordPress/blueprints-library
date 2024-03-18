@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class RunSQLStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'runSql';
+	const DISCRIMINATOR = 'runSql';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/**
 	 * The step identifier.

@@ -5,7 +5,6 @@ namespace WordPress\Blueprints\Compile;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
-use WordPress\Blueprints\Model\DataClass\InstallPluginStep;
 use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;

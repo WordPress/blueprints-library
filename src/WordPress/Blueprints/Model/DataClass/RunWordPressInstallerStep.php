@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class RunWordPressInstallerStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'runWpInstallationWizard';
+	const DISCRIMINATOR = 'runWpInstallationWizard';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'runWpInstallationWizard';

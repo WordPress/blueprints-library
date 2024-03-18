@@ -1,13 +1,14 @@
 {
   "prefer-stable": true,
   "require": {
-    "json-mapper/json-mapper": "*",
     "symfony/event-dispatcher": "*",
     "symfony/filesystem": "*",
     "symfony/process": "*",
     "pimple/pimple": "*",
     "psr/simple-cache": "*",
-    "opis/json-schema": "*"
+    "opis/json-schema": "*",
+    "ext-json": "*",
+    "nikic/php-parser": "v4.18.0"
   },
   "require-dev": {
     "phpunit/phpunit": "*",
@@ -42,6 +43,11 @@
       "src/WordPress/Zip/functions.php",
       "src/WordPress/Streams/stream_str_replace.php",
       "src/WordPress/AsyncHttp/async_http_streams.php"
+    ]
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/"
     ]
   },
   "scripts": {

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class DownloadWordPressStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'downloadWordPress';
+	const DISCRIMINATOR = 'downloadWordPress';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'downloadWordPress';
