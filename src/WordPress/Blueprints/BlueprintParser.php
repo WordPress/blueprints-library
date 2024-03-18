@@ -72,6 +72,7 @@ class BlueprintParser {
 	 */
 	public function fromBlueprint( $blueprint ) {
 		$result = $this->validator->validate( $blueprint );
+		// @TODO make the error understandable
 		if ( ! $result->isValid() ) {
 			print_r( ( new ErrorFormatter() )->format( $result->error() ) );
 			die();

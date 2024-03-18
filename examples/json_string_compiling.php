@@ -13,7 +13,7 @@ use function WordPress\Blueprints\run_blueprint;
 if ( getenv( 'USE_PHAR' ) ) {
 	require __DIR__ . '/dist/blueprints.phar';
 } else {
-	require 'vendor/autoload.php';
+	require '../vendor/autoload.php';
 }
 
 $blueprint = '{"WordPressVersion":"https://wordpress.org/latest.zip","steps":[{"step":"mkdir","path":"dir"},{"step": "rm","path": "dir"}]}';
