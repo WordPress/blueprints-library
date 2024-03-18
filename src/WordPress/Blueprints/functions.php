@@ -20,7 +20,7 @@ function run_blueprint( $json, $options = [] ) {
 
 	$engine = $c['blueprint.engine'];
 	$compiledBlueprint = $engine->parseAndCompile( $json );
-	
+
 	/** @var $engine Engine */
 	if ( $progressSubscriber ) {
 		if ( $progressType === 'steps' ) {
@@ -50,12 +50,12 @@ function move_files_from_directory_to_directory( string $from, string $to ) {
 		if ( '.' === $file || '..' === $file ) {
 			continue;
 		}
-		$fromPath = Path::canonicalize($from . '/' . $file);
-		$toPath = Path::canonicalize($to . '/' . $file);
+		$fromPath = Path::canonicalize( $from . '/' . $file );
+		$toPath = Path::canonicalize( $to . '/' . $file );
 		try {
-			$fs->rename($fromPath, $toPath);
-		} catch (IOException $exception) {
-			throw new BlueprintException("Failed to move the file from {$fromPath} at {$toPath}", 0, $exception);
+			$fs->rename( $fromPath, $toPath );
+		} catch ( IOException $exception ) {
+			throw new BlueprintException( "Failed to move the file from {$fromPath} at {$toPath}", 0, $exception );
 		}
 	}
 }

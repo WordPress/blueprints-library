@@ -2,8 +2,9 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class UrlResource implements ResourceDefinitionInterface {
-	public const DISCRIMINATOR = 'url';
+class UrlResource implements ResourceDefinitionInterface
+{
+	const DISCRIMINATOR = 'url';
 
 	/**
 	 * Identifies the file resource as a URL
@@ -24,26 +25,23 @@ class UrlResource implements ResourceDefinitionInterface {
 	public $caption;
 
 
-	public function setResource( string $resource ) {
+	public function setResource(string $resource)
+	{
 		$this->resource = $resource;
-
 		return $this;
 	}
 
 
-	public function setUrl( string $url ) {
+	public function setUrl(string $url)
+	{
 		$this->url = $url;
-		if ( ! $this->caption ) {
-			$this->caption = 'Downloading ' . $url;
-		}
-
 		return $this;
 	}
 
 
-	public function setCaption( string $caption ) {
+	public function setCaption(string $caption)
+	{
 		$this->caption = $caption;
-
 		return $this;
 	}
 }

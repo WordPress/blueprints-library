@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class RmStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'rm';
+	const DISCRIMINATOR = 'rm';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'rm';

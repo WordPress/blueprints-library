@@ -2,28 +2,44 @@
 
 namespace WordPress\Blueprints;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use WordPress\Blueprints\Compile\BlueprintCompiler;
 use WordPress\Blueprints\Compile\CompiledBlueprint;
 use WordPress\Blueprints\Runner\Blueprint\BlueprintRunner;
 
 class Engine {
 
+	/**
+	 * @var BlueprintRunner
+	 */
+	public $runner;
+
+	/**
+	 * @var BlueprintParser
+	 */
+	protected $parser;
+
+	/**
+	 * @var BlueprintCompiler
+	 */
+	protected $compiler;
+
 	public function __construct(
-		protected BlueprintParser $parser,
-		protected BlueprintCompiler $compiler,
-		public readonly BlueprintRunner $runner
+		BlueprintParser $parser,
+		BlueprintCompiler $compiler,
+		BlueprintRunner $runner
 	) {
+		$this->runner = $runner;
+		$this->compiler = $compiler;
+		$this->parser = $parser;
 	}
 
-	public function parseAndCompile( string|object $rawBlueprint ) {
-		$blueprint = $this->parser->parse( $rawBlueprint );
+	public function parseAndCompile( $raw_blueprint ) {
+		$blueprint = $this->parser->parse( $raw_blueprint );
 
 		return $this->compiler->compile( $blueprint );
 	}
 
-	public function run( CompiledBlueprint $compiledBlueprint ) {
-		return $this->runner->run( $compiledBlueprint );
+	public function run( CompiledBlueprint $compiled_blueprint ) {
+		return $this->runner->run( $compiled_blueprint );
 	}
-
 }

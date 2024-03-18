@@ -205,8 +205,13 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 				// so let's keep it simple for now.
 				if ( $hasInterface ) {
 					$class->addConstant( 'DISCRIMINATOR', $schema->getConst() );
+					// Method 'addConstant' by default sets const visibility to 'public', but PHP 7.0 does not like it.
+					// So, we have to manually set it back to null.
+					$class->getConstants()['DISCRIMINATOR']->setVisibility( null );
 				}
-			} elseif ( $schema->getDefault() ) {
+			} elseif ( $schema->getDefault() !== null ) {
+				// Don't set "null" as the default value since it's already a default
+				// value of all class properties.
 				$property->setValue( $schema->getDefault() );
 			} elseif ( $schema->getType() === 'array' ) {
 				$property->setValue( [] );

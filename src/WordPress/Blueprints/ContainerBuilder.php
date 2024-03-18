@@ -279,20 +279,6 @@ class ContainerBuilder {
 			return new PlaygroundFetchSource();
 		};
 
-		// Add a progress listener to all data sources
-//		foreach ( $container->keys() as $key ) {
-//			if ( str_starts_with( $key, 'data_source.' ) ) {
-//				$container->extend( $key, function ( $urlSource, $c ) {
-//					$urlSource->events->addListener(
-//						ProgressEvent::class,
-//						$c['progress_reporter']
-//					);
-//
-//					return $urlSource;
-//				} );
-//			}
-//		}
-
 		return $container;
 	}
 }

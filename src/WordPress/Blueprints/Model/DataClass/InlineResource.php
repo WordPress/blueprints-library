@@ -4,7 +4,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class InlineResource implements ResourceDefinitionInterface
 {
-	public const DISCRIMINATOR = 'inline';
+	const DISCRIMINATOR = 'inline';
 
 	/**
 	 * Identifies the file resource as an inline string

@@ -4,13 +4,13 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class DefineSiteUrlStep implements StepDefinitionInterface
 {
-	public const DISCRIMINATOR = 'defineSiteUrl';
+	const DISCRIMINATOR = 'defineSiteUrl';
 
 	/** @var Progress */
 	public $progress;
 
 	/** @var bool */
-	public $continueOnError;
+	public $continueOnError = false;
 
 	/** @var string */
 	public $step = 'defineSiteUrl';

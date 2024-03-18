@@ -4,7 +4,7 @@ namespace WordPress\Blueprints\Model\DataClass;
 
 class CoreThemeResource implements ResourceDefinitionInterface
 {
-	public const DISCRIMINATOR = 'wordpress.org/themes';
+	const DISCRIMINATOR = 'wordpress.org/themes';
 
 	/**
 	 * Identifies the file resource as a WordPress Core theme

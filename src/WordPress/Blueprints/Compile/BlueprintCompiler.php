@@ -18,7 +18,7 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class BlueprintCompiler {
     protected $stepRunnerFactory;
-    protected ResourceResolverInterface $resourceResolver;
+    protected $resourceResolver;
 
 	public function __construct(
 		$stepRunnerFactory,
