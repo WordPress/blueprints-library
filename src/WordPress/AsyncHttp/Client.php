@@ -125,9 +125,9 @@ class Client {
 	 * an internal queue. Network transmission is delayed until one of the returned
 	 * streams is read from.
 	 *
-	 * @param mixed $requests The HTTP request(s) to enqueue. Can be a single request or an array of requests.
+	 * @param Request|Request[] $requests The HTTP request(s) to enqueue. Can be a single request or an array of requests.
 	 *
-	 * @return array The enqueued streams.
+	 * @return resource|array The enqueued streams.
 	 */
 	public function enqueue( $requests ) {
 		if ( ! is_array( $requests ) ) {
