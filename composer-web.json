@@ -1,0 +1,55 @@
+{
+  "prefer-stable": true,
+  "require": {
+    "symfony/event-dispatcher": "*",
+    "symfony/filesystem": "*",
+    "symfony/process": "*",
+    "pimple/pimple": "*",
+    "psr/simple-cache": "*",
+    "opis/json-schema": "*",
+    "ext-json": "*",
+    "symfony/console": "^3.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "squizlabs/php_codesniffer": "*",
+    "nette/php-generator": "*",
+    "bamarni/composer-bin-plugin": "*",
+    "wp-coding-standards/wpcs": "3.0"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "bamarni/composer-bin-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    },
+    "platform": {
+      "php": "7.0"
+    }
+  },
+  "autoload": {
+    "classmap": [
+      "src/"
+    ],
+    "psr-4": {
+      "WordPress\\": "src/WordPress",
+      "Symfony\\Component\\Process\\": "vendor/symfony/process"
+    },
+    "files": [
+      "src/WordPress/Blueprints/functions.php",
+      "src/WordPress/Zip/functions.php",
+      "src/WordPress/Streams/stream_str_replace.php",
+      "src/WordPress/AsyncHttp/async_http_streams.php"
+    ]
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/"
+    ]
+  },
+  "scripts": {
+    "phpcs": "phpcs --standard=WordPress"
+  }
+}
