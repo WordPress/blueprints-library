@@ -1,11 +1,6 @@
 {
   "prefer-stable": true,
   "require": {
-    "symfony/event-dispatcher": "*",
-    "symfony/filesystem": "*",
-    "symfony/process": "*",
-    "pimple/pimple": "*",
-    "psr/simple-cache": "*",
     "ext-json": "*"
   },
   "config": {
@@ -26,7 +21,12 @@
     ],
     "psr-4": {
       "WordPress\\": "src/WordPress",
-      "Symfony\\Component\\Process\\": "vendor/symfony/process",
+      "Pimple\\": "src/pimple/pimple/src/Pimple",
+      "Psr\\Container\\": "src/psr/container",
+      "Psr\\SimpleCache\\": "src/psr/simple-cache",
+      "Symfony\\Component\\Process\\": "src/Symfony/process",
+      "Symfony\\Component\\EventDispatcher\\": "src/Symfony/event-dispatcher",
+      "Symfony\\Component\\filesystem\\": "src/Symfony/filesystem",
       "Opis\\JsonSchema\\": "src/opis/json-schema/src",
       "Opis\\String\\": "src/opis/string/src",
       "Opis\\Uri\\": "src/opis/uri/src"
@@ -35,8 +35,7 @@
       "src/WordPress/Blueprints/functions.php",
       "src/WordPress/Zip/functions.php",
       "src/WordPress/Streams/stream_str_replace.php",
-      "src/WordPress/AsyncHttp/async_http_streams.php",
-      "src/Symfony/Component/Filesystem/Path.php"
+      "src/WordPress/AsyncHttp/async_http_streams.php"
     ]
   },
   "autoload-dev": {
