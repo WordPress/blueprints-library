@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class UnzipStep implements StepDefinitionInterface {
-
+class UnzipStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'unzip';
 
 	/** @var Progress */
@@ -20,49 +20,41 @@ class UnzipStep implements StepDefinitionInterface {
 
 	/**
 	 * The path to extract the zip file to
-	 *
 	 * @var string
 	 */
 	public $extractToPath;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setZipFile( $zipFile ) {
+	public function setZipFile($zipFile)
+	{
 		$this->zipFile = $zipFile;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $extractToPath
-	 */
-	public function setExtractToPath( $extractToPath ) {
+	public function setExtractToPath(string $extractToPath)
+	{
 		$this->extractToPath = $extractToPath;
 		return $this;
 	}

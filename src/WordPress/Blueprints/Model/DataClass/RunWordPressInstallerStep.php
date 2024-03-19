@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class RunWordPressInstallerStep implements StepDefinitionInterface {
-
+class RunWordPressInstallerStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'runWpInstallationWizard';
 
 	/** @var Progress */
@@ -19,37 +19,29 @@ class RunWordPressInstallerStep implements StepDefinitionInterface {
 	public $options;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions $options
-	 */
-	public function setOptions( $options ) {
+	public function setOptions(WordPressInstallationOptions $options)
+	{
 		$this->options = $options;
 		return $this;
 	}

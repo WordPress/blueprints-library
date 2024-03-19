@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class DownloadWordPressStep implements StepDefinitionInterface {
-
+class DownloadWordPressStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'downloadWordPress';
 
 	/** @var Progress */
@@ -19,34 +19,29 @@ class DownloadWordPressStep implements StepDefinitionInterface {
 	public $wordPressZip;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setWordPressZip( $wordPressZip ) {
+	public function setWordPressZip($wordPressZip)
+	{
 		$this->wordPressZip = $wordPressZip;
 		return $this;
 	}

@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class WriteFileStep implements StepDefinitionInterface {
-
+class WriteFileStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'writeFile';
 
 	/** @var Progress */
@@ -17,56 +17,47 @@ class WriteFileStep implements StepDefinitionInterface {
 
 	/**
 	 * The path of the file to write to
-	 *
 	 * @var string
 	 */
 	public $path;
 
 	/**
 	 * The data to write
-	 *
 	 * @var string|ResourceDefinitionInterface
 	 */
 	public $data;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $path
-	 */
-	public function setPath( $path ) {
+	public function setPath(string $path)
+	{
 		$this->path = $path;
 		return $this;
 	}
 
 
-	public function setData( $data ) {
+	public function setData($data)
+	{
 		$this->data = $data;
 		return $this;
 	}

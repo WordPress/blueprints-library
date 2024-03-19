@@ -2,21 +2,23 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class ModelInfo {
-
-	public static function getResourceDefinitionInterfaceImplementations(): array {
-		return array(
+class ModelInfo
+{
+	public static function getResourceDefinitionInterfaceImplementations(): array
+	{
+		return [
 			FilesystemResource::class,
 			InlineResource::class,
 			CoreThemeResource::class,
 			CorePluginResource::class,
-			UrlResource::class,
-		);
+			UrlResource::class
+		];
 	}
 
 
-	public static function getStepDefinitionInterfaceImplementations(): array {
-		return array(
+	public static function getStepDefinitionInterfaceImplementations(): array
+	{
+		return [
 			ActivatePluginStep::class,
 			ActivateThemeStep::class,
 			CpStep::class,
@@ -38,7 +40,7 @@ class ModelInfo {
 			DownloadWordPressStep::class,
 			InstallSqliteIntegrationStep::class,
 			WriteFileStep::class,
-			WPCLIStep::class,
-		);
+			WPCLIStep::class
+		];
 	}
 }

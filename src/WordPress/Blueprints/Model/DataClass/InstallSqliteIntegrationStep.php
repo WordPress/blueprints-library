@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class InstallSqliteIntegrationStep implements StepDefinitionInterface {
-
+class InstallSqliteIntegrationStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'installSqliteIntegration';
 
 	/** @var Progress */
@@ -19,34 +19,29 @@ class InstallSqliteIntegrationStep implements StepDefinitionInterface {
 	public $sqlitePluginZip;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setSqlitePluginZip( $sqlitePluginZip ) {
+	public function setSqlitePluginZip($sqlitePluginZip)
+	{
 		$this->sqlitePluginZip = $sqlitePluginZip;
 		return $this;
 	}

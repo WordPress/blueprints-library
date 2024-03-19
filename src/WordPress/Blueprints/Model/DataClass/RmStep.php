@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class RmStep implements StepDefinitionInterface {
-
+class RmStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'rm';
 
 	/** @var Progress */
@@ -17,43 +17,34 @@ class RmStep implements StepDefinitionInterface {
 
 	/**
 	 * The path to remove
-	 *
 	 * @var string
 	 */
 	public $path;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $path
-	 */
-	public function setPath( $path ) {
+	public function setPath(string $path)
+	{
 		$this->path = $path;
 		return $this;
 	}

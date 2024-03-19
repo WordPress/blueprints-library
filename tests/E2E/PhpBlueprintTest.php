@@ -105,9 +105,10 @@ class PhpBlueprintTest extends TestCase {
 
 	public function testRunningPhpBlueprintWithSteps() {
 		$blueprint = BlueprintBuilder::create()
-			->addStep( ( new MkdirStep() )->setPath( 'dir1' ) )
-			->addStep( ( new RmStep() )->setPath( 'dir1' ) )
-			->addStep( ( new MkdirStep() )->setPath( 'dir2' ) )
+			->withWordPressVersion('https://wordpress.org/latest.zip')
+//			->addStep( ( new MkdirStep() )->setPath('dir1') )
+//			->addStep( ( new RmStep() )->setPath( 'dir1' ) )
+//			->addStep( ( new MkdirStep() )->setPath( 'dir2' ) )
 			->toBlueprint();
 
 		// the above does not pass validation

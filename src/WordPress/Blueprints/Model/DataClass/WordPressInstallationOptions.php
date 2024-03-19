@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class WordPressInstallationOptions {
-
+class WordPressInstallationOptions
+{
 	/** @var string */
 	public $adminUsername;
 
@@ -11,19 +11,15 @@ class WordPressInstallationOptions {
 	public $adminPassword = 'admin';
 
 
-	/**
-	 * @param string $adminUsername
-	 */
-	public function setAdminUsername( $adminUsername ) {
+	public function setAdminUsername(string $adminUsername)
+	{
 		$this->adminUsername = $adminUsername;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $adminPassword
-	 */
-	public function setAdminPassword( $adminPassword ) {
+	public function setAdminPassword(string $adminPassword)
+	{
 		$this->adminPassword = $adminPassword;
 		return $this;
 	}

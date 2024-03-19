@@ -82,7 +82,7 @@ vendor/bin/phpunit --testdox
  php examples/blueprint_compiling.php
 ```
 
-#### using a string containg a Blueprint (in JSON):
+#### using a string containing a Blueprint (in JSON):
 
 ```shell
  php examples/json_string_compiling.php

@@ -2,16 +2,14 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class FileInfoDataBuffer {
-
+class FileInfoDataBuffer
+{
 	/** @var float */
 	public $byteLength;
 
 
-	/**
-	 * @param float $byteLength
-	 */
-	public function setByteLength( $byteLength ) {
+	public function setByteLength(float $byteLength)
+	{
 		$this->byteLength = $byteLength;
 		return $this;
 	}

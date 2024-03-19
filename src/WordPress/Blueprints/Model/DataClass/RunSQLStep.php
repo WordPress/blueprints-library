@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class RunSQLStep implements StepDefinitionInterface {
-
+class RunSQLStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'runSql';
 
 	/** @var Progress */
@@ -14,7 +14,6 @@ class RunSQLStep implements StepDefinitionInterface {
 
 	/**
 	 * The step identifier.
-	 *
 	 * @var string
 	 */
 	public $step = 'runSql';
@@ -23,34 +22,29 @@ class RunSQLStep implements StepDefinitionInterface {
 	public $sql;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setSql( $sql ) {
+	public function setSql($sql)
+	{
 		$this->sql = $sql;
 		return $this;
 	}

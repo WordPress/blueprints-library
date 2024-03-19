@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class Progress {
-
+class Progress
+{
 	/** @var float */
 	public $weight;
 
@@ -11,19 +11,15 @@ class Progress {
 	public $caption;
 
 
-	/**
-	 * @param float $weight
-	 */
-	public function setWeight( $weight ) {
+	public function setWeight(float $weight)
+	{
 		$this->weight = $weight;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $caption
-	 */
-	public function setCaption( $caption ) {
+	public function setCaption(string $caption)
+	{
 		$this->caption = $caption;
 		return $this;
 	}

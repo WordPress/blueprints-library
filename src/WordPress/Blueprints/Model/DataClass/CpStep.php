@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class CpStep implements StepDefinitionInterface {
-
+class CpStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'cp';
 
 	/** @var Progress */
@@ -17,59 +17,47 @@ class CpStep implements StepDefinitionInterface {
 
 	/**
 	 * Source path
-	 *
 	 * @var string
 	 */
 	public $fromPath;
 
 	/**
 	 * Target path
-	 *
 	 * @var string
 	 */
 	public $toPath;
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $fromPath
-	 */
-	public function setFromPath( $fromPath ) {
+	public function setFromPath(string $fromPath)
+	{
 		$this->fromPath = $fromPath;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $toPath
-	 */
-	public function setToPath( $toPath ) {
+	public function setToPath(string $toPath)
+	{
 		$this->toPath = $toPath;
 		return $this;
 	}

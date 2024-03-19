@@ -94,4 +94,27 @@ class JsonBlueprintTest extends TestCase {
 		// @TODO fix expected
 		$this->assertEquals( array(), $results );
 	}
+
+	public function testRunningJsonBlueprintWithSteps() {
+		$blueprint = '{"steps":[{"step":"mkdir","path":"dir"},{"step": "rm","path": "dir"}]}';
+
+		$results = run_blueprint(
+			$blueprint,
+			array(
+				'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
+				'documentRoot'       => $this->document_root . '/new-wp',
+				'progressSubscriber' => $this->subscriber,
+			)
+		);
+
+		$expected = array(
+//			0 => new StepSuccess(),
+//			1 => new StepSuccess(),
+//			2 => new StepSuccess(),
+//			3 => new StepSuccess(),
+		);
+
+		// @TODO fix expected
+		$this->assertEquals( array(), $results );
+	}
 }

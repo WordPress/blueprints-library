@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class EnableMultisiteStep implements StepDefinitionInterface {
-
+class EnableMultisiteStep implements StepDefinitionInterface
+{
 	const DISCRIMINATOR = 'enableMultisite';
 
 	/** @var Progress */
@@ -16,28 +16,22 @@ class EnableMultisiteStep implements StepDefinitionInterface {
 	public $step = 'enableMultisite';
 
 
-	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-	 */
-	public function setProgress( $progress ) {
+	public function setProgress(Progress $progress)
+	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	/**
-	 * @param bool $continueOnError
-	 */
-	public function setContinueOnError( $continueOnError ) {
+	public function setContinueOnError(bool $continueOnError)
+	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	/**
-	 * @param string $step
-	 */
-	public function setStep( $step ) {
+	public function setStep(string $step)
+	{
 		$this->step = $step;
 		return $this;
 	}
