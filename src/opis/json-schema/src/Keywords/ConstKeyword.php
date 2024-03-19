@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,34 +21,38 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\{Helper, ValidationContext, Keyword, Schema};
 
-class ConstKeyword implements Keyword
-{
-    use ErrorTrait;
+class ConstKeyword implements Keyword {
 
-    /** @var mixed */
-    protected $const;
+	use ErrorTrait;
 
-    /**
-     * @param $const
-     */
-    public function __construct($const)
-    {
-        $this->const = $const;
-    }
+	/** @var mixed */
+	protected $const;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (Helper::equals($this->const, $context->currentData())) {
-            return null;
-        }
+	/**
+	 * @param $const
+	 */
+	public function __construct( $const ) {
+		$this->const = $const;
+	}
 
-        return $this->error($schema, $context, 'const', 'The data must must match the const value', [
-            'const' => $this->const
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( Helper::equals( $this->const, $context->currentData() ) ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'const',
+			'The data must must match the const value',
+			array(
+				'const' => $this->const,
+			)
+		);
+	}
 }

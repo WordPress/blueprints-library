@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,51 +21,49 @@ namespace Opis\JsonSchema\Parsers\Keywords;
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 use Opis\JsonSchema\Keywords\{MultipleOfDataKeyword, MultipleOfKeyword};
 
-class MultipleOfKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class MultipleOfKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_NUMBER;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_NUMBER;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new MultipleOfDataKeyword($pointer);
-            }
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!is_int($value) && !is_float($value) || is_nan($value) || !is_finite($value)) {
-            throw $this->keywordException("{keyword} must be a valid number (integer or float)", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new MultipleOfDataKeyword( $pointer );
+			}
+		}
 
-        if ($value <= 0) {
-            throw $this->keywordException("{keyword} must be greater than zero", $info);
-        }
+		if ( ! is_int( $value ) && ! is_float( $value ) || is_nan( $value ) || ! is_finite( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a valid number (integer or float)', $info );
+		}
 
-        return new MultipleOfKeyword($value);
-    }
+		if ( $value <= 0 ) {
+			throw $this->keywordException( '{keyword} must be greater than zero', $info );
+		}
+
+		return new MultipleOfKeyword( $value );
+	}
 }

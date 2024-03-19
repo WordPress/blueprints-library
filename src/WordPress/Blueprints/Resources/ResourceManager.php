@@ -17,14 +17,14 @@ class ResourceManager {
 		ResourceResolverCollection $resource_resolvers
 	) {
 		$this->resource_resolvers = $resource_resolvers;
-		$this->fs = new Filesystem();
-		$this->map = new Map();
+		$this->fs                 = new Filesystem();
+		$this->map                = new Map();
 	}
 
 	/**
-  * @param mixed[] $compiledResources
-  */
- public function enqueue( $compiledResources ) {
+	 * @param mixed[] $compiledResources
+	 */
+	public function enqueue( $compiledResources ) {
 		foreach ( $compiledResources as $compiled ) {
 			/** @var CompiledResource $compiled */
 
@@ -40,7 +40,7 @@ class ResourceManager {
 	}
 
 	public function bufferToTemporaryFile( $resource, $callback, $suffix = null ) {
-		$fp = $this->getStream( $resource );
+		$fp   = $this->getStream( $resource );
 		$path = $this->fs->tempnam( sys_get_temp_dir(), 'resource', $suffix );
 		$this->fs->dumpFile( $path, $fp );
 

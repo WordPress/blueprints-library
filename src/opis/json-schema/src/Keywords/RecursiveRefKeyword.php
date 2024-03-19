@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,132 +22,129 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
 use Opis\JsonSchema\{Schema, ValidationContext, Variables, Uri};
 
-class RecursiveRefKeyword extends AbstractRefKeyword
-{
-    /**
-     * @var \Opis\JsonSchema\Uri
-     */
-    protected $uri;
-    /** @var bool|null|Schema */
-    protected $resolved = false;
-    /**
-     * @var string
-     */
-    protected $anchor;
-    protected $anchorValue;
+class RecursiveRefKeyword extends AbstractRefKeyword {
 
-    public function __construct(
-        Uri $uri,
-        $mapper,
-        $globals,
-        $slots = null,
-        string $keyword = '$recursiveRef',
-        string $anchor = '$recursiveAnchor',
-        $anchorValue = true
-    ) {
-        parent::__construct($mapper, $globals, $slots, $keyword);
-        $this->uri = $uri;
-        $this->anchor = $anchor;
-        $this->anchorValue = $anchorValue;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Uri
+	 */
+	protected $uri;
+	/** @var bool|null|Schema */
+	protected $resolved = false;
+	/**
+	 * @var string
+	 */
+	protected $anchor;
+	protected $anchorValue;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function doValidate($context, $schema)
-    {
-        if ($this->resolved === false) {
-            $this->resolved = $context->loader()->loadSchemaById($this->uri);
-        }
+	public function __construct(
+		Uri $uri,
+		$mapper,
+		$globals,
+		$slots = null,
+		string $keyword = '$recursiveRef',
+		string $anchor = '$recursiveAnchor',
+		$anchorValue = true
+	) {
+		parent::__construct( $mapper, $globals, $slots, $keyword );
+		$this->uri         = $uri;
+		$this->anchor      = $anchor;
+		$this->anchorValue = $anchorValue;
+	}
 
-        if ($this->resolved === null) {
-            throw new UnresolvedReferenceException((string)$this->uri, $schema, $context);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function doValidate( $context, $schema ) {
+		if ( $this->resolved === false ) {
+			$this->resolved = $context->loader()->loadSchemaById( $this->uri );
+		}
 
-        $new_context = $this->createContext($context, $schema);
+		if ( $this->resolved === null ) {
+			throw new UnresolvedReferenceException( (string) $this->uri, $schema, $context );
+		}
 
-        if (!$this->hasRecursiveAnchor($this->resolved)) {
-            $this->setLastRefSchema($this->resolved);
-            return $this->resolved->validate($new_context);
-        }
+		$new_context = $this->createContext( $context, $schema );
 
-        $ok_sender = $this->resolveSchema($context);
+		if ( ! $this->hasRecursiveAnchor( $this->resolved ) ) {
+			$this->setLastRefSchema( $this->resolved );
+			return $this->resolved->validate( $new_context );
+		}
 
-        if (!$ok_sender) {
-            $this->setLastRefSchema($this->resolved);
-            return $this->resolved->validate($new_context);
-        }
+		$ok_sender = $this->resolveSchema( $context );
 
-        $this->setLastRefSchema($ok_sender);
+		if ( ! $ok_sender ) {
+			$this->setLastRefSchema( $this->resolved );
+			return $this->resolved->validate( $new_context );
+		}
 
-        return $ok_sender->validate($new_context);
-    }
+		$this->setLastRefSchema( $ok_sender );
 
-    /**
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    protected function resolveSchema($context)
-    {
-        $ok = null;
-        $loader = $context->loader();
+		return $ok_sender->validate( $new_context );
+	}
 
-        while ($context) {
-            $sender = $context->sender();
+	/**
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	protected function resolveSchema( $context ) {
+		$ok     = null;
+		$loader = $context->loader();
 
-            if (!$sender) {
-                break;
-            }
+		while ( $context ) {
+			$sender = $context->sender();
 
-            if (!$this->hasRecursiveAnchor($sender)) {
-                if ($sender->info()->id()) {
-                    // id without recursiveAnchor
-                    break;
-                }
+			if ( ! $sender ) {
+				break;
+			}
 
-                $sender = $loader->loadSchemaById($sender->info()->root());
-                if (!$sender || !$this->hasRecursiveAnchor($sender)) {
-                    // root without recursiveAnchor
-                    break;
-                }
-            }
+			if ( ! $this->hasRecursiveAnchor( $sender ) ) {
+				if ( $sender->info()->id() ) {
+					// id without recursiveAnchor
+					break;
+				}
 
-            if ($sender->info()->id()) {
-                // id with recursiveAnchor
-                $ok = $sender;
-            } else {
-                // root with recursiveAnchor
-                $ok = $loader->loadSchemaById($sender->info()->root());
-            }
+				$sender = $loader->loadSchemaById( $sender->info()->root() );
+				if ( ! $sender || ! $this->hasRecursiveAnchor( $sender ) ) {
+					// root without recursiveAnchor
+					break;
+				}
+			}
 
-            $context = $context->parent();
-        }
+			if ( $sender->info()->id() ) {
+				// id with recursiveAnchor
+				$ok = $sender;
+			} else {
+				// root with recursiveAnchor
+				$ok = $loader->loadSchemaById( $sender->info()->root() );
+			}
 
-        return $ok;
-    }
+			$context = $context->parent();
+		}
 
-    /**
-     * @param \Opis\JsonSchema\Schema|null $schema
-     */
-    protected function hasRecursiveAnchor($schema): bool
-    {
-        if (!$schema) {
-            return false;
-        }
+		return $ok;
+	}
 
-        $info = $schema->info();
+	/**
+	 * @param \Opis\JsonSchema\Schema|null $schema
+	 */
+	protected function hasRecursiveAnchor( $schema ): bool {
+		if ( ! $schema ) {
+			return false;
+		}
 
-        if (!$info->isObject()) {
-            return false;
-        }
+		$info = $schema->info();
 
-        $data = $info->data();
+		if ( ! $info->isObject() ) {
+			return false;
+		}
 
-        if (!property_exists($data, $this->anchor)) {
-            return false;
-        }
+		$data = $info->data();
 
-        return $data->{$this->anchor} === $this->anchorValue;
-    }
+		if ( ! property_exists( $data, $this->anchor ) ) {
+			return false;
+		}
+
+		return $data->{$this->anchor} === $this->anchorValue;
+	}
 }

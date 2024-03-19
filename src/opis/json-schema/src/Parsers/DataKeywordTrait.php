@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,41 +20,39 @@ namespace Opis\JsonSchema\Parsers;
 
 use Opis\JsonSchema\JsonPointer;
 
-trait DataKeywordTrait
-{
-    /**
-     * @param $value
-     * @return JsonPointer|null
-     */
-    protected function getDataKeywordPointer($value)
-    {
-        if (!is_object($value) || !property_exists($value, '$data') ||
-            !is_string($value->{'$data'}) || count(get_object_vars($value)) !== 1) {
-            return null;
-        }
+trait DataKeywordTrait {
 
-        return JsonPointer::parse($value->{'$data'});
-    }
+	/**
+	 * @param $value
+	 * @return JsonPointer|null
+	 */
+	protected function getDataKeywordPointer( $value ) {
+		if ( ! is_object( $value ) || ! property_exists( $value, '$data' ) ||
+			! is_string( $value->{'$data'} ) || count( get_object_vars( $value ) ) !== 1 ) {
+			return null;
+		}
 
-    /**
-     * @param SchemaParser $parser
-     * @param string|null $keyword
-     * @return bool
-     */
-    protected function isDataKeywordAllowed($parser, $keyword = null): bool
-    {
-        if (!($enabled = $parser->option('allowDataKeyword'))) {
-            return false;
-        }
+		return JsonPointer::parse( $value->{'$data'} );
+	}
 
-        if ($enabled === true) {
-            return true;
-        }
+	/**
+	 * @param SchemaParser $parser
+	 * @param string|null  $keyword
+	 * @return bool
+	 */
+	protected function isDataKeywordAllowed( $parser, $keyword = null ): bool {
+		if ( ! ( $enabled = $parser->option( 'allowDataKeyword' ) ) ) {
+			return false;
+		}
 
-        if ($keyword === null) {
-            return false;
-        }
+		if ( $enabled === true ) {
+			return true;
+		}
 
-        return is_array($enabled) && in_array($keyword, $enabled);
-    }
+		if ( $keyword === null ) {
+			return false;
+		}
+
+		return is_array( $enabled ) && in_array( $keyword, $enabled );
+	}
 }

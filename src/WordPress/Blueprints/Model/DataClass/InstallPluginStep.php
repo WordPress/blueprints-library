@@ -13,6 +13,7 @@ class InstallPluginStep implements StepDefinitionInterface {
 
 	/**
 	 * The step identifier.
+	 *
 	 * @var string
 	 */
 	public $step = 'installPlugin';
@@ -22,15 +23,16 @@ class InstallPluginStep implements StepDefinitionInterface {
 
 	/**
 	 * Whether to activate the plugin after installing it.
+	 *
 	 * @var bool
 	 */
 	public $activate = true;
 
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-  */
- public function setProgress( $progress ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+	 */
+	public function setProgress( $progress ) {
 		$this->progress = $progress;
 
 		return $this;
@@ -38,9 +40,9 @@ class InstallPluginStep implements StepDefinitionInterface {
 
 
 	/**
-  * @param bool $continueOnError
-  */
- public function setContinueOnError( $continueOnError ) {
+	 * @param bool $continueOnError
+	 */
+	public function setContinueOnError( $continueOnError ) {
 		$this->continueOnError = $continueOnError;
 
 		return $this;
@@ -48,9 +50,9 @@ class InstallPluginStep implements StepDefinitionInterface {
 
 
 	/**
-  * @param string $step
-  */
- public function setStep( $step ) {
+	 * @param string $step
+	 */
+	public function setStep( $step ) {
 		$this->step = $step;
 
 		return $this;
@@ -65,9 +67,9 @@ class InstallPluginStep implements StepDefinitionInterface {
 
 
 	/**
-  * @param bool $activate
-  */
- public function setActivate( $activate ) {
+	 * @param bool $activate
+	 */
+	public function setActivate( $activate ) {
 		$this->activate = $activate;
 
 		return $this;

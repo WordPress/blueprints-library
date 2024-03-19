@@ -17,9 +17,8 @@ class CompiledStep {
 		StepRunnerInterface $runner,
 		Tracker $progressTracker
 	) {
-		$this->step = $step;
-		$this->runner = $runner;
+		$this->step            = $step;
+		$this->runner          = $runner;
 		$this->progressTracker = $progressTracker;
 	}
-
 }

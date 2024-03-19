@@ -42,24 +42,24 @@ class ZipCentralDirectoryEntry {
 		string $extra,
 		string $fileComment
 	) {
-		$this->fileComment = $fileComment;
-		$this->extra = $extra;
-		$this->path = $path;
-		$this->lastByteAt = $lastByteAt;
+		$this->fileComment        = $fileComment;
+		$this->extra              = $extra;
+		$this->path               = $path;
+		$this->lastByteAt         = $lastByteAt;
 		$this->externalAttributes = $externalAttributes;
 		$this->internalAttributes = $internalAttributes;
-		$this->diskNumber = $diskNumber;
-		$this->uncompressedSize = $uncompressedSize;
-		$this->compressedSize = $compressedSize;
-		$this->crc = $crc;
-		$this->lastModifiedDate = $lastModifiedDate;
-		$this->lastModifiedTime = $lastModifiedTime;
-		$this->compressionMethod = $compressionMethod;
-		$this->generalPurpose = $generalPurpose;
-		$this->versionNeeded = $versionNeeded;
-		$this->versionCreated = $versionCreated;
-		$this->firstByteAt = $firstByteAt;
-		$this->isDirectory = $this->path[ - 1 ] === '/';
+		$this->diskNumber         = $diskNumber;
+		$this->uncompressedSize   = $uncompressedSize;
+		$this->compressedSize     = $compressedSize;
+		$this->crc                = $crc;
+		$this->lastModifiedDate   = $lastModifiedDate;
+		$this->lastModifiedTime   = $lastModifiedTime;
+		$this->compressionMethod  = $compressionMethod;
+		$this->generalPurpose     = $generalPurpose;
+		$this->versionNeeded      = $versionNeeded;
+		$this->versionCreated     = $versionCreated;
+		$this->firstByteAt        = $firstByteAt;
+		$this->isDirectory        = $this->path[- 1] === '/';
 	}
 
 	public function isFileEntry() {

@@ -23,9 +23,9 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 	}
 
 	/**
-  * @param string $url
-  */
- public function parseUrl( $url ) {
+	 * @param string $url
+	 */
+	public function parseUrl( $url ) {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			$resource = $resolver->parseUrl( $url );
@@ -38,9 +38,9 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
-  */
- public function supports( $resource ): bool {
+	 * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+	 */
+	public function supports( $resource ): bool {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			if ( $resolver->supports( $resource ) ) {
@@ -52,10 +52,10 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
-  * @param \WordPress\Blueprints\Progress\Tracker $progressTracker
-  */
- public function stream( $resource, $progressTracker ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+	 * @param \WordPress\Blueprints\Progress\Tracker                            $progressTracker
+	 */
+	public function stream( $resource, $progressTracker ) {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			if ( $resolver->supports( $resource ) ) {

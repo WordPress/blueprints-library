@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,41 +21,45 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ConstDataKeyword extends ConstKeyword
-{
+class ConstDataKeyword extends ConstKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /**
-     * @param JsonPointer $value
-     */
-    public function __construct(JsonPointer $value)
-    {
-        $this->value = $value;
-        parent::__construct(null);
-    }
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $value = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
-        if ($value === $this) {
-            return $this->error($schema, $context, 'const', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @param JsonPointer $value
+	 */
+	public function __construct( JsonPointer $value ) {
+		$this->value = $value;
+		parent::__construct( null );
+	}
 
-        $this->const = $value;
-        $ret = parent::validate($context, $schema);
-        $this->const = null;
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$value = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
+		if ( $value === $this ) {
+			return $this->error(
+				$schema,
+				$context,
+				'const',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        return $ret;
-    }
+		$this->const = $value;
+		$ret         = parent::validate( $context, $schema );
+		$this->const = null;
+
+		return $ret;
+	}
 }

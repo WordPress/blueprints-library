@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,264 +20,258 @@ namespace Opis\Uri;
 
 use Opis\String\UnicodeString;
 
-final class Punycode
-{
-    const BASE = 36;
-    const TMIN = 1;
-    const TMAX = 26;
-    const SKEW = 38;
-    const DAMP = 700;
-    const INITIAL_BIAS = 72;
-    const INITIAL_N = 0x80;
-    const PREFIX = 'xn--';
-    const PREFIX_LEN = 4;
-    const DELIMITER = 0x2D;
-    const MAX_INT = 0x7FFFFFFF;
-    const NON_ASCII = '#[^\0-\x7E]#';
+final class Punycode {
 
-    public static function encode(string $input): string
-    {
-        return implode('.', array_map([self::class, 'encodePart'], explode('.', $input)));
-    }
+	const BASE         = 36;
+	const TMIN         = 1;
+	const TMAX         = 26;
+	const SKEW         = 38;
+	const DAMP         = 700;
+	const INITIAL_BIAS = 72;
+	const INITIAL_N    = 0x80;
+	const PREFIX       = 'xn--';
+	const PREFIX_LEN   = 4;
+	const DELIMITER    = 0x2D;
+	const MAX_INT      = 0x7FFFFFFF;
+	const NON_ASCII    = '#[^\0-\x7E]#';
 
-    public static function decode(string $input): string
-    {
-        return implode('.', array_map([self::class, 'decodePart'], explode('.', $input)));
-    }
+	public static function encode( string $input ): string {
+		return implode( '.', array_map( array( self::class, 'encodePart' ), explode( '.', $input ) ) );
+	}
 
-    public static function normalize(string $input): string
-    {
-        return implode('.', array_map([self::class, 'normalizePart'], explode('.', $input)));
-    }
+	public static function decode( string $input ): string {
+		return implode( '.', array_map( array( self::class, 'decodePart' ), explode( '.', $input ) ) );
+	}
 
-    public static function encodePart(string $input): string
-    {
-        if (!preg_match(self::NON_ASCII, $input)) {
-            return $input;
-        }
+	public static function normalize( string $input ): string {
+		return implode( '.', array_map( array( self::class, 'normalizePart' ), explode( '.', $input ) ) );
+	}
 
-        $input = UnicodeString::getCodePointsFromString($input, UnicodeString::LOWER_CASE);
-        $input_len = count($input);
+	public static function encodePart( string $input ): string {
+		if ( ! preg_match( self::NON_ASCII, $input ) ) {
+			return $input;
+		}
 
-        $output = array_filter($input, static function (int $code): bool {
-            return $code < 0x80;
-        });
+		$input     = UnicodeString::getCodePointsFromString( $input, UnicodeString::LOWER_CASE );
+		$input_len = count( $input );
 
-        if ($output) {
-            $output = array_values($output);
-        }
+		$output = array_filter(
+			$input,
+			static function ( int $code ): bool {
+				return $code < 0x80;
+			}
+		);
 
-        $delta = 0;
-        $n = self::INITIAL_N;
-        $bias = self::INITIAL_BIAS;
+		if ( $output ) {
+			$output = array_values( $output );
+		}
 
-        $handled = $basic_length = count($output);
+		$delta = 0;
+		$n     = self::INITIAL_N;
+		$bias  = self::INITIAL_BIAS;
 
-        if ($basic_length) {
-            $output[] = self::DELIMITER;
-        }
+		$handled = $basic_length = count( $output );
 
-        while ($handled < $input_len) {
-            $m = self::MAX_INT;
+		if ( $basic_length ) {
+			$output[] = self::DELIMITER;
+		}
 
-            for ($i = 0;  $i < $input_len;  $i++) {
-                if ($input[$i] >= $n && $input[$i] < $m) {
-                    $m = $input[$i];
-                }
-            }
+		while ( $handled < $input_len ) {
+			$m = self::MAX_INT;
 
-            if (($m - $n) > intdiv(self::MAX_INT - $delta, $handled + 1)) {
-                throw new PunycodeException("Punycode overflow");
-            }
+			for ( $i = 0;  $i < $input_len;  $i++ ) {
+				if ( $input[ $i ] >= $n && $input[ $i ] < $m ) {
+					$m = $input[ $i ];
+				}
+			}
 
-            $delta += ($m - $n) * ($handled + 1);
+			if ( ( $m - $n ) > intdiv( self::MAX_INT - $delta, $handled + 1 ) ) {
+				throw new PunycodeException( 'Punycode overflow' );
+			}
 
-            $n = $m;
+			$delta += ( $m - $n ) * ( $handled + 1 );
 
-            for ($i = 0;  $i < $input_len;  $i++) {
-                if ($input[$i] < $n && (++$delta === 0)) {
-                    throw new PunycodeException("Punycode overflow");
-                }
+			$n = $m;
 
-                if ($input[$i] === $n) {
-                    $q = $delta;
-                    for ($k = self::BASE; ; $k += self::BASE) {
-                        $t = self::threshold($k, $bias);
-                        if ($q < $t) {
-                            break;
-                        }
+			for ( $i = 0;  $i < $input_len;  $i++ ) {
+				if ( $input[ $i ] < $n && ( ++$delta === 0 ) ) {
+					throw new PunycodeException( 'Punycode overflow' );
+				}
 
-                        $base_minus_t = self::BASE - $t;
+				if ( $input[ $i ] === $n ) {
+					$q = $delta;
+					for ( $k = self::BASE; ; $k += self::BASE ) {
+						$t = self::threshold( $k, $bias );
+						if ( $q < $t ) {
+							break;
+						}
 
-                        $q -= $t;
+						$base_minus_t = self::BASE - $t;
 
-                        $output[] = self::encodeDigit($t + ($q % $base_minus_t));
+						$q -= $t;
 
-                        $q = intdiv($q, $base_minus_t);
-                    }
+						$output[] = self::encodeDigit( $t + ( $q % $base_minus_t ) );
 
-                    $output[] = self::encodeDigit($q);
+						$q = intdiv( $q, $base_minus_t );
+					}
 
-                    $bias = self::adapt($delta, $handled + 1, $handled === $basic_length);
-                    $delta = 0;
-                    $handled++;
-                }
-            }
+					$output[] = self::encodeDigit( $q );
 
-            $delta++; $n++;
-        }
+					$bias  = self::adapt( $delta, $handled + 1, $handled === $basic_length );
+					$delta = 0;
+					++$handled;
+				}
+			}
 
-        return self::PREFIX . UnicodeString::getStringFromCodePoints($output);
-    }
+			++$delta;
+			++$n;
+		}
 
-    public static function decodePart(string $input): string
-    {
-        if (stripos($input, self::PREFIX) !== 0) {
-            return $input;
-        }
+		return self::PREFIX . UnicodeString::getStringFromCodePoints( $output );
+	}
 
-        $input = UnicodeString::getCodePointsFromString(substr($input, self::PREFIX_LEN), UnicodeString::LOWER_CASE);
-        $input_len = count($input);
+	public static function decodePart( string $input ): string {
+		if ( stripos( $input, self::PREFIX ) !== 0 ) {
+			return $input;
+		}
 
-        $pos = array_keys($input, self::DELIMITER, true);
-        if ($pos) {
-            $pos = end($pos);
-        } else {
-            $pos = -1;
-        }
+		$input     = UnicodeString::getCodePointsFromString( substr( $input, self::PREFIX_LEN ), UnicodeString::LOWER_CASE );
+		$input_len = count( $input );
 
-        /** @var int $pos */
+		$pos = array_keys( $input, self::DELIMITER, true );
+		if ( $pos ) {
+			$pos = end( $pos );
+		} else {
+			$pos = -1;
+		}
 
-        if ($pos === -1) {
-            $output = [];
-            $pos = $output_len = 0;
-        } else {
-            $output = array_slice($input, 0, ++$pos);
-            $output_len = $pos;
-            for ($i = 0; $i < $pos; $i++) {
-                if ($output[$i] >= 0x80) {
-                    throw new PunycodeException("Non-basic code point is not allowed: {$output[$i]}");
-                }
-            }
-        }
+		/** @var int $pos */
 
-        $i = 0;
-        $n = self::INITIAL_N;
-        $bias = self::INITIAL_BIAS;
+		if ( $pos === -1 ) {
+			$output = array();
+			$pos    = $output_len = 0;
+		} else {
+			$output     = array_slice( $input, 0, ++$pos );
+			$output_len = $pos;
+			for ( $i = 0; $i < $pos; $i++ ) {
+				if ( $output[ $i ] >= 0x80 ) {
+					throw new PunycodeException( "Non-basic code point is not allowed: {$output[$i]}" );
+				}
+			}
+		}
 
-        while ($pos < $input_len) {
-            $old_i = $i;
+		$i    = 0;
+		$n    = self::INITIAL_N;
+		$bias = self::INITIAL_BIAS;
 
-            for ($w = 1, $k = self::BASE; ; $k += self::BASE) {
-                if ($pos >= $input_len) {
-                    throw new PunycodeException("Punycode bad input");
-                }
+		while ( $pos < $input_len ) {
+			$old_i = $i;
 
-                $digit = self::decodeDigit($input[$pos++]);
+			for ( $w = 1, $k = self::BASE; ; $k += self::BASE ) {
+				if ( $pos >= $input_len ) {
+					throw new PunycodeException( 'Punycode bad input' );
+				}
 
-                if ($digit >= self::BASE || $digit > intdiv(self::MAX_INT - $i, $w)) {
-                    throw new PunycodeException("Punycode overflow");
-                }
+				$digit = self::decodeDigit( $input[ $pos++ ] );
 
-                $i += $digit * $w;
+				if ( $digit >= self::BASE || $digit > intdiv( self::MAX_INT - $i, $w ) ) {
+					throw new PunycodeException( 'Punycode overflow' );
+				}
 
-                $t = self::threshold($k, $bias);
-                if ($digit < $t) {
-                    break;
-                }
+				$i += $digit * $w;
 
-                $t = self::BASE - $t;
+				$t = self::threshold( $k, $bias );
+				if ( $digit < $t ) {
+					break;
+				}
 
-                if ($w > intdiv(self::MAX_INT, $t)) {
-                    throw new PunycodeException("Punycode overflow");
-                }
+				$t = self::BASE - $t;
 
-                $w *= $t;
-            }
+				if ( $w > intdiv( self::MAX_INT, $t ) ) {
+					throw new PunycodeException( 'Punycode overflow' );
+				}
 
-            $output_len++;
+				$w *= $t;
+			}
 
-            if (intdiv($i, $output_len) > self::MAX_INT - $n) {
-                throw new PunycodeException("Punycode overflow");
-            }
+			++$output_len;
 
-            $n += intdiv($i, $output_len);
+			if ( intdiv( $i, $output_len ) > self::MAX_INT - $n ) {
+				throw new PunycodeException( 'Punycode overflow' );
+			}
 
-            $bias = self::adapt($i - $old_i, $output_len, $old_i === 0);
+			$n += intdiv( $i, $output_len );
 
-            $i %= $output_len;
+			$bias = self::adapt( $i - $old_i, $output_len, $old_i === 0 );
 
-            array_splice($output, $i, 0, $n);
+			$i %= $output_len;
 
-            $i++;
-        }
+			array_splice( $output, $i, 0, $n );
 
-        return UnicodeString::getStringFromCodePoints($output);
-    }
+			++$i;
+		}
 
-    public static function normalizePart(string $input): string
-    {
-        $input = strtolower($input);
+		return UnicodeString::getStringFromCodePoints( $output );
+	}
 
-        if (strpos($input, self::DELIMITER) === 0) {
-            self::decodePart($input); // just validate
-            return $input;
-        }
+	public static function normalizePart( string $input ): string {
+		$input = strtolower( $input );
 
-        return self::encodePart($input);
-    }
+		if ( strpos( $input, self::DELIMITER ) === 0 ) {
+			self::decodePart( $input ); // just validate
+			return $input;
+		}
 
-    private static function encodeDigit(int $digit): int
-    {
-        return $digit + 0x16 + ($digit < 0x1A ? 0x4B: 0x00);
-    }
+		return self::encodePart( $input );
+	}
 
-    private static function decodeDigit(int $code): int
-    {
-        if ($code < 0x3A) {
-            return $code - 0x16;
-        }
-        if ($code < 0x5B) {
-            return $code - 0x41;
-        }
-        if ($code < 0x7B) {
-            return $code - 0x61;
-        }
+	private static function encodeDigit( int $digit ): int {
+		return $digit + 0x16 + ( $digit < 0x1A ? 0x4B : 0x00 );
+	}
 
-        return self::BASE;
-    }
+	private static function decodeDigit( int $code ): int {
+		if ( $code < 0x3A ) {
+			return $code - 0x16;
+		}
+		if ( $code < 0x5B ) {
+			return $code - 0x41;
+		}
+		if ( $code < 0x7B ) {
+			return $code - 0x61;
+		}
 
-    private static function threshold(int $k, int $bias): int
-    {
-        $d = $k - $bias;
+		return self::BASE;
+	}
 
-        if ($d <= self::TMIN) {
-            return self::TMIN;
-        }
+	private static function threshold( int $k, int $bias ): int {
+		$d = $k - $bias;
 
-        if ($d >= self::TMAX) {
-            return self::TMAX;
-        }
+		if ( $d <= self::TMIN ) {
+			return self::TMIN;
+		}
 
-        return $d;
-    }
+		if ( $d >= self::TMAX ) {
+			return self::TMAX;
+		}
 
-    private static function adapt(int $delta, int $num_points, bool $first_time = false): int
-    {
-        $delta = intdiv($delta, $first_time ? self::DAMP : 2);
-        $delta += intdiv($delta, $num_points);
+		return $d;
+	}
 
-        $k = 0;
-        $base_tmin_diff = self::BASE - self::TMIN;
-        $lim = $base_tmin_diff * self::TMAX / 2;
+	private static function adapt( int $delta, int $num_points, bool $first_time = false ): int {
+		$delta  = intdiv( $delta, $first_time ? self::DAMP : 2 );
+		$delta += intdiv( $delta, $num_points );
 
-        while ($delta > $lim) {
-            $delta = intdiv($delta, $base_tmin_diff);
-            $k += self::BASE;
-        }
+		$k              = 0;
+		$base_tmin_diff = self::BASE - self::TMIN;
+		$lim            = $base_tmin_diff * self::TMAX / 2;
 
-        $k += intdiv(($base_tmin_diff + 1) * $delta, $delta + self::SKEW);
+		while ( $delta > $lim ) {
+			$delta = intdiv( $delta, $base_tmin_diff );
+			$k    += self::BASE;
+		}
 
-        return $k;
-    }
+		$k += intdiv( ( $base_tmin_diff + 1 ) * $delta, $delta + self::SKEW );
+
+		return $k;
+	}
 }

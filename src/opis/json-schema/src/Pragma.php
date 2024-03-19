@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,17 +18,17 @@
 
 namespace Opis\JsonSchema;
 
-interface Pragma
-{
-    /**
-     * @param ValidationContext $context
-     * @return mixed Data to pass to leave() method
-     */
-    public function enter($context);
+interface Pragma {
 
-    /**
-     * @param ValidationContext $context
-     * @param mixed $data Data returned by the enter() method
-     */
-    public function leave($context, $data);
+	/**
+	 * @param ValidationContext $context
+	 * @return mixed Data to pass to leave() method
+	 */
+	public function enter( $context );
+
+	/**
+	 * @param ValidationContext $context
+	 * @param mixed             $data Data returned by the enter() method
+	 */
+	public function leave( $context, $data );
 }

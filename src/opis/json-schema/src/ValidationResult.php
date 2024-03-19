@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,38 +20,33 @@ namespace Opis\JsonSchema;
 
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ValidationResult
-{
-    /**
-     * @var \Opis\JsonSchema\Errors\ValidationError|null
-     */
-    protected $error;
+class ValidationResult {
 
-    public function __construct($error)
-    {
-        $this->error = $error;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Errors\ValidationError|null
+	 */
+	protected $error;
 
-    public function error()
-    {
-        return $this->error;
-    }
+	public function __construct( $error ) {
+		$this->error = $error;
+	}
 
-    public function isValid(): bool
-    {
-        return $this->error === null;
-    }
+	public function error() {
+		return $this->error;
+	}
 
-    public function hasError(): bool
-    {
-        return $this->error !== null;
-    }
+	public function isValid(): bool {
+		return $this->error === null;
+	}
 
-    public function __toString(): string
-    {
-        if ($this->error) {
-            return $this->error->message();
-        }
-        return '';
-    }
+	public function hasError(): bool {
+		return $this->error !== null;
+	}
+
+	public function __toString(): string {
+		if ( $this->error ) {
+			return $this->error->message();
+		}
+		return '';
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,36 +23,34 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\KeywordValidator;
 
-final class EmptySchema extends AbstractSchema
-{
-    /**
-     * @var \Opis\JsonSchema\KeywordValidator|null
-     */
-    protected $keywordValidator;
+final class EmptySchema extends AbstractSchema {
 
-    /**
-     * @inheritDoc
-     */
-    public function __construct(SchemaInfo $info, $keywordValidator = null)
-    {
-        parent::__construct($info);
-        $this->keywordValidator = $keywordValidator;
-    }
+	/**
+	 * @var \Opis\JsonSchema\KeywordValidator|null
+	 */
+	protected $keywordValidator;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function validate($context)
-    {
-        if (!$this->keywordValidator) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( SchemaInfo $info, $keywordValidator = null ) {
+		parent::__construct( $info );
+		$this->keywordValidator = $keywordValidator;
+	}
 
-        $context->pushSharedObject($this);
-        $error = $this->keywordValidator->validate($context);
-        $context->popSharedObject();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function validate( $context ) {
+		if ( ! $this->keywordValidator ) {
+			return null;
+		}
 
-        return $error;
-    }
+		$context->pushSharedObject( $this );
+		$error = $this->keywordValidator->validate( $context );
+		$context->popSharedObject();
+
+		return $error;
+	}
 }

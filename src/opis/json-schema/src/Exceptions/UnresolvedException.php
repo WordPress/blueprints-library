@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,44 +21,41 @@ namespace Opis\JsonSchema\Exceptions;
 use RuntimeException;
 use Opis\JsonSchema\{ValidationContext, Schema};
 
-class UnresolvedException extends RuntimeException implements SchemaException
-{
+class UnresolvedException extends RuntimeException implements SchemaException {
 
-    /**
-     * @var \Opis\JsonSchema\Schema
-     */
-    protected $schema;
 
-    /**
-     * @var \Opis\JsonSchema\ValidationContext
-     */
-    protected $context;
+	/**
+	 * @var \Opis\JsonSchema\Schema
+	 */
+	protected $schema;
 
-    /**
-     * @param string $message
-     * @param Schema $schema
-     * @param ValidationContext $context
-     */
-    public function __construct(string $message, Schema $schema, ValidationContext $context)
-    {
-        parent::__construct($message);
-        $this->schema = $schema;
-        $this->context = $context;
-    }
+	/**
+	 * @var \Opis\JsonSchema\ValidationContext
+	 */
+	protected $context;
 
-    /**
-     * @return Schema
-     */
-    public function getSchema(): Schema
-    {
-        return $this->schema;
-    }
+	/**
+	 * @param string            $message
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 */
+	public function __construct( string $message, Schema $schema, ValidationContext $context ) {
+		parent::__construct( $message );
+		$this->schema  = $schema;
+		$this->context = $context;
+	}
 
-    /**
-     * @return ValidationContext
-     */
-    public function getContext(): ValidationContext
-    {
-        return $this->context;
-    }
+	/**
+	 * @return Schema
+	 */
+	public function getSchema(): Schema {
+		return $this->schema;
+	}
+
+	/**
+	 * @return ValidationContext
+	 */
+	public function getContext(): ValidationContext {
+		return $this->context;
+	}
 }

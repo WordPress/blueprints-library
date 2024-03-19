@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,59 +19,64 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class PropertyNamesKeyword implements Keyword
-{
-    use ErrorTrait;
+class PropertyNamesKeyword implements Keyword {
 
-    /** @var bool|object */
-    protected $value;
+	use ErrorTrait;
 
-    /**
-     * @param bool|object $value
-     */
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool|object */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->value === true) {
-            return null;
-        }
+	/**
+	 * @param bool|object $value
+	 */
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        $props = $context->getObjectProperties();
-        if (!$props) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->value === true ) {
+			return null;
+		}
 
-        if ($this->value === false) {
-            return $this->error($schema, $context, 'propertyNames', "No properties are allowed");
-        }
+		$props = $context->getObjectProperties();
+		if ( ! $props ) {
+			return null;
+		}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+		if ( $this->value === false ) {
+			return $this->error( $schema, $context, 'propertyNames', 'No properties are allowed' );
+		}
 
-        foreach ($props as $prop) {
-            if ($error = $this->value->validate($context->newInstance($prop, $schema))) {
-                return $this->error($schema, $context, 'propertyNames', "Property '{property}' must match schema", [
-                    'property' => $prop,
-                ], $error);
-            }
-        }
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        return null;
-    }
+		foreach ( $props as $prop ) {
+			if ( $error = $this->value->validate( $context->newInstance( $prop, $schema ) ) ) {
+				return $this->error(
+					$schema,
+					$context,
+					'propertyNames',
+					"Property '{property}' must match schema",
+					array(
+						'property' => $prop,
+					),
+					$error
+				);
+			}
+		}
+
+		return null;
+	}
 }

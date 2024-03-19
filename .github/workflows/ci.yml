@@ -26,7 +26,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: PHPCS checks
-        run: ./vendor/bin/phpcs ${{ github.workspace }}/src
+        run: ./vendor/bin/phpcs ${{ github.workspace }}/src/WordPress
 
   test-unit:
     runs-on: ${{ matrix.os }}

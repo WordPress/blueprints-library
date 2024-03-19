@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,64 +22,68 @@ use Opis\JsonSchema\{Helper, ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Resolvers\FormatResolver;
 
-class FormatDataKeyword extends FormatKeyword
-{
+class FormatDataKeyword extends FormatKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /**
-     * @var \Opis\JsonSchema\Resolvers\FormatResolver
-     */
-    protected $resolver;
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @param JsonPointer $value
-     * @param FormatResolver $resolver
-     */
-    public function __construct(JsonPointer $value, FormatResolver $resolver)
-    {
-        $this->value = $value;
-        $this->resolver = $resolver;
-        parent::__construct('', []);
-    }
+	/**
+	 * @var \Opis\JsonSchema\Resolvers\FormatResolver
+	 */
+	protected $resolver;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $value = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
-        if ($value === $this || !is_string($value)) {
-            return $this->error($schema, $context, 'format', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @param JsonPointer    $value
+	 * @param FormatResolver $resolver
+	 */
+	public function __construct( JsonPointer $value, FormatResolver $resolver ) {
+		$this->value    = $value;
+		$this->resolver = $resolver;
+		parent::__construct( '', array() );
+	}
 
-        /** @var string $value */
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$value = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
+		if ( $value === $this || ! is_string( $value ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				'format',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        $type = $context->currentDataType();
+		/** @var string $value */
 
-        $types = [
-            $type => $this->resolver->resolve($value, $type),
-        ];
+		$type = $context->currentDataType();
 
-        if (!$types[$type] && ($super = Helper::getJsonSuperType($type))) {
-            $types[$super] = $this->resolver->resolve($value, $super);
-            unset($super);
-        }
+		$types = array(
+			$type => $this->resolver->resolve( $value, $type ),
+		);
 
-        unset($type);
+		if ( ! $types[ $type ] && ( $super = Helper::getJsonSuperType( $type ) ) ) {
+			$types[ $super ] = $this->resolver->resolve( $value, $super );
+			unset( $super );
+		}
 
-        $this->name = $value;
-        $this->types = $types;
-        $ret = parent::validate($context, $schema);
-        $this->name = $this->types = null;
+		unset( $type );
 
-        return $ret;
-    }
+		$this->name  = $value;
+		$this->types = $types;
+		$ret         = parent::validate( $context, $schema );
+		$this->name  = $this->types = null;
+
+		return $ret;
+	}
 }

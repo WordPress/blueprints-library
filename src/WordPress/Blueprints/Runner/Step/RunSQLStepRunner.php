@@ -11,14 +11,15 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class RunSQLStepRunner extends BaseStepRunner {
 	/**
-  * @param RunSQLStep $input
-  * @param \WordPress\Blueprints\Progress\Tracker|null $progress
-  */
- function run(
+	 * @param RunSQLStep                                  $input
+	 * @param \WordPress\Blueprints\Progress\Tracker|null $progress
+	 */
+	function run(
 		$input,
 		$progress = null
 	) {
-		return $this->getRuntime()->evalPhpInSubProcess( <<<'CODE'
+		return $this->getRuntime()->evalPhpInSubProcess(
+			<<<'CODE'
 <?php
 		require_once getenv("DOCROOT") . '/wp-load.php';
 
@@ -38,13 +39,13 @@ class RunSQLStepRunner extends BaseStepRunner {
 		}
 		fclose($handle);
 CODE
-,
+			,
 			null,
 			$this->getResource( $input->sql )
 		);
 	}
 
 	public function getDefaultCaption( $input ) {
-		return "Running SQL queries";
+		return 'Running SQL queries';
 	}
 }

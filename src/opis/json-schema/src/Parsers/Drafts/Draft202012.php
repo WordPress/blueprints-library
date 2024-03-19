@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,144 +21,149 @@ namespace Opis\JsonSchema\Parsers\Drafts;
 use Opis\JsonSchema\Parsers\Draft;
 use Opis\JsonSchema\Parsers\KeywordParser;
 use Opis\JsonSchema\Parsers\Keywords\{AdditionalItemsKeywordParser,
-    AdditionalPropertiesKeywordParser,
-    AllOfKeywordParser,
-    AnyOfKeywordParser,
-    ConstKeywordParser,
-    ContainsKeywordParser,
-    ContentEncodingKeywordParser,
-    ContentMediaTypeKeywordParser,
-    ContentSchemaKeywordParser,
-    DefaultKeywordParser,
-    DependenciesKeywordParser,
-    DependentRequiredKeywordParser,
-    DependentSchemasKeywordParser,
-    EnumKeywordParser,
-    ExclusiveMaximumKeywordParser,
-    ExclusiveMinimumKeywordParser,
-    FormatKeywordParser,
-    IfThenElseKeywordParser,
-    ItemsKeywordParser,
-    MaximumKeywordParser,
-    MaxItemsKeywordParser,
-    MaxLengthKeywordParser,
-    MaxPropertiesKeywordParser,
-    MinimumKeywordParser,
-    MinItemsKeywordParser,
-    MinLengthKeywordParser,
-    MinPropertiesKeywordParser,
-    MultipleOfKeywordParser,
-    NotKeywordParser,
-    OneOfKeywordParser,
-    PatternKeywordParser,
-    PatternPropertiesKeywordParser,
-    PropertiesKeywordParser,
-    PropertyNamesKeywordParser,
-    RefKeywordParser,
-    RequiredKeywordParser,
-    TypeKeywordParser,
-    UnevaluatedItemsKeywordParser,
-    UnevaluatedPropertiesKeywordParser,
-    UniqueItemsKeywordParser
+	AdditionalPropertiesKeywordParser,
+	AllOfKeywordParser,
+	AnyOfKeywordParser,
+	ConstKeywordParser,
+	ContainsKeywordParser,
+	ContentEncodingKeywordParser,
+	ContentMediaTypeKeywordParser,
+	ContentSchemaKeywordParser,
+	DefaultKeywordParser,
+	DependenciesKeywordParser,
+	DependentRequiredKeywordParser,
+	DependentSchemasKeywordParser,
+	EnumKeywordParser,
+	ExclusiveMaximumKeywordParser,
+	ExclusiveMinimumKeywordParser,
+	FormatKeywordParser,
+	IfThenElseKeywordParser,
+	ItemsKeywordParser,
+	MaximumKeywordParser,
+	MaxItemsKeywordParser,
+	MaxLengthKeywordParser,
+	MaxPropertiesKeywordParser,
+	MinimumKeywordParser,
+	MinItemsKeywordParser,
+	MinLengthKeywordParser,
+	MinPropertiesKeywordParser,
+	MultipleOfKeywordParser,
+	NotKeywordParser,
+	OneOfKeywordParser,
+	PatternKeywordParser,
+	PatternPropertiesKeywordParser,
+	PropertiesKeywordParser,
+	PropertyNamesKeywordParser,
+	RefKeywordParser,
+	RequiredKeywordParser,
+	TypeKeywordParser,
+	UnevaluatedItemsKeywordParser,
+	UnevaluatedPropertiesKeywordParser,
+	UniqueItemsKeywordParser
 };
 
-class Draft202012 extends Draft
-{
-    /**
-     * @inheritDoc
-     */
-    public function version(): string
-    {
-        return '2020-12';
-    }
+class Draft202012 extends Draft {
 
-    public function allowKeywordsAlongsideRef(): bool
-    {
-        return true;
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function version(): string {
+		return '2020-12';
+	}
 
-    /**
-     * @inheritDoc
-     */
-    public function supportsAnchorId(): bool
-    {
-        return true;
-    }
+	public function allowKeywordsAlongsideRef(): bool {
+		return true;
+	}
 
-    /**
-     * @inheritDoc
-     */
-    protected function getRefKeywordParser(): KeywordParser
-    {
-        return new RefKeywordParser('$ref', [
-            ['ref' => '$dynamicRef', 'anchor' => '$dynamicAnchor', 'fragment' => true],
-            ['ref' => '$recursiveRef', 'anchor' => '$recursiveAnchor', 'fragment' => false],
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function supportsAnchorId(): bool {
+		return true;
+	}
 
-    /**
-     * @inheritDoc
-     */
-    protected function getKeywordParsers(): array
-    {
-        return [
-            // Generic
-            new TypeKeywordParser('type'),
-            new ConstKeywordParser('const'),
-            new EnumKeywordParser('enum'),
-            new FormatKeywordParser('format'),
+	/**
+	 * @inheritDoc
+	 */
+	protected function getRefKeywordParser(): KeywordParser {
+		return new RefKeywordParser(
+			'$ref',
+			array(
+				array(
+					'ref'      => '$dynamicRef',
+					'anchor'   => '$dynamicAnchor',
+					'fragment' => true,
+				),
+				array(
+					'ref'      => '$recursiveRef',
+					'anchor'   => '$recursiveAnchor',
+					'fragment' => false,
+				),
+			)
+		);
+	}
 
-            // String
-            new MinLengthKeywordParser('minLength'),
-            new MaxLengthKeywordParser('maxLength'),
-            new PatternKeywordParser("pattern"),
-            new ContentEncodingKeywordParser('contentEncoding'),
-            new ContentMediaTypeKeywordParser('contentMediaType'),
-            new ContentSchemaKeywordParser('contentSchema'),
+	/**
+	 * @inheritDoc
+	 */
+	protected function getKeywordParsers(): array {
+		return array(
+			// Generic
+			new TypeKeywordParser( 'type' ),
+			new ConstKeywordParser( 'const' ),
+			new EnumKeywordParser( 'enum' ),
+			new FormatKeywordParser( 'format' ),
 
-            // Number
-            new MinimumKeywordParser('minimum', 'exclusiveMinimum'),
-            new MaximumKeywordParser('maximum', 'exclusiveMaximum'),
-            new ExclusiveMinimumKeywordParser('exclusiveMinimum'),
-            new ExclusiveMaximumKeywordParser('exclusiveMaximum'),
-            new MultipleOfKeywordParser('multipleOf'),
+			// String
+			new MinLengthKeywordParser( 'minLength' ),
+			new MaxLengthKeywordParser( 'maxLength' ),
+			new PatternKeywordParser( 'pattern' ),
+			new ContentEncodingKeywordParser( 'contentEncoding' ),
+			new ContentMediaTypeKeywordParser( 'contentMediaType' ),
+			new ContentSchemaKeywordParser( 'contentSchema' ),
 
-            // Array
-            new MinItemsKeywordParser('minItems'),
-            new MaxItemsKeywordParser('maxItems'),
-            new UniqueItemsKeywordParser('uniqueItems'),
-            new ContainsKeywordParser('contains', 'minContains', 'maxContains'),
-            new ItemsKeywordParser('prefixItems', ItemsKeywordParser::ONLY_ARRAY),
-            new ItemsKeywordParser('items', ItemsKeywordParser::ONLY_SCHEMA, 'prefixItems'),
-            // keep for draft-2019-09 compatibility
-            new AdditionalItemsKeywordParser('additionalItems'),
+			// Number
+			new MinimumKeywordParser( 'minimum', 'exclusiveMinimum' ),
+			new MaximumKeywordParser( 'maximum', 'exclusiveMaximum' ),
+			new ExclusiveMinimumKeywordParser( 'exclusiveMinimum' ),
+			new ExclusiveMaximumKeywordParser( 'exclusiveMaximum' ),
+			new MultipleOfKeywordParser( 'multipleOf' ),
 
-            // Object
-            new MinPropertiesKeywordParser('minProperties'),
-            new MaxPropertiesKeywordParser('maxProperties'),
-            new RequiredKeywordParser('required'),
-            new DependenciesKeywordParser('dependencies'), // keep for draft-07 compatibility
-            new DependentRequiredKeywordParser('dependentRequired'),
-            new DependentSchemasKeywordParser('dependentSchemas'),
-            new PropertyNamesKeywordParser('propertyNames'),
-            new PropertiesKeywordParser('properties'),
-            new PatternPropertiesKeywordParser('patternProperties'),
-            new AdditionalPropertiesKeywordParser('additionalProperties'),
+			// Array
+			new MinItemsKeywordParser( 'minItems' ),
+			new MaxItemsKeywordParser( 'maxItems' ),
+			new UniqueItemsKeywordParser( 'uniqueItems' ),
+			new ContainsKeywordParser( 'contains', 'minContains', 'maxContains' ),
+			new ItemsKeywordParser( 'prefixItems', ItemsKeywordParser::ONLY_ARRAY ),
+			new ItemsKeywordParser( 'items', ItemsKeywordParser::ONLY_SCHEMA, 'prefixItems' ),
+			// keep for draft-2019-09 compatibility
+			new AdditionalItemsKeywordParser( 'additionalItems' ),
 
-            // Conditionals
-            new IfThenElseKeywordParser('if', 'then', 'else'),
-            new AnyOfKeywordParser('anyOf'),
-            new AllOfKeywordParser('allOf'),
-            new OneOfKeywordParser('oneOf'),
-            new NotKeywordParser('not'),
+			// Object
+			new MinPropertiesKeywordParser( 'minProperties' ),
+			new MaxPropertiesKeywordParser( 'maxProperties' ),
+			new RequiredKeywordParser( 'required' ),
+			new DependenciesKeywordParser( 'dependencies' ), // keep for draft-07 compatibility
+			new DependentRequiredKeywordParser( 'dependentRequired' ),
+			new DependentSchemasKeywordParser( 'dependentSchemas' ),
+			new PropertyNamesKeywordParser( 'propertyNames' ),
+			new PropertiesKeywordParser( 'properties' ),
+			new PatternPropertiesKeywordParser( 'patternProperties' ),
+			new AdditionalPropertiesKeywordParser( 'additionalProperties' ),
 
-            // Unevaluated
-            new UnevaluatedPropertiesKeywordParser('unevaluatedProperties'),
-            new UnevaluatedItemsKeywordParser('unevaluatedItems'),
+			// Conditionals
+			new IfThenElseKeywordParser( 'if', 'then', 'else' ),
+			new AnyOfKeywordParser( 'anyOf' ),
+			new AllOfKeywordParser( 'allOf' ),
+			new OneOfKeywordParser( 'oneOf' ),
+			new NotKeywordParser( 'not' ),
 
-            // Optional
-            new DefaultKeywordParser('default'),
-        ];
-    }
+			// Unevaluated
+			new UnevaluatedPropertiesKeywordParser( 'unevaluatedProperties' ),
+			new UnevaluatedItemsKeywordParser( 'unevaluatedItems' ),
 
+			// Optional
+			new DefaultKeywordParser( 'default' ),
+		);
+	}
 }

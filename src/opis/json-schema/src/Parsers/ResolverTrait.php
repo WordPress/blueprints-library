@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,20 +20,19 @@ namespace Opis\JsonSchema\Parsers;
 
 use Opis\JsonSchema\Helper;
 
-trait ResolverTrait
-{
-    /**
-     * @param array $list
-     * @return array
-     */
-    protected function resolveSubTypes($list): array
-    {
-        foreach (Helper::JSON_SUBTYPES as $sub => $super) {
-            if (!isset($list[$sub]) && isset($list[$super])) {
-                $list[$sub] = $list[$super];
-            }
-        }
+trait ResolverTrait {
 
-        return $list;
-    }
+	/**
+	 * @param array $list
+	 * @return array
+	 */
+	protected function resolveSubTypes( $list ): array {
+		foreach ( Helper::JSON_SUBTYPES as $sub => $super ) {
+			if ( ! isset( $list[ $sub ] ) && isset( $list[ $super ] ) ) {
+				$list[ $sub ] = $list[ $super ];
+			}
+		}
+
+		return $list;
+	}
 }

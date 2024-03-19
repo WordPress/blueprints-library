@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,70 +23,67 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\DefaultKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class DefaultKeywordParser extends KeywordParser
-{
+class DefaultKeywordParser extends KeywordParser {
 
-    /**
-     * @var string|null
-     */
-    protected $properties;
 
-    /**
-     * @inheritDoc
-     */
-    public function __construct(string $keyword, $properties = 'properties')
-    {
-        parent::__construct($keyword);
-        $this->properties = $properties;
-    }
+	/**
+	 * @var string|null
+	 */
+	protected $properties;
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_APPEND;
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function __construct( string $keyword, $properties = 'properties' ) {
+		parent::__construct( $keyword );
+		$this->properties = $properties;
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_APPEND;
+	}
 
-        if (!$parser->option('allowDefaults')) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $defaults = null;
+		if ( ! $parser->option( 'allowDefaults' ) ) {
+			return null;
+		}
 
-        if ($this->keywordExists($schema)) {
-            $defaults = $this->keywordValue($schema);
+		$defaults = null;
 
-            if (is_object($defaults)) {
-                $defaults = (array)Helper::cloneValue($defaults);
-            } else {
-                $defaults = null;
-            }
-        }
+		if ( $this->keywordExists( $schema ) ) {
+			$defaults = $this->keywordValue( $schema );
 
-        if ($this->properties !== null && property_exists($schema, $this->properties)
-            && is_object($schema->{$this->properties})) {
-            foreach ($schema->{$this->properties} as $name => $value) {
-                if (is_object($value) && property_exists($value, $this->keyword)) {
-                    $defaults[$name] = $value->{$this->keyword};
-                }
-            }
-        }
+			if ( is_object( $defaults ) ) {
+				$defaults = (array) Helper::cloneValue( $defaults );
+			} else {
+				$defaults = null;
+			}
+		}
 
-        if (!$defaults) {
-            return null;
-        }
+		if ( $this->properties !== null && property_exists( $schema, $this->properties )
+			&& is_object( $schema->{$this->properties} ) ) {
+			foreach ( $schema->{$this->properties} as $name => $value ) {
+				if ( is_object( $value ) && property_exists( $value, $this->keyword ) ) {
+					$defaults[ $name ] = $value->{$this->keyword};
+				}
+			}
+		}
 
-        return new DefaultKeyword($defaults);
-    }
+		if ( ! $defaults ) {
+			return null;
+		}
+
+		return new DefaultKeyword( $defaults );
+	}
 }

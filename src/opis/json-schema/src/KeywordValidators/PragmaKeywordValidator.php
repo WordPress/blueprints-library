@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,45 +21,43 @@ namespace Opis\JsonSchema\KeywordValidators;
 use Opis\JsonSchema\{ValidationContext, Pragma};
 use Opis\JsonSchema\Errors\ValidationError;
 
-final class PragmaKeywordValidator extends AbstractKeywordValidator
-{
-    /** @var Pragma[] */
-    protected $pragmas = [];
+final class PragmaKeywordValidator extends AbstractKeywordValidator {
 
-    /**
-     * @param Pragma[] $pragmas
-     */
-    public function __construct(array $pragmas)
-    {
-        $this->pragmas = $pragmas;
-    }
+	/** @var Pragma[] */
+	protected $pragmas = array();
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function validate($context)
-    {
-        if (!$this->next) {
-            return null;
-        }
+	/**
+	 * @param Pragma[] $pragmas
+	 */
+	public function __construct( array $pragmas ) {
+		$this->pragmas = $pragmas;
+	}
 
-        if (!$this->pragmas) {
-            return $this->next->validate($context);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function validate( $context ) {
+		if ( ! $this->next ) {
+			return null;
+		}
 
-        $data = [];
+		if ( ! $this->pragmas ) {
+			return $this->next->validate( $context );
+		}
 
-        foreach ($this->pragmas as $key => $handler) {
-            $data[$key] = $handler->enter($context);
-        }
+		$data = array();
 
-        $error = $this->next->validate($context);
+		foreach ( $this->pragmas as $key => $handler ) {
+			$data[ $key ] = $handler->enter( $context );
+		}
 
-        foreach (array_reverse($this->pragmas, true) as $key => $handler) {
-            $handler->leave($context, $data[$key] ?? null);
-        }
+		$error = $this->next->validate( $context );
 
-        return $error;
-    }
+		foreach ( array_reverse( $this->pragmas, true ) as $key => $handler ) {
+			$handler->leave( $context, $data[ $key ] ?? null );
+		}
+
+		return $error;
+	}
 }

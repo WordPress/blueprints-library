@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,29 +20,27 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\{ValidationContext, Schema};
 
-class UnresolvedContentMediaTypeException extends UnresolvedException
-{
-    /**
-     * @var string
-     */
-    protected $media;
+class UnresolvedContentMediaTypeException extends UnresolvedException {
 
-    /**
-     * @param string $media
-     * @param Schema $schema
-     * @param ValidationContext $context
-     */
-    public function __construct(string $media, Schema $schema, ValidationContext $context)
-    {
-        parent::__construct("Cannot resolve '{$media}' content media type", $schema, $context);
-        $this->media = $media;
-    }
+	/**
+	 * @var string
+	 */
+	protected $media;
 
-    /**
-     * @return string
-     */
-    public function getContentMediaType(): string
-    {
-        return $this->media;
-    }
+	/**
+	 * @param string            $media
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 */
+	public function __construct( string $media, Schema $schema, ValidationContext $context ) {
+		parent::__construct( "Cannot resolve '{$media}' content media type", $schema, $context );
+		$this->media = $media;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getContentMediaType(): string {
+		return $this->media;
+	}
 }

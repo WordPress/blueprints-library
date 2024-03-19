@@ -2,6 +2,6 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-interface StepDefinitionInterface
-{
+interface StepDefinitionInterface {
+
 }

@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,26 +24,25 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Pragmas\CastPragma;
 use Opis\JsonSchema\Parsers\{PragmaParser, SchemaParser};
 
-class CastPragmaParser extends PragmaParser
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$this->pragmaExists($info)) {
-            return null;
-        }
+class CastPragmaParser extends PragmaParser {
 
-        $value = $this->pragmaValue($info);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $this->pragmaExists( $info ) ) {
+			return null;
+		}
 
-        if (!is_string($value) || !Helper::isValidJsonType($value)) {
-            throw $this->pragmaException('Pragma {pragma} must contain a valid json type name', $info);
-        }
+		$value = $this->pragmaValue( $info );
 
-        return new CastPragma($value);
-    }
+		if ( ! is_string( $value ) || ! Helper::isValidJsonType( $value ) ) {
+			throw $this->pragmaException( 'Pragma {pragma} must contain a valid json type name', $info );
+		}
+
+		return new CastPragma( $value );
+	}
 }

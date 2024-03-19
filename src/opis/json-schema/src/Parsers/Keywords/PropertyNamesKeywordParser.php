@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,40 +23,38 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\PropertyNamesKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class PropertyNamesKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+class PropertyNamesKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (is_bool($value)) {
-            if ($value) {
-                return null;
-            }
-        } elseif (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be a valid json schema (object or boolean)", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        return new PropertyNamesKeyword($value);
-    }
+		if ( is_bool( $value ) ) {
+			if ( $value ) {
+				return null;
+			}
+		} elseif ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a valid json schema (object or boolean)', $info );
+		}
+
+		return new PropertyNamesKeyword( $value );
+	}
 }

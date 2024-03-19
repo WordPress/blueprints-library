@@ -24,7 +24,7 @@ class BlueprintMapper {
 			ResourceDefinitionInterface::class => array( $this, 'resource_factory' ),
 			StepDefinitionInterface::class     => array( $this, 'step_factory' ),
 		);
-		$this->mapper = new JsonMapper( $custom_factories );
+		$this->mapper     = new JsonMapper( $custom_factories );
 	}
 
 	/**

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,43 +19,47 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    Helper,
-    ValidationContext,
-    Keyword,
-    Schema
+	Helper,
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class TypeKeyword implements Keyword
-{
-    use ErrorTrait;
+class TypeKeyword implements Keyword {
 
-    /** @var string|string[] */
-    protected $type;
+	use ErrorTrait;
 
-    /**
-     * @param string|string[] $type
-     */
-    public function __construct($type)
-    {
-        $this->type = $type;
-    }
+	/** @var string|string[] */
+	protected $type;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $type = $context->currentDataType();
-        if ($type && Helper::jsonTypeMatches($type, $this->type)) {
-            return null;
-        }
+	/**
+	 * @param string|string[] $type
+	 */
+	public function __construct( $type ) {
+		$this->type = $type;
+	}
 
-        return $this->error($schema, $context, 'type', 'The data ({type}) must match the type: {expected}', [
-            'expected' => $this->type,
-            'type' => $type,
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$type = $context->currentDataType();
+		if ( $type && Helper::jsonTypeMatches( $type, $this->type ) ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'type',
+			'The data ({type}) must match the type: {expected}',
+			array(
+				'expected' => $this->type,
+				'type'     => $type,
+			)
+		);
+	}
 }

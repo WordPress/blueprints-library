@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,125 +20,117 @@ namespace Opis\JsonSchema\Resolvers;
 
 use Opis\JsonSchema\{Helper, Format, JsonPointer, Uri};
 use Opis\JsonSchema\Formats\{
-    DateTimeFormats, IriFormats, MiscFormats, UriFormats
+	DateTimeFormats, IriFormats, MiscFormats, UriFormats
 };
 
-class FormatResolver
-{
-    /** @var Format[][]|callable[][] */
-    protected $formats = [];
+class FormatResolver {
 
-    /**
-     * FormatResolver constructor.
-     */
-    public function __construct()
-    {
-        $this->formats = [
-            'string' => [
-                'date' => DateTimeFormats::class . '::date',
-                'time' => DateTimeFormats::class . '::time',
-                'date-time' => DateTimeFormats::class . '::dateTime',
-                'duration' => DateTimeFormats::class . '::duration',
+	/** @var Format[][]|callable[][] */
+	protected $formats = array();
 
-                'uri' => UriFormats::class . '::uri',
-                'uri-reference' => UriFormats::class . '::uriReference',
-                'uri-template' => UriFormats::class . '::uriTemplate',
+	/**
+	 * FormatResolver constructor.
+	 */
+	public function __construct() {
+		$this->formats = array(
+			'string' => array(
+				'date'                  => DateTimeFormats::class . '::date',
+				'time'                  => DateTimeFormats::class . '::time',
+				'date-time'             => DateTimeFormats::class . '::dateTime',
+				'duration'              => DateTimeFormats::class . '::duration',
 
-                'regex' => Helper::class . '::isValidPattern',
-                'ipv4' => MiscFormats::class . '::ipv4',
-                'ipv6' => MiscFormats::class . '::ipv6',
-                'uuid' => MiscFormats::class . '::uuid',
+				'uri'                   => UriFormats::class . '::uri',
+				'uri-reference'         => UriFormats::class . '::uriReference',
+				'uri-template'          => UriFormats::class . '::uriTemplate',
 
-                'email' => MiscFormats::class . '::email',
-                'hostname' => Uri::class . '::isValidHost',
+				'regex'                 => Helper::class . '::isValidPattern',
+				'ipv4'                  => MiscFormats::class . '::ipv4',
+				'ipv6'                  => MiscFormats::class . '::ipv6',
+				'uuid'                  => MiscFormats::class . '::uuid',
 
-                'json-pointer' => JsonPointer::class . '::isAbsolutePointer',
-                'relative-json-pointer' => JsonPointer::class . '::isRelativePointer',
+				'email'                 => MiscFormats::class . '::email',
+				'hostname'              => Uri::class . '::isValidHost',
 
-                'idn-hostname' => IriFormats::class . '::idnHostname',
-                'idn-email' => IriFormats::class . '::idnEmail',
-                'iri' => IriFormats::class . '::iri',
-                'iri-reference' => IriFormats::class . '::iriReference',
-            ],
-        ];
-    }
+				'json-pointer'          => JsonPointer::class . '::isAbsolutePointer',
+				'relative-json-pointer' => JsonPointer::class . '::isRelativePointer',
 
-    /**
-     * @param string $name
-     * @param string $type
-     * @return callable|Format|null
-     */
-    public function resolve($name, $type)
-    {
-        return $this->formats[$type][$name] ?? null;
-    }
+				'idn-hostname'          => IriFormats::class . '::idnHostname',
+				'idn-email'             => IriFormats::class . '::idnEmail',
+				'iri'                   => IriFormats::class . '::iri',
+				'iri-reference'         => IriFormats::class . '::iriReference',
+			),
+		);
+	}
 
-    /**
-     * @param string $name
-     * @return Format[]|callable[]|null
-     */
-    public function resolveAll($name)
-    {
-        $list = null;
+	/**
+	 * @param string $name
+	 * @param string $type
+	 * @return callable|Format|null
+	 */
+	public function resolve( $name, $type ) {
+		return $this->formats[ $type ][ $name ] ?? null;
+	}
 
-        foreach ($this->formats as $type => $items) {
-            if (isset($items[$name])) {
-                $list[$type] = $items[$name];
-            }
-        }
+	/**
+	 * @param string $name
+	 * @return Format[]|callable[]|null
+	 */
+	public function resolveAll( $name ) {
+		$list = null;
 
-        return $list;
-    }
+		foreach ( $this->formats as $type => $items ) {
+			if ( isset( $items[ $name ] ) ) {
+				$list[ $type ] = $items[ $name ];
+			}
+		}
 
-    /**
-     * @param string $type
-     * @param string $name
-     * @param Format $format
-     * @return FormatResolver
-     */
-    public function register($type, $name, $format): self
-    {
-        $this->formats[$type][$name] = $format;
+		return $list;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string $type
+	 * @param string $name
+	 * @param Format $format
+	 * @return FormatResolver
+	 */
+	public function register( $type, $name, $format ): self {
+		$this->formats[ $type ][ $name ] = $format;
 
-    /**
-     * @param string $type
-     * @param string $name
-     * @param callable $format
-     * @return FormatResolver
-     */
-    public function registerCallable($type, $name, $format): self
-    {
-        $this->formats[$type][$name] = $format;
+		return $this;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string   $type
+	 * @param string   $name
+	 * @param callable $format
+	 * @return FormatResolver
+	 */
+	public function registerCallable( $type, $name, $format ): self {
+		$this->formats[ $type ][ $name ] = $format;
 
-    /**
-     * @param string $type
-     * @param string $name
-     * @return bool
-     */
-    public function unregister($type, $name): bool
-    {
-        if (isset($this->formats[$type][$name])) {
-            unset($this->formats[$type][$name]);
+		return $this;
+	}
 
-            return true;
-        }
+	/**
+	 * @param string $type
+	 * @param string $name
+	 * @return bool
+	 */
+	public function unregister( $type, $name ): bool {
+		if ( isset( $this->formats[ $type ][ $name ] ) ) {
+			unset( $this->formats[ $type ][ $name ] );
 
-        return false;
-    }
+			return true;
+		}
 
-    public function __serialize(): array
-    {
-        return ['formats' => $this->formats];
-    }
+		return false;
+	}
 
-    public function __unserialize(array $data)
-    {
-        $this->formats = $data['formats'];
-    }
+	public function __serialize(): array {
+		return array( 'formats' => $this->formats );
+	}
+
+	public function __unserialize( array $data ) {
+		$this->formats = $data['formats'];
+	}
 }

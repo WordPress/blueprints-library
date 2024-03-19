@@ -42,7 +42,7 @@ class StreamPeekerWrapper extends VanillaStreamWrapper {
 
 	// Reads from the stream
 	public function stream_read( $count ) {
-		$ret = fread( $this->stream, $count );
+		$ret             = fread( $this->stream, $count );
 		$this->position += strlen( $ret );
 
 		$onChunk = $this->onChunk;
@@ -53,7 +53,7 @@ class StreamPeekerWrapper extends VanillaStreamWrapper {
 
 	// Writes to the stream
 	public function stream_write( $data ) {
-		$written = fwrite( $this->stream, $data );
+		$written         = fwrite( $this->stream, $data );
 		$this->position += $written;
 
 		return $written;
@@ -70,5 +70,4 @@ class StreamPeekerWrapper extends VanillaStreamWrapper {
 	public function stream_tell() {
 		return $this->position;
 	}
-
 }

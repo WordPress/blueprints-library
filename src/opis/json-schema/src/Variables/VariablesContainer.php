@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,150 +21,145 @@ namespace Opis\JsonSchema\Variables;
 use Opis\JsonSchema\JsonPointer;
 use Opis\JsonSchema\Variables;
 
-final class VariablesContainer implements Variables
-{
+final class VariablesContainer implements Variables {
 
-    /**
-     * @var array|object|Variables|null
-     */
-    private $vars;
 
-    /**
-     * @var bool
-     */
-    private $parsed = false;
+	/**
+	 * @var array|object|Variables|null
+	 */
+	private $vars;
 
-    /**
-     * @var bool
-     */
-    private $hasRefs = false;
+	/**
+	 * @var bool
+	 */
+	private $parsed = false;
 
-    /** @var string[] */
-    private $keys;
+	/**
+	 * @var bool
+	 */
+	private $hasRefs = false;
 
-    /**
-     * @param array|object $data
-     * @param bool $lazy
-     * @param string $ref_key
-     * @param string $each_key
-     * @param string $default_key
-     */
-    public function __construct($data, bool $lazy = true, string $ref_key = '$ref', string $each_key = '$each', string $default_key = 'default')
-    {
-        $this->keys = [
-            'ref' => $ref_key,
-            'each' => $each_key,
-            'default' => $default_key,
-        ];
+	/** @var string[] */
+	private $keys;
 
-        if ($lazy) {
-            $this->vars = $data;
-        } else {
-            $this->parsed = true;
-            $this->vars = $this->parse($data);
-        }
-    }
+	/**
+	 * @param array|object $data
+	 * @param bool         $lazy
+	 * @param string       $ref_key
+	 * @param string       $each_key
+	 * @param string       $default_key
+	 */
+	public function __construct( $data, bool $lazy = true, string $ref_key = '$ref', string $each_key = '$each', string $default_key = 'default' ) {
+		$this->keys = array(
+			'ref'     => $ref_key,
+			'each'    => $each_key,
+			'default' => $default_key,
+		);
 
-    /**
-     * @inheritdoc
-     * @param mixed[] $path
-     */
-    public function resolve($data, $path = [])
-    {
-        if (!$this->parsed) {
-            $this->vars = $this->parse($this->vars);
-            $this->parsed = true;
-        }
+		if ( $lazy ) {
+			$this->vars = $data;
+		} else {
+			$this->parsed = true;
+			$this->vars   = $this->parse( $data );
+		}
+	}
 
-        if (!$this->hasRefs) {
-            // Nothing to resolve
-            return $this->vars;
-        }
+	/**
+	 * @inheritdoc
+	 * @param mixed[] $path
+	 */
+	public function resolve( $data, $path = array() ) {
+		if ( ! $this->parsed ) {
+			$this->vars   = $this->parse( $this->vars );
+			$this->parsed = true;
+		}
 
-        return $this->deepClone($this->vars, $data, $path);
-    }
+		if ( ! $this->hasRefs ) {
+			// Nothing to resolve
+			return $this->vars;
+		}
 
-    /**
-     * @param $vars
-     * @param $data
-     * @param string[]|int[] $path
-     * @return array|object|mixed
-     */
-    private function deepClone($vars, $data, array $path)
-    {
-        $toObject = false;
-        if (is_object($vars)) {
-            if ($vars instanceof Variables) {
-                return $vars->resolve($data, $path);
-            }
-            $vars = get_object_vars($vars);
-            $toObject = true;
-        } elseif (!is_array($vars)) {
-            return $vars;
-        }
+		return $this->deepClone( $this->vars, $data, $path );
+	}
 
-        foreach ($vars as &$var) {
-            if ($var !== null && !is_scalar($var)) {
-                $var = $this->deepClone($var, $data, $path);
-            }
-            unset($var);
-        }
+	/**
+	 * @param $vars
+	 * @param $data
+	 * @param string[]|int[] $path
+	 * @return array|object|mixed
+	 */
+	private function deepClone( $vars, $data, array $path ) {
+		$toObject = false;
+		if ( is_object( $vars ) ) {
+			if ( $vars instanceof Variables ) {
+				return $vars->resolve( $data, $path );
+			}
+			$vars     = get_object_vars( $vars );
+			$toObject = true;
+		} elseif ( ! is_array( $vars ) ) {
+			return $vars;
+		}
 
-        return $toObject ? (object)$vars : $vars;
-    }
+		foreach ( $vars as &$var ) {
+			if ( $var !== null && ! is_scalar( $var ) ) {
+				$var = $this->deepClone( $var, $data, $path );
+			}
+			unset( $var );
+		}
 
-    /**
-     * @param mixed $data
-     * @return mixed
-     */
-    private function parse($data)
-    {
-        if (is_array($data)) {
-            return array_map([$this, 'parse'], $data);
-        }
+		return $toObject ? (object) $vars : $vars;
+	}
 
-        if (!is_object($data)) {
-            return $data;
-        }
+	/**
+	 * @param mixed $data
+	 * @return mixed
+	 */
+	private function parse( $data ) {
+		if ( is_array( $data ) ) {
+			return array_map( array( $this, 'parse' ), $data );
+		}
 
-        if ($vars = $this->parseRef($data)) {
-            $this->hasRefs = true;
+		if ( ! is_object( $data ) ) {
+			return $data;
+		}
 
-            return $vars;
-        }
+		if ( $vars = $this->parseRef( $data ) ) {
+			$this->hasRefs = true;
 
-        return (object)array_map([$this, 'parse'], get_object_vars($data));
-    }
+			return $vars;
+		}
 
-    /**
-     * @param object $data
-     * @return null|Variables
-     */
-    private function parseRef($data)
-    {
-        if (!property_exists($data, $this->keys['ref'])) {
-            return null;
-        }
+		return (object) array_map( array( $this, 'parse' ), get_object_vars( $data ) );
+	}
 
-        $ref = $data->{$this->keys['ref']};
-        if (!is_string($ref)) {
-            return null;
-        }
+	/**
+	 * @param object $data
+	 * @return null|Variables
+	 */
+	private function parseRef( $data ) {
+		if ( ! property_exists( $data, $this->keys['ref'] ) ) {
+			return null;
+		}
 
-        $pointer = JsonPointer::parse($ref);
-        if ($pointer === null) {
-            return null;
-        }
+		$ref = $data->{$this->keys['ref']};
+		if ( ! is_string( $ref ) ) {
+			return null;
+		}
 
-        $each = null;
-        if (property_exists($data, $this->keys['each']) && is_object($data->{$this->keys['each']})) {
-            $each = new self($data->{$this->keys['each']}, !$this->parsed, $this->keys['ref'], $this->keys['each'], $this->keys['default']);
-        }
+		$pointer = JsonPointer::parse( $ref );
+		if ( $pointer === null ) {
+			return null;
+		}
 
-        if (property_exists($data, $this->keys['default'])) {
-            return new RefVariablesContainer($pointer, $each, $data->{$this->keys['default']});
-        }
+		$each = null;
+		if ( property_exists( $data, $this->keys['each'] ) && is_object( $data->{$this->keys['each']} ) ) {
+			$each = new self( $data->{$this->keys['each']}, ! $this->parsed, $this->keys['ref'], $this->keys['each'], $this->keys['default'] );
+		}
 
-        return new RefVariablesContainer($pointer, $each);
-    }
+		if ( property_exists( $data, $this->keys['default'] ) ) {
+			return new RefVariablesContainer( $pointer, $each, $data->{$this->keys['default']} );
+		}
+
+		return new RefVariablesContainer( $pointer, $each );
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,73 +23,70 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\ContainsKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class ContainsKeywordParser extends KeywordParser
-{
-    /**
-     * @var string|null
-     */
-    protected $minContains;
-    /**
-     * @var string|null
-     */
-    protected $maxContains;
+class ContainsKeywordParser extends KeywordParser {
 
-    public function __construct(string $keyword, $minContains = null, $maxContains = null)
-    {
-        parent::__construct($keyword);
-        $this->minContains = $minContains;
-        $this->maxContains = $maxContains;
-    }
+	/**
+	 * @var string|null
+	 */
+	protected $minContains;
+	/**
+	 * @var string|null
+	 */
+	protected $maxContains;
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_ARRAY;
-    }
+	public function __construct( string $keyword, $minContains = null, $maxContains = null ) {
+		parent::__construct( $keyword );
+		$this->minContains = $minContains;
+		$this->maxContains = $maxContains;
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_ARRAY;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (!is_bool($value) && !is_object($value)) {
-            throw $this->keywordException("{keyword} must be a json schema (object or boolean)", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        $min = $max = null;
+		if ( ! is_bool( $value ) && ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a json schema (object or boolean)', $info );
+		}
 
-        if ($this->minContains && $this->keywordExists($schema, $this->minContains)) {
-            $min = $this->keywordValue($schema, $this->minContains);
-            if (!is_int($min) || $min < 0) {
-                throw $this->keywordException("{keyword} must be a non-negative integer", $info, $this->minContains);
-            }
-        }
+		$min = $max = null;
 
-        if ($this->maxContains && $this->keywordExists($schema, $this->maxContains)) {
-            $max = $this->keywordValue($schema, $this->maxContains);
-            if (!is_int($max) || $max < 0) {
-                throw $this->keywordException("{keyword} must be a non-negative integer", $info, $this->maxContains);
-            }
-            if ($min !== null && $max < $min) {
-                throw $this->keywordException("{keyword} must be greater than {$this->minContains}", $info, $this->maxContains);
-            }
-        } elseif ($min === 0) {
-            return null;
-        }
+		if ( $this->minContains && $this->keywordExists( $schema, $this->minContains ) ) {
+			$min = $this->keywordValue( $schema, $this->minContains );
+			if ( ! is_int( $min ) || $min < 0 ) {
+				throw $this->keywordException( '{keyword} must be a non-negative integer', $info, $this->minContains );
+			}
+		}
 
-        return new ContainsKeyword($value, $min, $max);
-    }
+		if ( $this->maxContains && $this->keywordExists( $schema, $this->maxContains ) ) {
+			$max = $this->keywordValue( $schema, $this->maxContains );
+			if ( ! is_int( $max ) || $max < 0 ) {
+				throw $this->keywordException( '{keyword} must be a non-negative integer', $info, $this->maxContains );
+			}
+			if ( $min !== null && $max < $min ) {
+				throw $this->keywordException( "{keyword} must be greater than {$this->minContains}", $info, $this->maxContains );
+			}
+		} elseif ( $min === 0 ) {
+			return null;
+		}
+
+		return new ContainsKeyword( $value, $min, $max );
+	}
 }

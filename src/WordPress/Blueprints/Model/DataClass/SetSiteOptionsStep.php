@@ -13,21 +13,23 @@ class SetSiteOptionsStep implements StepDefinitionInterface {
 
 	/**
 	 * The name of the step. Must be "setSiteOptions".
+	 *
 	 * @var string
 	 */
 	public $step = 'setSiteOptions';
 
 	/**
 	 * The options to set on the site.
+	 *
 	 * @var \ArrayObject
 	 */
 	public $options;
 
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-  */
- public function setProgress( $progress ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+	 */
+	public function setProgress( $progress ) {
 		$this->progress = $progress;
 
 		return $this;
@@ -35,9 +37,9 @@ class SetSiteOptionsStep implements StepDefinitionInterface {
 
 
 	/**
-  * @param bool $continueOnError
-  */
- public function setContinueOnError( $continueOnError ) {
+	 * @param bool $continueOnError
+	 */
+	public function setContinueOnError( $continueOnError ) {
 		$this->continueOnError = $continueOnError;
 
 		return $this;
@@ -45,9 +47,9 @@ class SetSiteOptionsStep implements StepDefinitionInterface {
 
 
 	/**
-  * @param string $step
-  */
- public function setStep( $step ) {
+	 * @param string $step
+	 */
+	public function setStep( $step ) {
 		$this->step = $step;
 
 		return $this;

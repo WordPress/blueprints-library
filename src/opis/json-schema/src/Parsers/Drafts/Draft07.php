@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,25 +20,23 @@ namespace Opis\JsonSchema\Parsers\Drafts;
 
 use Opis\JsonSchema\Parsers\Keywords\IfThenElseKeywordParser;
 
-class Draft07 extends Draft06
-{
-    /**
-     * @inheritDoc
-     */
-    public function version(): string
-    {
-        return '07';
-    }
+class Draft07 extends Draft06 {
 
-    /**
-     * @inheritDoc
-     */
-    protected function getKeywordParsers(): array
-    {
-        $keywords = parent::getKeywordParsers();
+	/**
+	 * @inheritDoc
+	 */
+	public function version(): string {
+		return '07';
+	}
 
-        $keywords[] = new IfThenElseKeywordParser('if', 'then', 'else');
+	/**
+	 * @inheritDoc
+	 */
+	protected function getKeywordParsers(): array {
+		$keywords = parent::getKeywordParsers();
 
-        return $keywords;
-    }
+		$keywords[] = new IfThenElseKeywordParser( 'if', 'then', 'else' );
+
+		return $keywords;
+	}
 }

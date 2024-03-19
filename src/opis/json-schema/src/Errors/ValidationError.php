@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,92 +21,85 @@ namespace Opis\JsonSchema\Errors;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Info\DataInfo;
 
-class ValidationError
-{
-    /**
-     * @var string
-     */
-    protected $keyword;
+class ValidationError {
 
-    /**
-     * @var \Opis\JsonSchema\Schema
-     */
-    protected $schema;
+	/**
+	 * @var string
+	 */
+	protected $keyword;
 
-    /**
-     * @var \Opis\JsonSchema\Info\DataInfo
-     */
-    protected $data;
+	/**
+	 * @var \Opis\JsonSchema\Schema
+	 */
+	protected $schema;
 
-    /**
-     * @var mixed[]
-     */
-    protected $args;
+	/**
+	 * @var \Opis\JsonSchema\Info\DataInfo
+	 */
+	protected $data;
 
-    /**
-     * @var string
-     */
-    protected $message;
+	/**
+	 * @var mixed[]
+	 */
+	protected $args;
 
-    /** @var ValidationError[] */
-    protected $subErrors;
+	/**
+	 * @var string
+	 */
+	protected $message;
 
-    /**
-     * @param string $keyword
-     * @param Schema $schema
-     * @param DataInfo $data
-     * @param string $message
-     * @param array $args
-     * @param ValidationError[] $subErrors
-     */
-    public function __construct(
-        string $keyword,
-        Schema $schema,
-        DataInfo $data,
-        string $message,
-        array $args = [],
-        array $subErrors = []
-    ) {
-        $this->keyword = $keyword;
-        $this->schema = $schema;
-        $this->data = $data;
-        $this->message = $message;
-        $this->args = $args;
-        $this->subErrors = $subErrors;
-    }
+	/** @var ValidationError[] */
+	protected $subErrors;
 
-    public function keyword(): string
-    {
-        return $this->keyword;
-    }
+	/**
+	 * @param string            $keyword
+	 * @param Schema            $schema
+	 * @param DataInfo          $data
+	 * @param string            $message
+	 * @param array             $args
+	 * @param ValidationError[] $subErrors
+	 */
+	public function __construct(
+		string $keyword,
+		Schema $schema,
+		DataInfo $data,
+		string $message,
+		array $args = array(),
+		array $subErrors = array()
+	) {
+		$this->keyword   = $keyword;
+		$this->schema    = $schema;
+		$this->data      = $data;
+		$this->message   = $message;
+		$this->args      = $args;
+		$this->subErrors = $subErrors;
+	}
 
-    public function schema(): Schema
-    {
-        return $this->schema;
-    }
+	public function keyword(): string {
+		return $this->keyword;
+	}
 
-    public function data(): DataInfo
-    {
-        return $this->data;
-    }
+	public function schema(): Schema {
+		return $this->schema;
+	}
 
-    public function args(): array
-    {
-        return $this->args;
-    }
+	public function data(): DataInfo {
+		return $this->data;
+	}
 
-    public function message(): string
-    {
-        return $this->message;
-    }
+	public function args(): array {
+		return $this->args;
+	}
 
-    public function subErrors(): array
-    {
-        return $this->subErrors;
-    }
+	public function message(): string {
+		return $this->message;
+	}
 
-    public function __toString(): string
-    {
-        return $this->message;
-    }
+	public function subErrors(): array {
+		return $this->subErrors;
+	}
+
+	public function __toString(): string {
+		return $this->message;
+	}
 }

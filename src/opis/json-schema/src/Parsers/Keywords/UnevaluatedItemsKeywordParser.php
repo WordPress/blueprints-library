@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,58 +23,55 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 use Opis\JsonSchema\Keywords\UnevaluatedItemsKeyword;
 
-class UnevaluatedItemsKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_AFTER_REF;
-    }
+class UnevaluatedItemsKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_AFTER_REF;
+	}
 
-        if (!$this->keywordExists($schema) || !$parser->option('allowUnevaluated')) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-//        if (!$this->makesSense($schema)) {
-//            return null;
-//        }
+		if ( ! $this->keywordExists( $schema ) || ! $parser->option( 'allowUnevaluated' ) ) {
+			return null;
+		}
 
-        $value = $this->keywordValue($schema);
+		// if (!$this->makesSense($schema)) {
+		// return null;
+		// }
 
-        if (!is_bool($value) && !is_object($value)) {
-            throw $this->keywordException("{keyword} must be a json schema (object or boolean)", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        return new UnevaluatedItemsKeyword($value);
-    }
+		if ( ! is_bool( $value ) && ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a json schema (object or boolean)', $info );
+		}
 
-    /**
-     * @param object $schema
-     */
-    protected function makesSense($schema): bool
-    {
-        if (property_exists($schema, 'additionalItems')) {
-            return false;
-        }
-//        if (property_exists($schema, 'contains')) {
-//            return false;
-//        }
-        if (property_exists($schema, 'items') && !is_array($schema->items)) {
-            return false;
-        }
+		return new UnevaluatedItemsKeyword( $value );
+	}
 
-        return true;
-    }
+	/**
+	 * @param object $schema
+	 */
+	protected function makesSense( $schema ): bool {
+		if ( property_exists( $schema, 'additionalItems' ) ) {
+			return false;
+		}
+		// if (property_exists($schema, 'contains')) {
+		// return false;
+		// }
+		if ( property_exists( $schema, 'items' ) && ! is_array( $schema->items ) ) {
+			return false;
+		}
+
+		return true;
+	}
 }

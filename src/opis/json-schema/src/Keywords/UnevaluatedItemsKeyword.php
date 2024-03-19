@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,58 +21,69 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\{Keyword, Schema, ValidationContext};
 
-class UnevaluatedItemsKeyword implements Keyword
-{
-    use OfTrait;
-    use IterableDataValidationTrait;
+class UnevaluatedItemsKeyword implements Keyword {
 
-    protected $value;
+	use OfTrait;
+	use IterableDataValidationTrait;
 
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $unevaluated = $context->getUnevaluatedItems();
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        if (!$unevaluated) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$unevaluated = $context->getUnevaluatedItems();
 
-        if ($this->value === true) {
-            $context->addEvaluatedItems($unevaluated);
-            return null;
-        }
+		if ( ! $unevaluated ) {
+			return null;
+		}
 
-        if ($this->value === false) {
-            return $this->error($schema, $context, 'unevaluatedItems',
-                'Unevaluated array items are not allowed: {indexes}', [
-                    'indexes' => $unevaluated,
-                ]);
-        }
+		if ( $this->value === true ) {
+			$context->addEvaluatedItems( $unevaluated );
+			return null;
+		}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+		if ( $this->value === false ) {
+			return $this->error(
+				$schema,
+				$context,
+				'unevaluatedItems',
+				'Unevaluated array items are not allowed: {indexes}',
+				array(
+					'indexes' => $unevaluated,
+				)
+			);
+		}
 
-        $object = $this->createArrayObject($context);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        $error = $this->validateIterableData($schema, $this->value, $context, $unevaluated,
-            'unevaluatedItems', 'All unevaluated array items must match schema: {indexes}', [
-                'indexes' => $unevaluated,
-            ], $object);
+		$object = $this->createArrayObject( $context );
 
-        if ($object && $object->count()) {
-            $context->addEvaluatedItems($object->getArrayCopy());
-        }
+		$error = $this->validateIterableData(
+			$schema,
+			$this->value,
+			$context,
+			$unevaluated,
+			'unevaluatedItems',
+			'All unevaluated array items must match schema: {indexes}',
+			array(
+				'indexes' => $unevaluated,
+			),
+			$object
+		);
 
-        return $error;
-    }
+		if ( $object && $object->count() ) {
+			$context->addEvaluatedItems( $object->getArrayCopy() );
+		}
+
+		return $error;
+	}
 }

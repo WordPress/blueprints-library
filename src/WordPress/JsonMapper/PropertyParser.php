@@ -24,9 +24,9 @@ class PropertyParser {
 
 	public static function get_array_dimensions( $type ) {
 		$dimension = 0;
-		$at = strlen( $type );
+		$at        = strlen( $type );
 		while ( substr( $type, $at - 2, 2 ) === '[]' ) {
-			$dimension ++;
+			++$dimension;
 			$at -= 2;
 		}
 
@@ -108,7 +108,7 @@ class PropertyParser {
 
 		$var = null;
 		if ( preg_match_all( self::DOC_BLOCK_REGEX, $doc_block, $matches ) ) {
-			for ( $x = 0, $max = count( $matches[0] ); $x < $max; $x ++ ) {
+			for ( $x = 0, $max = count( $matches[0] ); $x < $max; $x++ ) {
 				if ( 'var' === $matches['name'][ $x ] ) {
 					$var = $matches['value'][ $x ];
 				}
@@ -126,11 +126,11 @@ class PropertyParser {
 				continue;
 			}
 			$array_brackets = '';
-			$type = $original_property_type;
+			$type           = $original_property_type;
 			preg_match( '/(\[\])+$/', $type, $matches );
 			if ( ! empty( $matches ) ) {
 				$array_brackets = $matches[0];
-				$type = substr( $type, 0, - strlen( $array_brackets ) );
+				$type           = substr( $type, 0, - strlen( $array_brackets ) );
 			}
 
 			if ( Utils::is_type_scalar( $type ) || $type === 'array' || $type === 'object' || $type === 'mixed' ) {
@@ -143,7 +143,7 @@ class PropertyParser {
 				$property_types[] = '\\' . $type . $array_brackets;
 				continue;
 			}
-			
+
 			if ( class_exists( $type ) ) {
 				$property_types[] = $type . $array_brackets;
 				continue;
@@ -176,11 +176,11 @@ class PropertyParser {
 	 * @return ReflectionProperty[] array of properties.
 	 */
 	private static function get_properties( ReflectionClass $reflection_class ) {
-		$properties = $reflection_class->getProperties();
+		$properties       = $reflection_class->getProperties();
 		$reflected_parent = $reflection_class->getParentClass();
 
 		while ( false !== $reflected_parent ) {
-			$properties = array_merge( $properties, $reflected_parent->getProperties() );
+			$properties       = array_merge( $properties, $reflected_parent->getProperties() );
 			$reflected_parent = $reflected_parent->getParentClass();
 		}
 

@@ -9,7 +9,7 @@ class StepSuccess implements StepResultInterface {
 	public $result;
 
 	public function __construct( StepDefinitionInterface $step, $result ) {
-		$this->step = $step;
+		$this->step   = $step;
 		$this->result = $result;
 	}
 }

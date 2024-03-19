@@ -7,7 +7,7 @@ use IteratorAggregate;
 use Traversable;
 
 class Map implements ArrayAccess, IteratorAggregate {
-	private $pairs = [];
+	private $pairs = array();
 
 	public function __construct() {
 	}
@@ -31,18 +31,18 @@ class Map implements ArrayAccess, IteratorAggregate {
 		}
 
 		// TODO Evaluate waring: 'ext-json' is missing in composer.json
-		throw new \Exception( "Stream for resource " . json_encode( $offset ) . " not found" );
+		throw new \Exception( 'Stream for resource ' . json_encode( $offset ) . ' not found' );
 	}
 
 	public function offsetSet( $offset, $value ) {
 		foreach ( $this->pairs as $k => $pair ) {
 			if ( $pair[0] === $offset ) {
-				$this->pairs[ $k ] = [ $offset, $value ];
+				$this->pairs[ $k ] = array( $offset, $value );
 
 				return;
 			}
 		}
-		$this->pairs[] = [ $offset, $value ];
+		$this->pairs[] = array( $offset, $value );
 	}
 
 	public function offsetUnset( $offset ) {

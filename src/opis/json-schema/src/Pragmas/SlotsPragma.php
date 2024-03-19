@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,39 +20,36 @@ namespace Opis\JsonSchema\Pragmas;
 
 use Opis\JsonSchema\{ValidationContext, Pragma};
 
-class SlotsPragma implements Pragma
-{
+class SlotsPragma implements Pragma {
 
-    /**
-     * @var mixed[]
-     */
-    protected $slots;
 
-    /**
-     * @param array $slots
-     */
-    public function __construct(array $slots)
-    {
-        $this->slots = $slots;
-    }
+	/**
+	 * @var mixed[]
+	 */
+	protected $slots;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function enter($context)
-    {
-        $data = $context->slots();
-        $context->setSlots($data ? $this->slots + $data : $this->slots);
-        return $data;
-    }
+	/**
+	 * @param array $slots
+	 */
+	public function __construct( array $slots ) {
+		$this->slots = $slots;
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function leave($context, $data)
-    {
-        $context->setSlots($data);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function enter( $context ) {
+		$data = $context->slots();
+		$context->setSlots( $data ? $this->slots + $data : $this->slots );
+		return $data;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function leave( $context, $data ) {
+		$context->setSlots( $data );
+	}
 }

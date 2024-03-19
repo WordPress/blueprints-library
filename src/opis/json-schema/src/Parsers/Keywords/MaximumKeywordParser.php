@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,78 +21,75 @@ namespace Opis\JsonSchema\Parsers\Keywords;
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 use Opis\JsonSchema\Keywords\{
-    ExclusiveMaximumDataKeyword,
-    ExclusiveMaximumKeyword,
-    MaximumDataKeyword,
-    MaximumKeyword
+	ExclusiveMaximumDataKeyword,
+	ExclusiveMaximumKeyword,
+	MaximumDataKeyword,
+	MaximumKeyword
 };
 
-class MaximumKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class MaximumKeywordParser extends KeywordParser {
 
-    /**
-     * @var string|null
-     */
-    protected $exclusiveKeyword;
+	use DataKeywordTrait;
 
-    /**
-     * @param string $keyword
-     * @param string|null $exclusiveKeyword
-     */
-    public function __construct(string $keyword, $exclusiveKeyword = null)
-    {
-        parent::__construct($keyword);
-        $this->exclusiveKeyword = $exclusiveKeyword;
-    }
+	/**
+	 * @var string|null
+	 */
+	protected $exclusiveKeyword;
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_NUMBER;
-    }
+	/**
+	 * @param string      $keyword
+	 * @param string|null $exclusiveKeyword
+	 */
+	public function __construct( string $keyword, $exclusiveKeyword = null ) {
+		parent::__construct( $keyword );
+		$this->exclusiveKeyword = $exclusiveKeyword;
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_NUMBER;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $exclusive = false;
-        if ($parser->option('allowExclusiveMinMaxAsBool') &&
-            $this->exclusiveKeyword !== null &&
-            property_exists($schema, $this->exclusiveKeyword)) {
-            $exclusive = $schema->{$this->exclusiveKeyword} === true;
-        }
+		$value = $this->keywordValue( $schema );
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return $exclusive
-                    ? new ExclusiveMaximumDataKeyword($pointer)
-                    : new MaximumDataKeyword($pointer);
-            }
-        }
+		$exclusive = false;
+		if ( $parser->option( 'allowExclusiveMinMaxAsBool' ) &&
+			$this->exclusiveKeyword !== null &&
+			property_exists( $schema, $this->exclusiveKeyword ) ) {
+			$exclusive = $schema->{$this->exclusiveKeyword} === true;
+		}
 
-        if (!is_int($value) && !is_float($value) || is_nan($value) || !is_finite($value)) {
-            throw $this->keywordException('{keyword} must contain a valid number', $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return $exclusive
+					? new ExclusiveMaximumDataKeyword( $pointer )
+					: new MaximumDataKeyword( $pointer );
+			}
+		}
 
-        return $exclusive
-            ? new ExclusiveMaximumKeyword($value)
-            : new MaximumKeyword($value);
-    }
+		if ( ! is_int( $value ) && ! is_float( $value ) || is_nan( $value ) || ! is_finite( $value ) ) {
+			throw $this->keywordException( '{keyword} must contain a valid number', $info );
+		}
+
+		return $exclusive
+			? new ExclusiveMaximumKeyword( $value )
+			: new MaximumKeyword( $value );
+	}
 }

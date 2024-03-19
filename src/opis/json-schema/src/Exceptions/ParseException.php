@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,29 +21,27 @@ namespace Opis\JsonSchema\Exceptions;
 use RuntimeException;
 use Opis\JsonSchema\Info\SchemaInfo;
 
-class ParseException extends RuntimeException implements SchemaException
-{
+class ParseException extends RuntimeException implements SchemaException {
 
-    /**
-     * @var \Opis\JsonSchema\Info\SchemaInfo|null
-     */
-    protected $info;
 
-    /**
-     * @param string $message
-     * @param SchemaInfo|null $info
-     */
-    public function __construct(string $message, $info = null)
-    {
-        parent::__construct($message, 0);
-        $this->info = $info;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Info\SchemaInfo|null
+	 */
+	protected $info;
 
-    /**
-     * @return SchemaInfo|null
-     */
-    public function schemaInfo()
-    {
-        return $this->info;
-    }
+	/**
+	 * @param string          $message
+	 * @param SchemaInfo|null $info
+	 */
+	public function __construct( string $message, $info = null ) {
+		parent::__construct( $message, 0 );
+		$this->info = $info;
+	}
+
+	/**
+	 * @return SchemaInfo|null
+	 */
+	public function schemaInfo() {
+		return $this->info;
+	}
 }

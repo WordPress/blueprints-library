@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,31 +20,30 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\Info\SchemaInfo;
 
-class InvalidPragmaException extends InvalidKeywordException
-{
+class InvalidPragmaException extends InvalidKeywordException {
 
-    /**
-     * @var string
-     */
-    protected $pragma;
 
-    /**
-     * InvalidPragmaException constructor.
-     * @param string $message
-     * @param string $pragma
-     * @param SchemaInfo|null $info
-     */
-    public function __construct(string $message, string $pragma, $info = null)
-    {
-        parent::__construct($message, '$pragma', $info);
-        $this->pragma = $pragma;
-    }
+	/**
+	 * @var string
+	 */
+	protected $pragma;
 
-    /**
-     * @return string
-     */
-    public function pragma(): string
-    {
-        return $this->pragma;
-    }
+	/**
+	 * InvalidPragmaException constructor.
+	 *
+	 * @param string          $message
+	 * @param string          $pragma
+	 * @param SchemaInfo|null $info
+	 */
+	public function __construct( string $message, string $pragma, $info = null ) {
+		parent::__construct( $message, '$pragma', $info );
+		$this->pragma = $pragma;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function pragma(): string {
+		return $this->pragma;
+	}
 }

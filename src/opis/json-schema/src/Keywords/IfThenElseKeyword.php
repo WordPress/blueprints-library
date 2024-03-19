@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,89 +19,99 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class IfThenElseKeyword implements Keyword
-{
-    use ErrorTrait;
+class IfThenElseKeyword implements Keyword {
 
-    /** @var bool|object */
-    protected $if;
+	use ErrorTrait;
 
-    /** @var bool|object */
-    protected $then;
+	/** @var bool|object */
+	protected $if;
 
-    /** @var bool|object */
-    protected $else;
+	/** @var bool|object */
+	protected $then;
 
-    /**
-     * @param bool|object $if
-     * @param bool|object $then
-     * @param bool|object $else
-     */
-    public function __construct($if, $then, $else)
-    {
-        $this->if = $if;
-        $this->then = $then;
-        $this->else = $else;
-    }
+	/** @var bool|object */
+	protected $else;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->if === true) {
-            return $this->validateBranch('then', $context, $schema);
-        } elseif ($this->if === false) {
-            return $this->validateBranch('else', $context, $schema);
-        }
+	/**
+	 * @param bool|object $if
+	 * @param bool|object $then
+	 * @param bool|object $else
+	 */
+	public function __construct( $if, $then, $else ) {
+		$this->if   = $if;
+		$this->then = $then;
+		$this->else = $else;
+	}
 
-        if (is_object($this->if) && !($this->if instanceof Schema)) {
-            $this->if = $context->loader()->loadObjectSchema($this->if);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->if === true ) {
+			return $this->validateBranch( 'then', $context, $schema );
+		} elseif ( $this->if === false ) {
+			return $this->validateBranch( 'else', $context, $schema );
+		}
 
-        if ($context->validateSchemaWithoutEvaluated($this->if, null, true)) {
-            return $this->validateBranch('else', $context, $schema);
-        }
+		if ( is_object( $this->if ) && ! ( $this->if instanceof Schema ) ) {
+			$this->if = $context->loader()->loadObjectSchema( $this->if );
+		}
 
-        return $this->validateBranch('then', $context, $schema);
-    }
+		if ( $context->validateSchemaWithoutEvaluated( $this->if, null, true ) ) {
+			return $this->validateBranch( 'else', $context, $schema );
+		}
 
-    /**
-     * @param string $branch
-     * @param ValidationContext $context
-     * @param Schema $schema
-     * @return ValidationError|null
-     */
-    protected function validateBranch($branch, $context, $schema)
-    {
-        $value = $this->{$branch};
+		return $this->validateBranch( 'then', $context, $schema );
+	}
 
-        if ($value === true) {
-            return null;
-        } elseif ($value === false) {
-            return $this->error($schema, $context, $branch, "The data is never valid on '{branch}' branch", [
-                'branch' => $branch,
-            ]);
-        }
+	/**
+	 * @param string            $branch
+	 * @param ValidationContext $context
+	 * @param Schema            $schema
+	 * @return ValidationError|null
+	 */
+	protected function validateBranch( $branch, $context, $schema ) {
+		$value = $this->{$branch};
 
-        if (is_object($value) && !($value instanceof Schema)) {
-            $value = $this->{$branch} = $context->loader()->loadObjectSchema($value);
-        }
+		if ( $value === true ) {
+			return null;
+		} elseif ( $value === false ) {
+			return $this->error(
+				$schema,
+				$context,
+				$branch,
+				"The data is never valid on '{branch}' branch",
+				array(
+					'branch' => $branch,
+				)
+			);
+		}
 
-        if ($error = $value->validate($context)) {
-            return $this->error($schema, $context, $branch, "The data is not valid on '{branch}' branch", [
-                'branch' => $branch,
-            ], $error);
-        }
+		if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+			$value = $this->{$branch} = $context->loader()->loadObjectSchema( $value );
+		}
 
-        return null;
-    }
+		if ( $error = $value->validate( $context ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				$branch,
+				"The data is not valid on '{branch}' branch",
+				array(
+					'branch' => $branch,
+				),
+				$error
+			);
+		}
+
+		return null;
+	}
 }

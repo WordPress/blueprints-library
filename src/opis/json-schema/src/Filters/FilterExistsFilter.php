@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,39 +20,38 @@ namespace Opis\JsonSchema\Filters;
 
 use Opis\JsonSchema\{ValidationContext, Filter, Schema};
 
-class FilterExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $filter = $args['filter'] ?? $context->currentData();
-        if (!is_string($filter)) {
-            return false;
-        }
+class FilterExistsFilter implements Filter {
 
-        $type = null;
-        if (isset($args['type'])) {
-            if (!is_string($args['type'])) {
-                return false;
-            }
-            $type = $args['type'];
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$filter = $args['filter'] ?? $context->currentData();
+		if ( ! is_string( $filter ) ) {
+			return false;
+		}
 
-        $resolver = $context->loader()->parser()->getFilterResolver();
+		$type = null;
+		if ( isset( $args['type'] ) ) {
+			if ( ! is_string( $args['type'] ) ) {
+				return false;
+			}
+			$type = $args['type'];
+		}
 
-        if (!$resolver) {
-            return false;
-        }
+		$resolver = $context->loader()->parser()->getFilterResolver();
 
-        if ($type === null) {
-            return (bool)$resolver->resolveAll($filter);
-        }
+		if ( ! $resolver ) {
+			return false;
+		}
 
-        return (bool)$resolver->resolve($filter, $type);
-    }
+		if ( $type === null ) {
+			return (bool) $resolver->resolveAll( $filter );
+		}
+
+		return (bool) $resolver->resolve( $filter, $type );
+	}
 }

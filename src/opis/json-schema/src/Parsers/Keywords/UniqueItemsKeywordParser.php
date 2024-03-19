@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,47 +21,45 @@ namespace Opis\JsonSchema\Parsers\Keywords;
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 use Opis\JsonSchema\Keywords\{UniqueItemsDataKeyword, UniqueItemsKeyword};
 
-class UniqueItemsKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class UniqueItemsKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_ARRAY;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_ARRAY;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new UniqueItemsDataKeyword($pointer);
-            }
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!is_bool($value)) {
-            throw $this->keywordException("{keyword} must be a boolean", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new UniqueItemsDataKeyword( $pointer );
+			}
+		}
 
-        return $value ? new UniqueItemsKeyword() : null;
-    }
+		if ( ! is_bool( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a boolean', $info );
+		}
+
+		return $value ? new UniqueItemsKeyword() : null;
+	}
 }

@@ -20,16 +20,16 @@ class BlueprintRunner {
 		$resourceManagerFactory
 	) {
 		$this->resourceManagerFactory = $resourceManagerFactory;
-		$this->runtime = $runtime;
-		$this->events = new EventDispatcher();
+		$this->runtime                = $runtime;
+		$this->events                 = new EventDispatcher();
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Compile\CompiledBlueprint $blueprint
-  */
- public function run( $blueprint ) {
+	 * @param \WordPress\Blueprints\Compile\CompiledBlueprint $blueprint
+	 */
+	public function run( $blueprint ) {
 		$resourceManagerFactory = $this->resourceManagerFactory;
-		$resourceManager = $resourceManagerFactory();
+		$resourceManager        = $resourceManagerFactory();
 		$resourceManager->enqueue(
 			$blueprint->compiledResources
 		);
@@ -38,7 +38,7 @@ class BlueprintRunner {
 			$compiledStep->runner->setResourceManager( $resourceManager );
 		}
 		// Run, store results
-		$results = [];
+		$results = array();
 		foreach ( $blueprint->compiledSteps as $k => $compiledStep ) {
 			/** @var CompiledStep $compiledStep */
 			try {
@@ -64,5 +64,4 @@ class BlueprintRunner {
 
 		return $results;
 	}
-
 }

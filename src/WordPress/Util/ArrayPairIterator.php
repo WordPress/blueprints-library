@@ -22,7 +22,7 @@ class ArrayPairIterator implements \Iterator {
 
 	#[\ReturnTypeWillChange]
 	public function next() {
-		++ $this->position;
+		++$this->position;
 	}
 
 	#[\ReturnTypeWillChange]

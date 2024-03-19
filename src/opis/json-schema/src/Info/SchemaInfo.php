@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,111 +20,101 @@ namespace Opis\JsonSchema\Info;
 
 use Opis\JsonSchema\Uri;
 
-class SchemaInfo
-{
-    /** @var bool|object */
-    protected $data;
+class SchemaInfo {
 
-    /**
-     * @var \Opis\JsonSchema\Uri|null
-     */
-    protected $id;
+	/** @var bool|object */
+	protected $data;
 
-    /**
-     * @var \Opis\JsonSchema\Uri|null
-     */
-    protected $root;
+	/**
+	 * @var \Opis\JsonSchema\Uri|null
+	 */
+	protected $id;
 
-    /**
-     * @var \Opis\JsonSchema\Uri|null
-     */
-    protected $base;
+	/**
+	 * @var \Opis\JsonSchema\Uri|null
+	 */
+	protected $root;
 
-    /** @var string[]|int[] */
-    protected $path;
+	/**
+	 * @var \Opis\JsonSchema\Uri|null
+	 */
+	protected $base;
 
-    /**
-     * @var string|null
-     */
-    protected $draft;
+	/** @var string[]|int[] */
+	protected $path;
 
-    /**
-     * @param object|bool $data
-     * @param Uri|null $id
-     * @param Uri|null $base
-     * @param Uri|null $root
-     * @param string[]|int[] $path
-     * @param string|null $draft
-     */
-    public function __construct($data, $id, $base = null, $root = null, array $path = [], $draft = null)
-    {
-        if ($root === $id || ((string)$root === (string)$id)) {
-            $root = null;
-        }
+	/**
+	 * @var string|null
+	 */
+	protected $draft;
 
-        if ($root === null) {
-            $base = null;
-        }
+	/**
+	 * @param object|bool    $data
+	 * @param Uri|null       $id
+	 * @param Uri|null       $base
+	 * @param Uri|null       $root
+	 * @param string[]|int[] $path
+	 * @param string|null    $draft
+	 */
+	public function __construct( $data, $id, $base = null, $root = null, array $path = array(), $draft = null ) {
+		if ( $root === $id || ( (string) $root === (string) $id ) ) {
+			$root = null;
+		}
 
-        $this->data = $data;
-        $this->id = $id;
-        $this->root = $root;
-        $this->base = $base;
-        $this->path = $path;
-        $this->draft = $draft;
-    }
+		if ( $root === null ) {
+			$base = null;
+		}
 
-    public function id()
-    {
-        return $this->id;
-    }
+		$this->data  = $data;
+		$this->id    = $id;
+		$this->root  = $root;
+		$this->base  = $base;
+		$this->path  = $path;
+		$this->draft = $draft;
+	}
 
-    public function root()
-    {
-       return $this->root;
-    }
+	public function id() {
+		return $this->id;
+	}
 
-    public function base()
-    {
-        return $this->base;
-    }
+	public function root() {
+		return $this->root;
+	}
 
-    public function draft()
-    {
-        return $this->draft;
-    }
+	public function base() {
+		return $this->base;
+	}
 
-    public function data()
-    {
-        return $this->data;
-    }
+	public function draft() {
+		return $this->draft;
+	}
 
-    public function path(): array
-    {
-        return $this->path;
-    }
+	public function data() {
+		return $this->data;
+	}
 
-    /**
-     * Returns first non-null property: id, base or root
-     * @return Uri|null
-     */
-    public function idBaseRoot()
-    {
-        return $this->id ?? $this->base ?? $this->root;
-    }
+	public function path(): array {
+		return $this->path;
+	}
 
-    public function isBoolean(): bool
-    {
-        return is_bool($this->data);
-    }
+	/**
+	 * Returns first non-null property: id, base or root
+	 *
+	 * @return Uri|null
+	 */
+	public function idBaseRoot() {
+		return $this->id ?? $this->base ?? $this->root;
+	}
 
-    public function isObject(): bool
-    {
-        return is_object($this->data);
-    }
+	public function isBoolean(): bool {
+		return is_bool( $this->data );
+	}
 
-    public function isDocumentRoot(): bool
-    {
-        return $this->id && !$this->root && !$this->base;
-    }
+	public function isObject(): bool {
+		return is_object( $this->data );
+	}
+
+	public function isDocumentRoot(): bool {
+		return $this->id && ! $this->root && ! $this->base;
+	}
 }

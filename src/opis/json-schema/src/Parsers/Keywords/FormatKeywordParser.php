@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,53 +23,51 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\{FormatDataKeyword, FormatKeyword};
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait, SchemaParser, ResolverTrait};
 
-class FormatKeywordParser extends KeywordParser
-{
-    use ResolverTrait;
-    use DataKeywordTrait;
+class FormatKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_BEFORE;
-    }
+	use ResolverTrait;
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_BEFORE;
+	}
 
-        $resolver = $parser->getFormatResolver();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        if (!$resolver || !$parser->option('allowFormats') || !$this->keywordExists($schema)) {
-            return null;
-        }
+		$resolver = $parser->getFormatResolver();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $resolver || ! $parser->option( 'allowFormats' ) || ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new FormatDataKeyword($pointer, $resolver);
-            }
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!is_string($value)) {
-            throw $this->keywordException("{keyword} must be a string", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new FormatDataKeyword( $pointer, $resolver );
+			}
+		}
 
-        $list = $resolver->resolveAll($value);
+		if ( ! is_string( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a string', $info );
+		}
 
-        if (!$list) {
-            return null;
-        }
+		$list = $resolver->resolveAll( $value );
 
-        return new FormatKeyword($value, $this->resolveSubTypes($list));
-    }
+		if ( ! $list ) {
+			return null;
+		}
+
+		return new FormatKeyword( $value, $this->resolveSubTypes( $list ) );
+	}
 }

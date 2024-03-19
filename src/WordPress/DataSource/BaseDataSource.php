@@ -13,5 +13,4 @@ abstract class BaseDataSource implements DataSourceInterface {
 	}
 
 	abstract public function stream( $resourceIdentifier );
-
 }

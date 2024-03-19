@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,41 +22,40 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
 use Opis\JsonSchema\{JsonPointer, Schema, ValidationContext, Variables};
 
-class PointerRefKeyword extends AbstractRefKeyword
-{
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $pointer;
-    /** @var bool|null|Schema */
-    protected $resolved = false;
+class PointerRefKeyword extends AbstractRefKeyword {
 
-    public function __construct(
-        JsonPointer $pointer,
-        $mapper,
-        $globals,
-        $slots = null,
-        string $keyword = '$ref'
-    ) {
-        parent::__construct($mapper, $globals, $slots, $keyword);
-        $this->pointer = $pointer;
-    }
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $pointer;
+	/** @var bool|null|Schema */
+	protected $resolved = false;
 
-    /**
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    protected function doValidate($context, $schema)
-    {
-        if ($this->resolved === false) {
-            $info = $schema->info();
-            $this->resolved = $this->resolvePointer($context->loader(), $this->pointer, $info->idBaseRoot(), $info->path());
-        }
+	public function __construct(
+		JsonPointer $pointer,
+		$mapper,
+		$globals,
+		$slots = null,
+		string $keyword = '$ref'
+	) {
+		parent::__construct( $mapper, $globals, $slots, $keyword );
+		$this->pointer = $pointer;
+	}
 
-        if ($this->resolved === null) {
-            throw new UnresolvedReferenceException((string)$this->pointer, $schema, $context);
-        }
+	/**
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	protected function doValidate( $context, $schema ) {
+		if ( $this->resolved === false ) {
+			$info           = $schema->info();
+			$this->resolved = $this->resolvePointer( $context->loader(), $this->pointer, $info->idBaseRoot(), $info->path() );
+		}
 
-        return $this->resolved->validate($this->createContext($context, $schema));
-    }
+		if ( $this->resolved === null ) {
+			throw new UnresolvedReferenceException( (string) $this->pointer, $schema, $context );
+		}
+
+		return $this->resolved->validate( $this->createContext( $context, $schema ) );
+	}
 }

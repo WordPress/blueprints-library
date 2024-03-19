@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +18,12 @@
 
 namespace Opis\JsonSchema;
 
-interface ContentMediaType
-{
-    /**
-     * @param string $content
-     * @param string $media_type
-     * @return bool
-     */
-    public function validate($content, $media_type): bool;
+interface ContentMediaType {
+
+	/**
+	 * @param string $content
+	 * @param string $media_type
+	 * @return bool
+	 */
+	public function validate( $content, $media_type ): bool;
 }

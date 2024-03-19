@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,159 +19,176 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ItemsKeyword implements Keyword
-{
-    use OfTrait;
-    use IterableDataValidationTrait;
+class ItemsKeyword implements Keyword {
 
-    /** @var bool|object|Schema|bool[]|object[]|Schema[] */
-    protected $value;
+	use OfTrait;
+	use IterableDataValidationTrait;
 
-    /**
-     * @var int
-     */
-    protected $count = -1;
-    /**
-     * @var bool
-     */
-    protected $alwaysValid;
-    /**
-     * @var string
-     */
-    protected $keyword;
-    /**
-     * @var int
-     */
-    protected $startIndex;
+	/** @var bool|object|Schema|bool[]|object[]|Schema[] */
+	protected $value;
 
-    /**
-     * @param bool|object|Schema|bool[]|object[]|Schema[] $value
-     * @param bool $alwaysValid
-     * @param string $keyword
-     * @param int $startIndex
-     */
-    public function __construct($value, bool $alwaysValid = false, string $keyword = 'items', int $startIndex = 0)
-    {
-        $this->value = $value;
-        $this->alwaysValid = $alwaysValid;
+	/**
+	 * @var int
+	 */
+	protected $count = -1;
+	/**
+	 * @var bool
+	 */
+	protected $alwaysValid;
+	/**
+	 * @var string
+	 */
+	protected $keyword;
+	/**
+	 * @var int
+	 */
+	protected $startIndex;
 
-        if (is_array($value)) {
-            $this->count = count($value);
-        }
+	/**
+	 * @param bool|object|Schema|bool[]|object[]|Schema[] $value
+	 * @param bool                                        $alwaysValid
+	 * @param string                                      $keyword
+	 * @param int                                         $startIndex
+	 */
+	public function __construct( $value, bool $alwaysValid = false, string $keyword = 'items', int $startIndex = 0 ) {
+		$this->value       = $value;
+		$this->alwaysValid = $alwaysValid;
 
-        $this->keyword = $keyword;
-        $this->startIndex = $startIndex;
-    }
+		if ( is_array( $value ) ) {
+			$this->count = count( $value );
+		}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->alwaysValid || $this->value === true) {
-            if ($this->count === -1) {
-                $context->markAllAsEvaluatedItems();
-            } else {
-                $context->markCountAsEvaluatedItems($this->count);
-            }
-            return null;
-        }
+		$this->keyword    = $keyword;
+		$this->startIndex = $startIndex;
+	}
 
-        $count = count($context->currentData());
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->alwaysValid || $this->value === true ) {
+			if ( $this->count === -1 ) {
+				$context->markAllAsEvaluatedItems();
+			} else {
+				$context->markCountAsEvaluatedItems( $this->count );
+			}
+			return null;
+		}
 
-        if ($this->startIndex >= $count) {
-            // Already validated by other keyword
-            return null;
-        }
+		$count = count( $context->currentData() );
 
-        if ($this->value === false) {
-            if ($count === 0) {
-                return null;
-            }
+		if ( $this->startIndex >= $count ) {
+			// Already validated by other keyword
+			return null;
+		}
 
-            return $this->error($schema, $context, $this->keyword, 'Array must be empty');
-        }
+		if ( $this->value === false ) {
+			if ( $count === 0 ) {
+				return null;
+			}
 
-        if ($this->count >= 0) {
+			return $this->error( $schema, $context, $this->keyword, 'Array must be empty' );
+		}
 
-            $errors = $this->errorContainer($context->maxErrors());
-            $max = min($count, $this->count);
-            $evaluated = [];
+		if ( $this->count >= 0 ) {
 
-            for ($i = $this->startIndex; $i < $max; $i++) {
-                if ($this->value[$i] === true) {
-                    $evaluated[] = $i;
-                    continue;
-                }
+			$errors    = $this->errorContainer( $context->maxErrors() );
+			$max       = min( $count, $this->count );
+			$evaluated = array();
 
-                if ($this->value[$i] === false) {
-                    $context->addEvaluatedItems($evaluated);
-                    return $this->error($schema, $context, $this->keyword, "Array item at index {index} is not allowed", [
-                        'index' => $i,
-                    ]);
-                }
+			for ( $i = $this->startIndex; $i < $max; $i++ ) {
+				if ( $this->value[ $i ] === true ) {
+					$evaluated[] = $i;
+					continue;
+				}
 
-                if (is_object($this->value[$i]) && !($this->value[$i] instanceof Schema)) {
-                    $this->value[$i] = $context->loader()->loadObjectSchema($this->value[$i]);
-                }
+				if ( $this->value[ $i ] === false ) {
+					$context->addEvaluatedItems( $evaluated );
+					return $this->error(
+						$schema,
+						$context,
+						$this->keyword,
+						'Array item at index {index} is not allowed',
+						array(
+							'index' => $i,
+						)
+					);
+				}
 
-                $context->pushDataPath($i);
-                $error = $this->value[$i]->validate($context);
-                $context->popDataPath();
+				if ( is_object( $this->value[ $i ] ) && ! ( $this->value[ $i ] instanceof Schema ) ) {
+					$this->value[ $i ] = $context->loader()->loadObjectSchema( $this->value[ $i ] );
+				}
 
-                if ($error) {
-                    $errors->add($error);
-                    if ($errors->isFull()) {
-                        break;
-                    }
-                } else {
-                    $evaluated[] = $i;
-                }
-            }
+				$context->pushDataPath( $i );
+				$error = $this->value[ $i ]->validate( $context );
+				$context->popDataPath();
 
-            $context->addEvaluatedItems($evaluated);
+				if ( $error ) {
+					$errors->add( $error );
+					if ( $errors->isFull() ) {
+						break;
+					}
+				} else {
+					$evaluated[] = $i;
+				}
+			}
 
-            if ($errors->isEmpty()) {
-                return null;
-            }
+			$context->addEvaluatedItems( $evaluated );
 
-            return $this->error($schema, $context, $this->keyword, 'Array items must match corresponding schemas', [],
-                $errors);
-        }
+			if ( $errors->isEmpty() ) {
+				return null;
+			}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+			return $this->error(
+				$schema,
+				$context,
+				$this->keyword,
+				'Array items must match corresponding schemas',
+				array(),
+				$errors
+			);
+		}
 
-        $object = $this->createArrayObject($context);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        $error = $this->validateIterableData($schema, $this->value, $context, $this->indexes($this->startIndex, $count),
-            $this->keyword, 'All array items must match schema', [], $object);
+		$object = $this->createArrayObject( $context );
 
-        if ($object && $object->count()) {
-            $context->addEvaluatedItems($object->getArrayCopy());
-        }
+		$error = $this->validateIterableData(
+			$schema,
+			$this->value,
+			$context,
+			$this->indexes( $this->startIndex, $count ),
+			$this->keyword,
+			'All array items must match schema',
+			array(),
+			$object
+		);
 
-        return $error;
-    }
+		if ( $object && $object->count() ) {
+			$context->addEvaluatedItems( $object->getArrayCopy() );
+		}
 
-    /**
-     * @param int $start
-     * @param int $max
-     * @return iterable|int[]
-     */
-    protected function indexes($start, $max)
-    {
-        for ($i = $start; $i < $max; $i++) {
-            yield $i;
-        }
-    }
+		return $error;
+	}
+
+	/**
+	 * @param int $start
+	 * @param int $max
+	 * @return iterable|int[]
+	 */
+	protected function indexes( $start, $max ) {
+		for ( $i = $start; $i < $max; $i++ ) {
+			yield $i;
+		}
+	}
 }

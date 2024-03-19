@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +18,12 @@
 
 namespace Opis\JsonSchema;
 
-interface Variables
-{
-    /**
-     * @param array|object $data
-     * @param string[]|int[] $path
-     * @return mixed
-     */
-    public function resolve($data, $path = []);
+interface Variables {
+
+	/**
+	 * @param array|object   $data
+	 * @param string[]|int[] $path
+	 * @return mixed
+	 */
+	public function resolve( $data, $path = array() );
 }

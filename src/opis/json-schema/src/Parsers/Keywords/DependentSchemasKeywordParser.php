@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,55 +23,53 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\DependentSchemasKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class DependentSchemasKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+class DependentSchemasKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
-        if (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be an object", $info);
-        }
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $valid = 0;
-        $total = 0;
+		$value = $this->keywordValue( $schema );
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an object', $info );
+		}
 
-        foreach ($value as $name => $s) {
-            $total++;
-            if (is_bool($s)) {
-                if ($s) {
-                    $valid++;
-                }
-            } elseif (!is_object($s)) {
-                throw $this->keywordException("{keyword} must be an object containing json schemas", $info);
-            } elseif (!count(get_object_vars($s))) {
-                $valid++;
-            }
-        }
+		$valid = 0;
+		$total = 0;
 
-        if (!$total) {
-            return null;
-        }
+		foreach ( $value as $name => $s ) {
+			++$total;
+			if ( is_bool( $s ) ) {
+				if ( $s ) {
+					++$valid;
+				}
+			} elseif ( ! is_object( $s ) ) {
+				throw $this->keywordException( '{keyword} must be an object containing json schemas', $info );
+			} elseif ( ! count( get_object_vars( $s ) ) ) {
+				++$valid;
+			}
+		}
 
-        return $valid !== $total ? new DependentSchemasKeyword($value) : null;
-    }
+		if ( ! $total ) {
+			return null;
+		}
+
+		return $valid !== $total ? new DependentSchemasKeyword( $value ) : null;
+	}
 }

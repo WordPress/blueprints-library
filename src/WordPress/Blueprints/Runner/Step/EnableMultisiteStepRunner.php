@@ -12,16 +12,16 @@ class EnableMultisiteStepRunner extends BaseStepRunner {
 		throw new \LogicException( 'Not implemented yet' );
 
 		// @TODO:
-//		return $this->getRuntime()->runShellCommand(
-//			[
-//				'php',
-//				'wp-cli.phar',
-//				'core',
-//				'multisite-convert',
-//				// @TODO: Base path should come from the runtime, e.g.
-//				//        Playground need to provide the /scope:0.892173/ value
-//				'--base=/wordpress',
-//			]
-//		);
+		// return $this->getRuntime()->runShellCommand(
+		// [
+		// 'php',
+		// 'wp-cli.phar',
+		// 'core',
+		// 'multisite-convert',
+		// @TODO: Base path should come from the runtime, e.g.
+		// Playground need to provide the /scope:0.892173/ value
+		// '--base=/wordpress',
+		// ]
+		// );
 	}
 }

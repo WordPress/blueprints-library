@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,42 +22,41 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
 use Opis\JsonSchema\{Schema, Uri, ValidationContext, Variables};
 
-class URIRefKeyword extends AbstractRefKeyword
-{
-    /**
-     * @var \Opis\JsonSchema\Uri
-     */
-    protected $uri;
-    /** @var bool|null|Schema */
-    protected $resolved = false;
+class URIRefKeyword extends AbstractRefKeyword {
 
-    public function __construct(
-        Uri $uri,
-        $mapper,
-        $globals,
-        $slots = null,
-        string $keyword = '$ref'
-    ) {
-        parent::__construct($mapper, $globals, $slots, $keyword);
-        $this->uri = $uri;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Uri
+	 */
+	protected $uri;
+	/** @var bool|null|Schema */
+	protected $resolved = false;
 
-    /**
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    protected function doValidate($context, $schema)
-    {
-        if ($this->resolved === false) {
-            $this->resolved = $context->loader()->loadSchemaById($this->uri);
-        }
+	public function __construct(
+		Uri $uri,
+		$mapper,
+		$globals,
+		$slots = null,
+		string $keyword = '$ref'
+	) {
+		parent::__construct( $mapper, $globals, $slots, $keyword );
+		$this->uri = $uri;
+	}
 
-        if ($this->resolved === null) {
-            throw new UnresolvedReferenceException((string)$this->uri, $schema, $context);
-        }
+	/**
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	protected function doValidate( $context, $schema ) {
+		if ( $this->resolved === false ) {
+			$this->resolved = $context->loader()->loadSchemaById( $this->uri );
+		}
 
-        $this->setLastRefSchema($this->resolved);
+		if ( $this->resolved === null ) {
+			throw new UnresolvedReferenceException( (string) $this->uri, $schema, $context );
+		}
 
-        return $this->resolved->validate($this->createContext($context, $schema));
-    }
+		$this->setLastRefSchema( $this->resolved );
+
+		return $this->resolved->validate( $this->createContext( $context, $schema ) );
+	}
 }

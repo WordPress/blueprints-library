@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +20,10 @@ namespace Opis\JsonSchema;
 
 use Opis\JsonSchema\Info\SchemaInfo;
 
-interface Schema extends SchemaValidator
-{
-    /**
-     * @return SchemaInfo
-     */
-    public function info(): SchemaInfo;
+interface Schema extends SchemaValidator {
+
+	/**
+	 * @return SchemaInfo
+	 */
+	public function info(): SchemaInfo;
 }

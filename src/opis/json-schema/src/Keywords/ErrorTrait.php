@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,35 +22,40 @@ use Opis\JsonSchema\Info\DataInfo;
 use Opis\JsonSchema\{ValidationContext, Schema};
 use Opis\JsonSchema\Errors\{ErrorContainer, ValidationError};
 
-trait ErrorTrait
-{
-    /**
-     * @param Schema $schema
-     * @param ValidationContext $context
-     * @param string $keyword
-     * @param string $message
-     * @param array $args
-     * @param ErrorContainer|ValidationError|ValidationError[]|null $errors
-     * @return ValidationError
-     */
-    protected function error(
-        $schema,
-        $context,
-        $keyword,
-        $message,
-        $args = [],
-        $errors = null
-    ): ValidationError
-    {
-        if ($errors) {
-            if ($errors instanceof ValidationError) {
-                $errors = [$errors];
-            } elseif ($errors instanceof ErrorContainer) {
-                $errors = $errors->all();
-            }
-        }
+trait ErrorTrait {
 
-        return new ValidationError($keyword, $schema, DataInfo::fromContext($context), $message, $args,
-            is_array($errors) ? $errors : []);
-    }
+	/**
+	 * @param Schema                                                $schema
+	 * @param ValidationContext                                     $context
+	 * @param string                                                $keyword
+	 * @param string                                                $message
+	 * @param array                                                 $args
+	 * @param ErrorContainer|ValidationError|ValidationError[]|null $errors
+	 * @return ValidationError
+	 */
+	protected function error(
+		$schema,
+		$context,
+		$keyword,
+		$message,
+		$args = array(),
+		$errors = null
+	): ValidationError {
+		if ( $errors ) {
+			if ( $errors instanceof ValidationError ) {
+				$errors = array( $errors );
+			} elseif ( $errors instanceof ErrorContainer ) {
+				$errors = $errors->all();
+			}
+		}
+
+		return new ValidationError(
+			$keyword,
+			$schema,
+			DataInfo::fromContext( $context ),
+			$message,
+			$args,
+			is_array( $errors ) ? $errors : array()
+		);
+	}
 }

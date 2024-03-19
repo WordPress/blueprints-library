@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,51 +19,54 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class DependentRequiredKeyword implements Keyword
-{
-    use ErrorTrait;
+class DependentRequiredKeyword implements Keyword {
 
-    /** @var string[][] */
-    protected $value;
+	use ErrorTrait;
 
-    /**
-     * @param string[][] $value
-     */
-    public function __construct(array $value)
-    {
-        $this->value = $value;
-    }
+	/** @var string[][] */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $data = $context->currentData();
+	/**
+	 * @param string[][] $value
+	 */
+	public function __construct( array $value ) {
+		$this->value = $value;
+	}
 
-        foreach ($this->value as $name => $value) {
-            if (!property_exists($data, $name)) {
-                continue;
-            }
-            foreach ($value as $prop) {
-                if (!property_exists($data, $prop)) {
-                    return $this->error($schema, $context, 'dependentRequired',
-                        "'{$prop}' property is required by '{$name}' property", [
-                            'property' => $name,
-                            'missing' => $prop,
-                        ]);
-                }
-            }
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$data = $context->currentData();
 
-        return null;
-    }
+		foreach ( $this->value as $name => $value ) {
+			if ( ! property_exists( $data, $name ) ) {
+				continue;
+			}
+			foreach ( $value as $prop ) {
+				if ( ! property_exists( $data, $prop ) ) {
+					return $this->error(
+						$schema,
+						$context,
+						'dependentRequired',
+						"'{$prop}' property is required by '{$name}' property",
+						array(
+							'property' => $name,
+							'missing'  => $prop,
+						)
+					);
+				}
+			}
+		}
+
+		return null;
+	}
 }

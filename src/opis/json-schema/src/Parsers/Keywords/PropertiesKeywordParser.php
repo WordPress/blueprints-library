@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,46 +23,44 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\PropertiesKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class PropertiesKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+class PropertiesKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be an object", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        $list = [];
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an object', $info );
+		}
 
-        foreach ($value as $name => $s) {
-            if (!is_bool($s) && !is_object($s)) {
-                throw $this->keywordException("{keyword}[{$name}] must be a json schema (object or boolean)", $info);
-            }
+		$list = array();
 
-            $list[$name] = $s;
-        }
+		foreach ( $value as $name => $s ) {
+			if ( ! is_bool( $s ) && ! is_object( $s ) ) {
+				throw $this->keywordException( "{keyword}[{$name}] must be a json schema (object or boolean)", $info );
+			}
 
-        return $list ? new PropertiesKeyword($list) : null;
-    }
+			$list[ $name ] = $s;
+		}
+
+		return $list ? new PropertiesKeyword( $list ) : null;
+	}
 }

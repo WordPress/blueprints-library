@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +18,13 @@
 
 namespace Opis\JsonSchema;
 
-interface Filter
-{
-    /**
-     * @param ValidationContext $context
-     * @param Schema $schema
-     * @param array $args
-     * @return bool
-     */
-    public function validate($context, $schema, $args = []): bool;
+interface Filter {
+
+	/**
+	 * @param ValidationContext $context
+	 * @param Schema            $schema
+	 * @param array             $args
+	 * @return bool
+	 */
+	public function validate( $context, $schema, $args = array() ): bool;
 }

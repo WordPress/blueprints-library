@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +20,12 @@ namespace Opis\JsonSchema;
 
 use Opis\JsonSchema\Errors\ValidationError;
 
-interface Keyword
-{
-    /**
-     * @param ValidationContext $context
-     * @param Schema $schema
-     * @return null|ValidationError
-     */
-    public function validate($context, $schema);
+interface Keyword {
+
+	/**
+	 * @param ValidationContext $context
+	 * @param Schema            $schema
+	 * @return null|ValidationError
+	 */
+	public function validate( $context, $schema );
 }

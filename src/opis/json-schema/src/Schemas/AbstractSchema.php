@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,27 +21,25 @@ namespace Opis\JsonSchema\Schemas;
 use Opis\JsonSchema\Schema;
 use Opis\JsonSchema\Info\SchemaInfo;
 
-abstract class AbstractSchema implements Schema
-{
+abstract class AbstractSchema implements Schema {
 
-    /**
-     * @var \Opis\JsonSchema\Info\SchemaInfo
-     */
-    protected $info;
 
-    /**
-     * @param SchemaInfo $info
-     */
-    public function __construct(SchemaInfo $info)
-    {
-        $this->info = $info;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Info\SchemaInfo
+	 */
+	protected $info;
 
-    /**
-     * @inheritDoc
-     */
-    public function info(): SchemaInfo
-    {
-        return $this->info;
-    }
+	/**
+	 * @param SchemaInfo $info
+	 */
+	public function __construct( SchemaInfo $info ) {
+		$this->info = $info;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function info(): SchemaInfo {
+		return $this->info;
+	}
 }

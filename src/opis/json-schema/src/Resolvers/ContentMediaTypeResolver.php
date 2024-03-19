@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,134 +21,126 @@ namespace Opis\JsonSchema\Resolvers;
 use finfo;
 use Opis\JsonSchema\ContentMediaType;
 
-class ContentMediaTypeResolver
-{
-    /** @var callable[]|ContentMediaType[] */
-    protected $media;
+class ContentMediaTypeResolver {
 
-    /** @var callable|null|ContentMediaType */
-    protected $defaultMedia = null;
+	/** @var callable[]|ContentMediaType[] */
+	protected $media;
 
-    /**
-     * @param callable[]|ContentMediaType[] $media
-     * @param callable|ContentMediaType|null $defaultMedia
-     */
-    public function __construct(array $media = [], $defaultMedia = null)
-    {
-        $media += [
-            'application/json' => self::class . '::IsJsonEncoded',
-        ];
+	/** @var callable|null|ContentMediaType */
+	protected $defaultMedia = null;
 
-        $this->media = $media;
-        $this->defaultMedia = $defaultMedia ?? self::class . '::IsEncodedAsType';
-    }
+	/**
+	 * @param callable[]|ContentMediaType[]  $media
+	 * @param callable|ContentMediaType|null $defaultMedia
+	 */
+	public function __construct( array $media = array(), $defaultMedia = null ) {
+		$media += array(
+			'application/json' => self::class . '::IsJsonEncoded',
+		);
 
-    /**
-     * @param string $name
-     * @return callable|ContentMediaType|string|null
-     */
-    public function resolve($name)
-    {
-        return $this->media[$name] ?? $this->defaultMedia;
-    }
+		$this->media        = $media;
+		$this->defaultMedia = $defaultMedia ?? self::class . '::IsEncodedAsType';
+	}
 
-    /**
-     * @param string $name
-     * @param ContentMediaType $media
-     * @return ContentMediaTypeResolver
-     */
-    public function register($name, $media): self
-    {
-        $this->media[$name] = $media;
+	/**
+	 * @param string $name
+	 * @return callable|ContentMediaType|string|null
+	 */
+	public function resolve( $name ) {
+		return $this->media[ $name ] ?? $this->defaultMedia;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string           $name
+	 * @param ContentMediaType $media
+	 * @return ContentMediaTypeResolver
+	 */
+	public function register( $name, $media ): self {
+		$this->media[ $name ] = $media;
 
-    /**
-     * @param string $name
-     * @param callable $media
-     * @return ContentMediaTypeResolver
-     */
-    public function registerCallable($name, $media): self
-    {
-        $this->media[$name] = $media;
+		return $this;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string   $name
+	 * @param callable $media
+	 * @return ContentMediaTypeResolver
+	 */
+	public function registerCallable( $name, $media ): self {
+		$this->media[ $name ] = $media;
 
-    /**
-     * @param string $name
-     * @return bool
-     */
-    public function unregister($name): bool
-    {
-        if (isset($this->media[$name])) {
-            unset($this->media[$name]);
+		return $this;
+	}
 
-            return true;
-        }
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
+	public function unregister( $name ): bool {
+		if ( isset( $this->media[ $name ] ) ) {
+			unset( $this->media[ $name ] );
 
-        return false;
-    }
+			return true;
+		}
 
-    /**
-     * @param callable|ContentMediaType|null $handler
-     * @return ContentMediaTypeResolver
-     */
-    public function setDefaultHandler($handler): self
-    {
-        $this->defaultMedia = $handler;
+		return false;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param callable|ContentMediaType|null $handler
+	 * @return ContentMediaTypeResolver
+	 */
+	public function setDefaultHandler( $handler ): self {
+		$this->defaultMedia = $handler;
 
-    public function __serialize(): array
-    {
-        return [
-            'media' => $this->media,
-            'defaultMedia' => $this->defaultMedia,
-        ];
-    }
+		return $this;
+	}
 
-    public function __unserialize(array $data)
-    {
-        $this->media = $data['media'];
-        $this->defaultMedia = $data['defaultMedia'];
-    }
+	public function __serialize(): array {
+		return array(
+			'media'        => $this->media,
+			'defaultMedia' => $this->defaultMedia,
+		);
+	}
 
-    /**
-     * @param string $value
-     * @param string $type
-     */
-    public static function IsJsonEncoded($value,
-        /** @noinspection PhpUnusedParameterInspection */ $type): bool
-    {
-        json_decode($value);
+	public function __unserialize( array $data ) {
+		$this->media        = $data['media'];
+		$this->defaultMedia = $data['defaultMedia'];
+	}
 
-        return json_last_error() === JSON_ERROR_NONE;
-    }
+	/**
+	 * @param string $value
+	 * @param string $type
+	 */
+	public static function IsJsonEncoded(
+		$value,
+		/** @noinspection PhpUnusedParameterInspection */ $type
+	): bool {
+		json_decode( $value );
 
-    /**
-     * @param string $value
-     * @param string $type
-     */
-    public static function IsEncodedAsType($value, $type): bool
-    {
-        /** @var finfo|null|bool $finfo */
-        static $finfo = false;
+		return json_last_error() === JSON_ERROR_NONE;
+	}
 
-        if ($finfo === false) {
-            if (!class_exists(finfo::class)) {
-                $finfo = null;
-                return false;
-            }
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-        } elseif (!$finfo) {
-            return false;
-        }
+	/**
+	 * @param string $value
+	 * @param string $type
+	 */
+	public static function IsEncodedAsType( $value, $type ): bool {
+		/** @var finfo|null|bool $finfo */
+		static $finfo = false;
 
-        $r = $finfo->buffer($value);
+		if ( $finfo === false ) {
+			if ( ! class_exists( finfo::class ) ) {
+				$finfo = null;
+				return false;
+			}
+			$finfo = new finfo( FILEINFO_MIME_TYPE );
+		} elseif ( ! $finfo ) {
+			return false;
+		}
 
-        return $r == $type || $r == 'application/x-empty';
-    }
+		$r = $finfo->buffer( $value );
+
+		return $r == $type || $r == 'application/x-empty';
+	}
 }

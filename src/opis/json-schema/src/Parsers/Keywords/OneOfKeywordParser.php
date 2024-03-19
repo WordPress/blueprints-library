@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,61 +23,59 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\OneOfKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class OneOfKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_AFTER;
-    }
+class OneOfKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_AFTER;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (!is_array($value)) {
-            throw $this->keywordException("{keyword} should be an array of json schemas", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!$value) {
-            throw $this->keywordException("{keyword} must have at least one element", $info);
-        }
+		if ( ! is_array( $value ) ) {
+			throw $this->keywordException( '{keyword} should be an array of json schemas', $info );
+		}
 
-        $valid = 0;
+		if ( ! $value ) {
+			throw $this->keywordException( '{keyword} must have at least one element', $info );
+		}
 
-        foreach ($value as $index => $item) {
-            if ($item === false) {
-                continue;
-            }
-            if ($item === true) {
-                if (++$valid > 1) {
-                    throw $this->keywordException("{keyword} contains multiple true values", $info);
-                }
-                continue;
-            }
-            if (!is_object($item)) {
-                throw $this->keywordException("{keyword}[{$index}] must be a json schema", $info);
-            } elseif (!count(get_object_vars($item))) {
-                if (++$valid > 1) {
-                    throw $this->keywordException("{keyword} contains multiple true values", $info);
-                }
-            }
-        }
+		$valid = 0;
 
-        return new OneOfKeyword($value);
-    }
+		foreach ( $value as $index => $item ) {
+			if ( $item === false ) {
+				continue;
+			}
+			if ( $item === true ) {
+				if ( ++$valid > 1 ) {
+					throw $this->keywordException( '{keyword} contains multiple true values', $info );
+				}
+				continue;
+			}
+			if ( ! is_object( $item ) ) {
+				throw $this->keywordException( "{keyword}[{$index}] must be a json schema", $info );
+			} elseif ( ! count( get_object_vars( $item ) ) ) {
+				if ( ++$valid > 1 ) {
+					throw $this->keywordException( '{keyword} contains multiple true values', $info );
+				}
+			}
+		}
+
+		return new OneOfKeyword( $value );
+	}
 }

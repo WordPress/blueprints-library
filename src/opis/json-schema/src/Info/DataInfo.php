@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,102 +20,100 @@ namespace Opis\JsonSchema\Info;
 
 use Opis\JsonSchema\ValidationContext;
 
-class DataInfo
-{
-    /** @var mixed */
-    protected $value;
+class DataInfo {
 
-    /**
-     * @var string|null
-     */
-    protected $type;
+	/** @var mixed */
+	protected $value;
 
-    /** @var mixed */
-    protected $root;
+	/**
+	 * @var string|null
+	 */
+	protected $type;
 
-    /** @var string[]|int[] */
-    protected $path;
+	/** @var mixed */
+	protected $root;
 
-    /**
-     * @var \Opis\JsonSchema\Info\DataInfo|null
-     */
-    protected $parent;
+	/** @var string[]|int[] */
+	protected $path;
 
-    /** @var string[]|int[]|null */
-    protected $fullPath;
+	/**
+	 * @var \Opis\JsonSchema\Info\DataInfo|null
+	 */
+	protected $parent;
 
-    /**
-     * DataInfo constructor.
-     * @param $value
-     * @param string|null $type
-     * @param $root
-     * @param string[]|int[] $path
-     * @param DataInfo|null $parent
-     */
-    public function __construct($value, $type, $root, array $path = [], $parent = null)
-    {
-        $this->value = $value;
-        $this->type = $type;
-        $this->root = $root;
-        $this->path = $path;
-        $this->parent = $parent;
-    }
+	/** @var string[]|int[]|null */
+	protected $fullPath;
 
-    public function value()
-    {
-        return $this->value;
-    }
+	/**
+	 * DataInfo constructor.
+	 *
+	 * @param $value
+	 * @param string|null    $type
+	 * @param $root
+	 * @param string[]|int[] $path
+	 * @param DataInfo|null  $parent
+	 */
+	public function __construct( $value, $type, $root, array $path = array(), $parent = null ) {
+		$this->value  = $value;
+		$this->type   = $type;
+		$this->root   = $root;
+		$this->path   = $path;
+		$this->parent = $parent;
+	}
 
-    public function type()
-    {
-        return $this->type;
-    }
+	public function value() {
+		return $this->value;
+	}
 
-    public function root()
-    {
-        return $this->root;
-    }
+	public function type() {
+		return $this->type;
+	}
 
-    /**
-     * @return int[]|string[]
-     */
-    public function path(): array
-    {
-        return $this->path;
-    }
+	public function root() {
+		return $this->root;
+	}
 
-    public function parent()
-    {
-        return $this->parent;
-    }
+	/**
+	 * @return int[]|string[]
+	 */
+	public function path(): array {
+		return $this->path;
+	}
 
-    /**
-     * @return int[]|string[]
-     */
-    public function fullPath(): array
-    {
-        if ($this->parent === null) {
-            return $this->path;
-        }
+	public function parent() {
+		return $this->parent;
+	}
 
-        if ($this->fullPath === null) {
-            $this->fullPath = array_merge($this->parent->fullPath(), $this->path);
-        }
+	/**
+	 * @return int[]|string[]
+	 */
+	public function fullPath(): array {
+		if ( $this->parent === null ) {
+			return $this->path;
+		}
 
-        return $this->fullPath;
-    }
+		if ( $this->fullPath === null ) {
+			$this->fullPath = array_merge( $this->parent->fullPath(), $this->path );
+		}
 
-    /**
-     * @param ValidationContext $context
-     * @return static
-     */
-    public static function fromContext($context): self
-    {
-        if ($parent = $context->parent()) {
-            $parent = self::fromContext($parent);
-        }
+		return $this->fullPath;
+	}
 
-        return new self($context->currentData(), $context->currentDataType(), $context->rootData(),
-            $context->currentDataPath(), $parent);
-    }
+	/**
+	 * @param ValidationContext $context
+	 * @return static
+	 */
+	public static function fromContext( $context ): self {
+		if ( $parent = $context->parent() ) {
+			$parent = self::fromContext( $parent );
+		}
+
+		return new self(
+			$context->currentData(),
+			$context->currentDataType(),
+			$context->rootData(),
+			$context->currentDataPath(),
+			$parent
+		);
+	}
 }

@@ -32,15 +32,15 @@ class FileCache implements CacheInterface {
 			try {
 				$this->filesystem->mkdir( $this->cacheDirectory );
 			} catch ( IOExceptionInterface $exception ) {
-				echo "An error occurred while creating your cache directory at " . $exception->getPath();
+				echo 'An error occurred while creating your cache directory at ' . $exception->getPath();
 			}
 		}
 	}
 
 	/**
-  * @return mixed
-  */
- public function get( $key, $default = null ) {
+	 * @return mixed
+	 */
+	public function get( $key, $default = null ) {
 		$filepath = $this->getFilePathForKey( $key );
 		if ( ! file_exists( $filepath ) ) {
 			return $default;
@@ -53,7 +53,7 @@ class FileCache implements CacheInterface {
 
 	public function set( $key, $value, $ttl = null ): bool {
 		$filepath = $this->getFilePathForKey( $key );
-		$data = serialize( $value );
+		$data     = serialize( $value );
 
 		return file_put_contents( $filepath, $data ) !== false;
 	}
@@ -77,7 +77,7 @@ class FileCache implements CacheInterface {
 	}
 
 	public function getMultiple( $keys, $default = null ): iterable {
-		$result = [];
+		$result = array();
 		foreach ( $keys as $key ) {
 			$result[ $key ] = $this->get( $key, $default );
 		}
@@ -113,4 +113,3 @@ class FileCache implements CacheInterface {
 		return $this->cacheDirectory . DIRECTORY_SEPARATOR . sha1( $key );
 	}
 }
-

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,74 +19,78 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema,
-    ContentMediaType
+	ValidationContext,
+	Keyword,
+	Schema,
+	ContentMediaType
 };
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Resolvers\ContentMediaTypeResolver;
 use Opis\JsonSchema\Exceptions\UnresolvedContentMediaTypeException;
 
-class ContentMediaTypeKeyword implements Keyword
-{
-    use ErrorTrait;
+class ContentMediaTypeKeyword implements Keyword {
 
-    /**
-     * @var string
-     */
-    protected $name;
+	use ErrorTrait;
 
-    /** @var bool|callable|ContentMediaType|null */
-    protected $media = false;
+	/**
+	 * @var string
+	 */
+	protected $name;
 
-    /**
-     * @var \Opis\JsonSchema\Resolvers\ContentMediaTypeResolver|null
-     */
-    protected $resolver;
+	/** @var bool|callable|ContentMediaType|null */
+	protected $media = false;
 
-    /**
-     * @param string $name
-     * @param null|ContentMediaTypeResolver $resolver
-     */
-    public function __construct(string $name, $resolver)
-    {
-        $this->name = $name;
-        $this->resolver = $resolver;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Resolvers\ContentMediaTypeResolver|null
+	 */
+	protected $resolver;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (!$this->resolver) {
-            return null;
-        }
+	/**
+	 * @param string                        $name
+	 * @param null|ContentMediaTypeResolver $resolver
+	 */
+	public function __construct( string $name, $resolver ) {
+		$this->name     = $name;
+		$this->resolver = $resolver;
+	}
 
-        if ($this->media === false) {
-            $this->media = $this->resolver->resolve($this->name);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( ! $this->resolver ) {
+			return null;
+		}
 
-        if ($this->media === null) {
-            throw new UnresolvedContentMediaTypeException($this->name, $schema, $context);
-        }
+		if ( $this->media === false ) {
+			$this->media = $this->resolver->resolve( $this->name );
+		}
 
-        $data = $context->getDecodedContent();
+		if ( $this->media === null ) {
+			throw new UnresolvedContentMediaTypeException( $this->name, $schema, $context );
+		}
 
-        $ok = $this->media instanceof ContentMediaType
-            ? $this->media->validate($data, $this->name)
-            : ($this->media)($data, $this->name);
-        if ($ok) {
-            return null;
-        }
+		$data = $context->getDecodedContent();
 
-        unset($data);
+		$ok = $this->media instanceof ContentMediaType
+			? $this->media->validate( $data, $this->name )
+			: ( $this->media )( $data, $this->name );
+		if ( $ok ) {
+			return null;
+		}
 
-        return $this->error($schema, $context, 'contentMediaType', "The media type of the data must be '{media}'", [
-            'media' => $this->name,
-        ]);
-    }
+		unset( $data );
+
+		return $this->error(
+			$schema,
+			$context,
+			'contentMediaType',
+			"The media type of the data must be '{media}'",
+			array(
+				'media' => $this->name,
+			)
+		);
+	}
 }

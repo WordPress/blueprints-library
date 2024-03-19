@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class FileInfo
-{
+class FileInfo {
+
 	/** @var string */
 	public $key;
 
@@ -18,40 +18,36 @@ class FileInfo
 
 
 	/**
-  * @param string $key
-  */
- public function setKey($key)
-	{
+	 * @param string $key
+	 */
+	public function setKey( $key ) {
 		$this->key = $key;
 		return $this;
 	}
 
 
 	/**
-  * @param string $name
-  */
- public function setName($name)
-	{
+	 * @param string $name
+	 */
+	public function setName( $name ) {
 		$this->name = $name;
 		return $this;
 	}
 
 
 	/**
-  * @param string $type
-  */
- public function setType($type)
-	{
+	 * @param string $type
+	 */
+	public function setType( $type ) {
 		$this->type = $type;
 		return $this;
 	}
 
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\FileInfoData $data
-  */
- public function setData($data)
-	{
+	 * @param \WordPress\Blueprints\Model\DataClass\FileInfoData $data
+	 */
+	public function setData( $data ) {
 		$this->data = $data;
 		return $this;
 	}

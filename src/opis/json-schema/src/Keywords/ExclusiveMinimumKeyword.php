@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,36 +21,40 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Keyword, Schema};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ExclusiveMinimumKeyword implements Keyword
-{
-    use ErrorTrait;
+class ExclusiveMinimumKeyword implements Keyword {
 
-    /**
-     * @var float
-     */
-    protected $number;
+	use ErrorTrait;
 
-    /**
-     * @param float $number
-     */
-    public function __construct(float $number)
-    {
-        $this->number = $number;
-    }
+	/**
+	 * @var float
+	 */
+	protected $number;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($context->currentData() > $this->number) {
-            return null;
-        }
+	/**
+	 * @param float $number
+	 */
+	public function __construct( float $number ) {
+		$this->number = $number;
+	}
 
-        return $this->error($schema, $context, 'exclusiveMinimum', "Number must be greater than {min}", [
-            'min' => $this->number,
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $context->currentData() > $this->number ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'exclusiveMinimum',
+			'Number must be greater than {min}',
+			array(
+				'min' => $this->number,
+			)
+		);
+	}
 }

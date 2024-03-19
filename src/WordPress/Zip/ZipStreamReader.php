@@ -4,17 +4,17 @@ namespace WordPress\Zip;
 
 class ZipStreamReader {
 
-	const SIGNATURE_FILE = 0x04034b50;
-	const SIGNATURE_CENTRAL_DIRECTORY = 0x02014b50;
+	const SIGNATURE_FILE                  = 0x04034b50;
+	const SIGNATURE_CENTRAL_DIRECTORY     = 0x02014b50;
 	const SIGNATURE_CENTRAL_DIRECTORY_END = 0x06054b50;
-	const COMPRESSION_DEFLATE = 8;
+	const COMPRESSION_DEFLATE             = 8;
 
 	/**
 	 * Reads the next zip entry from a stream of zip file bytes.
 	 *
 	 * @param resource $fp A stream of zip file bytes.
 	 */
-	static public function readEntry( $fp ) {
+	public static function readEntry( $fp ) {
 		$signature = static::read_bytes( $fp, 4 );
 		if ( $signature === false ) {
 			return null;
@@ -56,11 +56,13 @@ class ZipStreamReader {
 	 *
 	 * @param resource $stream
 	 */
-	static protected function readFileEntry( $stream ): ZipFileEntry {
-		$data = self::read_bytes( $stream, 26 );
-		$data = unpack( 'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
-			$data );
-		$path = self::read_bytes( $stream, $data['pathLength'] );
+	protected static function readFileEntry( $stream ): ZipFileEntry {
+		$data  = self::read_bytes( $stream, 26 );
+		$data  = unpack(
+			'vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength',
+			$data
+		);
+		$path  = self::read_bytes( $stream, $data['pathLength'] );
 		$extra = self::read_bytes( $stream, $data['extraLength'] );
 		$bytes = self::read_bytes( $stream, $data['compressedSize'] );
 
@@ -118,12 +120,14 @@ class ZipStreamReader {
 	 *
 	 * @param resource stream
 	 */
-	static protected function readCentralDirectoryEntry( $stream ): ZipCentralDirectoryEntry {
-		$data = static::read_bytes( $stream, 42 );
-		$data = unpack( 'vversionCreated/vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength/vfileCommentLength/vdiskNumber/vinternalAttributes/VexternalAttributes/VfirstByteAt',
-			$data );
-		$path = static::read_bytes( $stream, $data['pathLength'] );
-		$extra = static::read_bytes( $stream, $data['extraLength'] );
+	protected static function readCentralDirectoryEntry( $stream ): ZipCentralDirectoryEntry {
+		$data        = static::read_bytes( $stream, 42 );
+		$data        = unpack(
+			'vversionCreated/vversionNeeded/vgeneralPurpose/vcompressionMethod/vlastModifiedTime/vlastModifiedDate/Vcrc/VcompressedSize/VuncompressedSize/vpathLength/vextraLength/vfileCommentLength/vdiskNumber/vinternalAttributes/VexternalAttributes/VfirstByteAt',
+			$data
+		);
+		$path        = static::read_bytes( $stream, $data['pathLength'] );
+		$extra       = static::read_bytes( $stream, $data['extraLength'] );
 		$fileComment = static::read_bytes( $stream, $data['fileCommentLength'] );
 
 		return new ZipCentralDirectoryEntry(
@@ -167,10 +171,12 @@ class ZipStreamReader {
 	 *
 	 * @param resource $stream
 	 */
-	static protected function readEndCentralDirectoryEntry( $stream ): ZipEndCentralDirectoryEntry {
+	protected static function readEndCentralDirectoryEntry( $stream ): ZipEndCentralDirectoryEntry {
 		$data = static::read_bytes( $stream, 18 );
-		$data = unpack( 'vdiskNumber/vcentralDirectoryStartDisk/vnumberCentralDirectoryRecordsOnThisDisk/vnumberCentralDirectoryRecords/VcentralDirectorySize/VcentralDirectoryOffset/vcommentLength',
-			$data );
+		$data = unpack(
+			'vdiskNumber/vcentralDirectoryStartDisk/vnumberCentralDirectoryRecordsOnThisDisk/vnumberCentralDirectoryRecords/VcentralDirectorySize/VcentralDirectoryOffset/vcommentLength',
+			$data
+		);
 
 		return new ZipEndCentralDirectoryEntry(
 			$data['diskNumber'],
@@ -192,12 +198,12 @@ class ZipStreamReader {
 	 *
 	 * @return false|string
 	 */
-	static protected function read_bytes( $stream, $length ) {
+	protected static function read_bytes( $stream, $length ) {
 		if ( $length === 0 ) {
 			return '';
 		}
 
-		$data = '';
+		$data             = '';
 		$remaining_length = $length;
 		while ( $remaining_length > 0 ) {
 			$chunk = fread( $stream, $remaining_length );
@@ -205,10 +211,9 @@ class ZipStreamReader {
 				return strlen( $data ) ? $data : false;
 			}
 			$remaining_length -= strlen( $chunk );
-			$data .= $chunk;
+			$data             .= $chunk;
 		}
 
 		return $data;
 	}
-
 }

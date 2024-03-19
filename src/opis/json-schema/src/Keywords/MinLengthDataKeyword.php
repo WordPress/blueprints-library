@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,38 +21,42 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class MinLengthDataKeyword extends MinLengthKeyword
-{
-    /** @var JsonPointer */
-    protected $value;
+class MinLengthDataKeyword extends MinLengthKeyword {
 
-    /**
-     * @param JsonPointer $value
-     */
-    public function __construct(JsonPointer $value)
-    {
-        $this->value = $value;
-        parent::__construct(0);
-    }
+	/** @var JsonPointer */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        /** @var int $length */
-        $length = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
+	/**
+	 * @param JsonPointer $value
+	 */
+	public function __construct( JsonPointer $value ) {
+		$this->value = $value;
+		parent::__construct( 0 );
+	}
 
-        if ($length === $this || !is_int($length) || $length < 0) {
-            return $this->error($schema, $context, 'minLength', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		/** @var int $length */
+		$length = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
 
-        $this->length = $length;
+		if ( $length === $this || ! is_int( $length ) || $length < 0 ) {
+			return $this->error(
+				$schema,
+				$context,
+				'minLength',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        return parent::validate($context, $schema);
-    }
+		$this->length = $length;
+
+		return parent::validate( $context, $schema );
+	}
 }

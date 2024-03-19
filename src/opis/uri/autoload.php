@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,28 +16,30 @@
  * limitations under the License.
  * ============================================================================ */
 
-spl_autoload_register(function ($class) {
-    $class = ltrim($class, '\\');
-    $dir = __DIR__ . '/src';
-    $namespace = 'Opis\Uri';
+spl_autoload_register(
+	function ( $class ) {
+		$class     = ltrim( $class, '\\' );
+		$dir       = __DIR__ . '/src';
+		$namespace = 'Opis\Uri';
 
-    if (strpos($class, $namespace) === 0) {
-        $class = substr($class, strlen($namespace));
-        $path = '';
-        if (($pos = strripos($class, '\\')) !== FALSE) {
-            $path = str_replace('\\', '/', substr($class, 0, $pos)) . '/';
-            $class = substr($class, $pos + 1);
-        }
-        $path .= str_replace('_', '/', $class) . '.php';
-        $dir .= '/' . $path;
+		if ( strpos( $class, $namespace ) === 0 ) {
+			$class = substr( $class, strlen( $namespace ) );
+			$path  = '';
+			if ( ( $pos = strripos( $class, '\\' ) ) !== false ) {
+				$path  = str_replace( '\\', '/', substr( $class, 0, $pos ) ) . '/';
+				$class = substr( $class, $pos + 1 );
+			}
+			$path .= str_replace( '_', '/', $class ) . '.php';
+			$dir  .= '/' . $path;
 
-        if (is_file($dir)) {
-            include $dir;
-            return true;
-        }
+			if ( is_file( $dir ) ) {
+				include $dir;
+				return true;
+			}
 
-        return false;
-    }
+			return false;
+		}
 
-    return false;
-});
+		return false;
+	}
+);

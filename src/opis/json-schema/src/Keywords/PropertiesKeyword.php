@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,100 +19,111 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class PropertiesKeyword implements Keyword
-{
-    use IterableDataValidationTrait;
+class PropertiesKeyword implements Keyword {
 
-    /**
-     * @var mixed[]
-     */
-    protected $properties;
-    /**
-     * @var mixed[]
-     */
-    protected $propertyKeys;
+	use IterableDataValidationTrait;
 
-    /**
-     * @param array $properties
-     */
-    public function __construct(array $properties)
-    {
-        $this->properties = $properties;
-        $this->propertyKeys = array_keys($properties);
-    }
+	/**
+	 * @var mixed[]
+	 */
+	protected $properties;
+	/**
+	 * @var mixed[]
+	 */
+	protected $propertyKeys;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (!$this->properties) {
-            return null;
-        }
+	/**
+	 * @param array $properties
+	 */
+	public function __construct( array $properties ) {
+		$this->properties   = $properties;
+		$this->propertyKeys = array_keys( $properties );
+	}
 
-        $checked = [];
-        $evaluated = [];
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( ! $this->properties ) {
+			return null;
+		}
 
-        $data = $context->currentData();
+		$checked   = array();
+		$evaluated = array();
 
-        $errors = $this->errorContainer($context->maxErrors());
+		$data = $context->currentData();
 
-        foreach ($this->properties as $name => $prop) {
-            if (!property_exists($data, $name)) {
-                continue;
-            }
+		$errors = $this->errorContainer( $context->maxErrors() );
 
-            $checked[] = $name;
+		foreach ( $this->properties as $name => $prop ) {
+			if ( ! property_exists( $data, $name ) ) {
+				continue;
+			}
 
-            if ($prop === true) {
-                $evaluated[] = $name;
-                continue;
-            }
+			$checked[] = $name;
 
-            if ($prop === false) {
-                $context->addEvaluatedProperties($evaluated);
-                return $this->error($schema, $context, 'properties', "Property '{property}' is not allowed", [
-                    'property' => $name,
-                ]);
-            }
+			if ( $prop === true ) {
+				$evaluated[] = $name;
+				continue;
+			}
 
-            if (is_object($prop) && !($prop instanceof Schema)) {
-                $prop = $this->properties[$name] = $context->loader()->loadObjectSchema($prop);
-            }
+			if ( $prop === false ) {
+				$context->addEvaluatedProperties( $evaluated );
+				return $this->error(
+					$schema,
+					$context,
+					'properties',
+					"Property '{property}' is not allowed",
+					array(
+						'property' => $name,
+					)
+				);
+			}
 
-            $context->pushDataPath($name);
-            $error = $prop->validate($context);
-            $context->popDataPath();
+			if ( is_object( $prop ) && ! ( $prop instanceof Schema ) ) {
+				$prop = $this->properties[ $name ] = $context->loader()->loadObjectSchema( $prop );
+			}
 
-            if ($error) {
-                $errors->add($error);
-                if ($errors->isFull()) {
-                    break;
-                }
-            } else {
-                $evaluated[] = $name;
-            }
-        }
+			$context->pushDataPath( $name );
+			$error = $prop->validate( $context );
+			$context->popDataPath();
 
-        $context->addEvaluatedProperties($evaluated);
+			if ( $error ) {
+				$errors->add( $error );
+				if ( $errors->isFull() ) {
+					break;
+				}
+			} else {
+				$evaluated[] = $name;
+			}
+		}
 
-        if (!$errors->isEmpty()) {
-            return $this->error($schema, $context, 'properties', "The properties must match schema: {properties}", [
-                'properties' => array_values(array_diff($checked, $evaluated))
-            ], $errors);
-        }
-        unset($errors);
+		$context->addEvaluatedProperties( $evaluated );
 
-        $context->addCheckedProperties($checked);
+		if ( ! $errors->isEmpty() ) {
+			return $this->error(
+				$schema,
+				$context,
+				'properties',
+				'The properties must match schema: {properties}',
+				array(
+					'properties' => array_values( array_diff( $checked, $evaluated ) ),
+				),
+				$errors
+			);
+		}
+		unset( $errors );
 
-        return null;
-    }
+		$context->addCheckedProperties( $checked );
+
+		return null;
+	}
 }

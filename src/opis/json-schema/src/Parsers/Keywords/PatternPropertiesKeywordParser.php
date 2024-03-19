@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,49 +23,47 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\PatternPropertiesKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class PatternPropertiesKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+class PatternPropertiesKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
-        if (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be an object", $info);
-        }
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $list = [];
+		$value = $this->keywordValue( $schema );
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an object', $info );
+		}
 
-        foreach ($value as $pattern => $item) {
-            if (!Helper::isValidPattern($pattern)) {
-                throw $this->keywordException("Each property name from {keyword} must be valid regex", $info);
-            }
+		$list = array();
 
-            if (!is_bool($item) && !is_object($item)) {
-                throw $this->keywordException("{keyword}[{$pattern}] must be a json schema (object or boolean)", $info);
-            }
+		foreach ( $value as $pattern => $item ) {
+			if ( ! Helper::isValidPattern( $pattern ) ) {
+				throw $this->keywordException( 'Each property name from {keyword} must be valid regex', $info );
+			}
 
-            $list[$pattern] = $item;
-        }
+			if ( ! is_bool( $item ) && ! is_object( $item ) ) {
+				throw $this->keywordException( "{keyword}[{$pattern}] must be a json schema (object or boolean)", $info );
+			}
 
-        return $list ? new PatternPropertiesKeyword($list) : null;
-    }
+			$list[ $pattern ] = $item;
+		}
+
+		return $list ? new PatternPropertiesKeyword( $list ) : null;
+	}
 }

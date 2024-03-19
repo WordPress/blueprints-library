@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,33 +21,31 @@ namespace Opis\JsonSchema\Keywords;
 use ArrayObject;
 use Opis\JsonSchema\ValidationContext;
 
-trait OfTrait
-{
-    /**
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    protected function createArrayObject($context)
-    {
-        return $context->trackUnevaluated() ? new ArrayObject() : null;
-    }
+trait OfTrait {
 
-    /**
-     * @param \ArrayObject|null $object
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    protected function addEvaluatedFromArrayObject($object, $context)
-    {
-        if (!$object || !$object->count()) {
-            return;
-        }
+	/**
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	protected function createArrayObject( $context ) {
+		return $context->trackUnevaluated() ? new ArrayObject() : null;
+	}
 
-        foreach ($object as $value) {
-            if (isset($value['properties'])) {
-                $context->addEvaluatedProperties($value['properties']);
-            }
-            if (isset($value['items'])) {
-                $context->addEvaluatedItems($value['items']);
-            }
-        }
-    }
+	/**
+	 * @param \ArrayObject|null                  $object
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	protected function addEvaluatedFromArrayObject( $object, $context ) {
+		if ( ! $object || ! $object->count() ) {
+			return;
+		}
+
+		foreach ( $object as $value ) {
+			if ( isset( $value['properties'] ) ) {
+				$context->addEvaluatedProperties( $value['properties'] );
+			}
+			if ( isset( $value['items'] ) ) {
+				$context->addEvaluatedItems( $value['items'] );
+			}
+		}
+	}
 }

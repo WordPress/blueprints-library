@@ -7,19 +7,19 @@ use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Filesystem\Exception\IOException;
 use WordPress\Blueprints\Runtime\Runtime;
 
-function run_blueprint( $json, $options = [] ) {
+function run_blueprint( $json, $options = array() ) {
 
-	$environment = $options['environment'] ?? ContainerBuilder::ENVIRONMENT_NATIVE;
-	$documentRoot = $options['documentRoot'] ?? '/wordpress';
+	$environment        = $options['environment'] ?? ContainerBuilder::ENVIRONMENT_NATIVE;
+	$documentRoot       = $options['documentRoot'] ?? '/wordpress';
 	$progressSubscriber = $options['progressSubscriber'] ?? null;
-	$progressType = $options['progressType'] ?? 'all';
+	$progressType       = $options['progressType'] ?? 'all';
 
 	$c = ( new ContainerBuilder() )->build(
 		$environment,
 		new Runtime( $documentRoot )
 	);
 
-	$engine = $c['blueprint.engine'];
+	$engine            = $c['blueprint.engine'];
 	$compiledBlueprint = $engine->parseAndCompile( $json );
 
 	/** @var $engine Engine */
@@ -35,24 +35,29 @@ function run_blueprint( $json, $options = [] ) {
 }
 
 function list_files( string $path, $omitDotFiles = false ): array {
-	return array_values( array_filter( scandir( $path ), function ( $file ) use ( $omitDotFiles ) {
-		if ( $omitDotFiles && $file[0] === '.' ) {
-			return false;
-		}
+	return array_values(
+		array_filter(
+			scandir( $path ),
+			function ( $file ) use ( $omitDotFiles ) {
+				if ( $omitDotFiles && $file[0] === '.' ) {
+					return false;
+				}
 
-		return '.' !== $file && '..' !== $file;
-	} ) );
+				return '.' !== $file && '..' !== $file;
+			}
+		)
+	);
 }
 
 function move_files_from_directory_to_directory( string $from, string $to ) {
-	$fs = new Filesystem();
+	$fs    = new Filesystem();
 	$files = scandir( $from );
 	foreach ( $files as $file ) {
 		if ( '.' === $file || '..' === $file ) {
 			continue;
 		}
 		$fromPath = Path::canonicalize( $from . '/' . $file );
-		$toPath = Path::canonicalize( $to . '/' . $file );
+		$toPath   = Path::canonicalize( $to . '/' . $file );
 		try {
 			$fs->rename( $fromPath, $toPath );
 		} catch ( IOException $exception ) {

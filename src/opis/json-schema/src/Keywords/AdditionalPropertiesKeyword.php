@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,68 +19,79 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class AdditionalPropertiesKeyword implements Keyword
-{
-    use OfTrait;
-    use IterableDataValidationTrait;
+class AdditionalPropertiesKeyword implements Keyword {
 
-    /** @var bool|object|Schema */
-    protected $value;
+	use OfTrait;
+	use IterableDataValidationTrait;
 
-    /**
-     * @param bool|object|Schema $value
-     */
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool|object|Schema */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->value === true) {
-            $context->markAllAsEvaluatedProperties();
-            return null;
-        }
+	/**
+	 * @param bool|object|Schema $value
+	 */
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        $props = $context->getUncheckedProperties();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->value === true ) {
+			$context->markAllAsEvaluatedProperties();
+			return null;
+		}
 
-        if (!$props) {
-            return null;
-        }
+		$props = $context->getUncheckedProperties();
 
-        if ($this->value === false) {
-            return $this->error($schema, $context,
-                'additionalProperties', 'Additional object properties are not allowed: {properties}', [
-                    'properties' => $props
-                ]);
-        }
+		if ( ! $props ) {
+			return null;
+		}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+		if ( $this->value === false ) {
+			return $this->error(
+				$schema,
+				$context,
+				'additionalProperties',
+				'Additional object properties are not allowed: {properties}',
+				array(
+					'properties' => $props,
+				)
+			);
+		}
 
-        $object = $this->createArrayObject($context);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        $error = $this->validateIterableData($schema, $this->value, $context, $props,
-            'additionalProperties', 'All additional object properties must match schema: {properties}', [
-                'properties' => $props
-            ], $object);
+		$object = $this->createArrayObject( $context );
 
-        if ($object && $object->count()) {
-            $context->addEvaluatedProperties($object->getArrayCopy());
-        }
+		$error = $this->validateIterableData(
+			$schema,
+			$this->value,
+			$context,
+			$props,
+			'additionalProperties',
+			'All additional object properties must match schema: {properties}',
+			array(
+				'properties' => $props,
+			),
+			$object
+		);
 
-        return $error;
-    }
+		if ( $object && $object->count() ) {
+			$context->addEvaluatedProperties( $object->getArrayCopy() );
+		}
+
+		return $error;
+	}
 }

@@ -11,9 +11,9 @@ abstract class BaseStepRunner implements StepRunnerInterface {
 	protected $runtime;
 
 	/**
-  * @param \WordPress\Blueprints\Resources\ResourceManager $map
-  */
- public function setResourceManager( $map ) {
+	 * @param \WordPress\Blueprints\Resources\ResourceManager $map
+	 */
+	public function setResourceManager( $map ) {
 		$this->resourceManager = $map;
 	}
 
@@ -22,9 +22,9 @@ abstract class BaseStepRunner implements StepRunnerInterface {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Runtime\RuntimeInterface $runtime
-  */
- public function setRuntime( $runtime ) {
+	 * @param \WordPress\Blueprints\Runtime\RuntimeInterface $runtime
+	 */
+	public function setRuntime( $runtime ) {
 		$this->runtime = $runtime;
 	}
 

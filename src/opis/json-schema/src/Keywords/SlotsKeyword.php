@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,134 +21,143 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Keyword, Schema};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class SlotsKeyword implements Keyword
-{
-    use ErrorTrait;
+class SlotsKeyword implements Keyword {
 
-    /** @var bool[]|Schema[]|object[]|string[] */
-    protected $slots;
+	use ErrorTrait;
 
-    /** @var string[] */
-    protected $stack = [];
+	/** @var bool[]|Schema[]|object[]|string[] */
+	protected $slots;
 
-    /**
-     * @param string[]|bool[]|object[]|Schema[] $slots
-     */
-    public function __construct(array $slots)
-    {
-        $this->slots = $slots;
-    }
+	/** @var string[] */
+	protected $stack = array();
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $newContext = $context->newInstance($context->currentData(), $schema);
+	/**
+	 * @param string[]|bool[]|object[]|Schema[] $slots
+	 */
+	public function __construct( array $slots ) {
+		$this->slots = $slots;
+	}
 
-        foreach ($this->slots as $name => $fallback) {
-            $slot = $this->resolveSlotSchema($name, $context);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$newContext = $context->newInstance( $context->currentData(), $schema );
 
-            if ($slot === null) {
-                $save = true;
-                if (is_string($fallback)) {
-                    $save = false;
-                    $fallback = $this->resolveSlot($fallback, $context);
-                }
+		foreach ( $this->slots as $name => $fallback ) {
+			$slot = $this->resolveSlotSchema( $name, $context );
 
-                if ($fallback === true) {
-                    continue;
-                }
+			if ( $slot === null ) {
+				$save = true;
+				if ( is_string( $fallback ) ) {
+					$save     = false;
+					$fallback = $this->resolveSlot( $fallback, $context );
+				}
 
-                if ($fallback === false) {
-                    return $this->error($schema, $context, '$slots', "Required slot '{slot}' is missing", [
-                        'slot' => $name,
-                    ]);
-                }
+				if ( $fallback === true ) {
+					continue;
+				}
 
-                if (is_object($fallback) && !($fallback instanceof Schema)) {
-                    $fallback = $context->loader()->loadObjectSchema($fallback);
-                    if ($save) {
-                        $this->slots[$name] = $fallback;
-                    }
-                }
+				if ( $fallback === false ) {
+					return $this->error(
+						$schema,
+						$context,
+						'$slots',
+						"Required slot '{slot}' is missing",
+						array(
+							'slot' => $name,
+						)
+					);
+				}
 
-                $slot = $fallback;
-            }
+				if ( is_object( $fallback ) && ! ( $fallback instanceof Schema ) ) {
+					$fallback = $context->loader()->loadObjectSchema( $fallback );
+					if ( $save ) {
+						$this->slots[ $name ] = $fallback;
+					}
+				}
 
-            if ($error = $slot->validate($newContext)) {
-                return $this->error($schema, $context,'$slots', "Schema for slot '{slot}' was not matched", [
-                    'slot' => $name,
-                ], $error);
-            }
-        }
+				$slot = $fallback;
+			}
 
-        return null;
-    }
+			if ( $error = $slot->validate( $newContext ) ) {
+				return $this->error(
+					$schema,
+					$context,
+					'$slots',
+					"Schema for slot '{slot}' was not matched",
+					array(
+						'slot' => $name,
+					),
+					$error
+				);
+			}
+		}
 
-    /**
-     * @param string $name
-     * @param ValidationContext $context
-     * @return Schema|null
-     */
-    protected function resolveSlotSchema($name, $context)
-    {
-        do {
-            $slot = $context->slot($name);
-        } while ($slot === null && $context = $context->parent());
+		return null;
+	}
 
-        return $slot;
-    }
+	/**
+	 * @param string            $name
+	 * @param ValidationContext $context
+	 * @return Schema|null
+	 */
+	protected function resolveSlotSchema( $name, $context ) {
+		do {
+			$slot = $context->slot( $name );
+		} while ( $slot === null && $context = $context->parent() );
 
-    /**
-     * @param string $name
-     * @param ValidationContext $context
-     * @return bool|Schema
-     */
-    protected function resolveSlot($name, $context)
-    {
-        $slot = $this->resolveSlotSchema($name, $context);
+		return $slot;
+	}
 
-        if ($slot !== null) {
-            return $slot;
-        }
+	/**
+	 * @param string            $name
+	 * @param ValidationContext $context
+	 * @return bool|Schema
+	 */
+	protected function resolveSlot( $name, $context ) {
+		$slot = $this->resolveSlotSchema( $name, $context );
 
-        if (!isset($this->slots[$name])) {
-            return false;
-        }
+		if ( $slot !== null ) {
+			return $slot;
+		}
 
-        $slot = $this->slots[$name];
+		if ( ! isset( $this->slots[ $name ] ) ) {
+			return false;
+		}
 
-        if (is_bool($slot)) {
-            return $slot;
-        }
+		$slot = $this->slots[ $name ];
 
-        if (is_object($slot)) {
-            if ($slot instanceof Schema) {
-                return $slot;
-            }
+		if ( is_bool( $slot ) ) {
+			return $slot;
+		}
 
-            $slot = $context->loader()->loadObjectSchema($slot);
-            $this->slots[$name] = $slot;
-            return $slot;
-        }
+		if ( is_object( $slot ) ) {
+			if ( $slot instanceof Schema ) {
+				return $slot;
+			}
 
-        if (!is_string($slot)) {
-            // Looks like the slot is missing
-            return false;
-        }
+			$slot                 = $context->loader()->loadObjectSchema( $slot );
+			$this->slots[ $name ] = $slot;
+			return $slot;
+		}
 
-        if (in_array($slot, $this->stack)) {
-            // Recursive
-            return false;
-        }
+		if ( ! is_string( $slot ) ) {
+			// Looks like the slot is missing
+			return false;
+		}
 
-        $this->stack[] = $slot;
-        $slot = $this->resolveSlot($slot, $context);
-        array_pop($this->stack);
+		if ( in_array( $slot, $this->stack ) ) {
+			// Recursive
+			return false;
+		}
 
-        return $slot;
-    }
+		$this->stack[] = $slot;
+		$slot          = $this->resolveSlot( $slot, $context );
+		array_pop( $this->stack );
+
+		return $slot;
+	}
 }

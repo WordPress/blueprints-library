@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,39 +21,37 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{Helper, ValidationContext, Keyword, Schema};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class DefaultKeyword implements Keyword
-{
+class DefaultKeyword implements Keyword {
 
-    /**
-     * @var mixed[]
-     */
-    protected $defaults;
 
-    /**
-     * @param array $defaults
-     */
-    public function __construct(array $defaults)
-    {
-        $this->defaults = $defaults;
-    }
+	/**
+	 * @var mixed[]
+	 */
+	protected $defaults;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $data = $context->currentData();
+	/**
+	 * @param array $defaults
+	 */
+	public function __construct( array $defaults ) {
+		$this->defaults = $defaults;
+	}
 
-        if (is_object($data)) {
-            foreach ($this->defaults as $name => $value) {
-                if (!property_exists($data, $name)) {
-                    $data->{$name} = Helper::cloneValue($value);
-                }
-            }
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$data = $context->currentData();
 
-        return null;
-    }
+		if ( is_object( $data ) ) {
+			foreach ( $this->defaults as $name => $value ) {
+				if ( ! property_exists( $data, $name ) ) {
+					$data->{$name} = Helper::cloneValue( $value );
+				}
+			}
+		}
+
+		return null;
+	}
 }

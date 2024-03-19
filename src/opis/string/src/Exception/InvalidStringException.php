@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020-2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,43 +20,40 @@ namespace Opis\String\Exception;
 
 use Throwable;
 
-class InvalidStringException extends UnicodeException
-{
-    /**
-     * @var string
-     */
-    protected $string;
+class InvalidStringException extends UnicodeException {
 
-    /**
-     * @var int
-     */
-    protected $offset;
+	/**
+	 * @var string
+	 */
+	protected $string;
 
-    /**
-     * @param string $string
-     * @param int $offset
-     * @param Throwable|null $previous
-     */
-    public function __construct(string $string, int $offset = -1, Throwable $previous = null)
-    {
-        parent::__construct("Invalid UTF-8 string at offset {$offset}", 0, $previous);
-        $this->string = $string;
-        $this->offset = $offset;
-    }
+	/**
+	 * @var int
+	 */
+	protected $offset;
 
-    /**
-     * @return string
-     */
-    public function string(): string
-    {
-        return $this->string;
-    }
+	/**
+	 * @param string         $string
+	 * @param int            $offset
+	 * @param Throwable|null $previous
+	 */
+	public function __construct( string $string, int $offset = -1, Throwable $previous = null ) {
+		parent::__construct( "Invalid UTF-8 string at offset {$offset}", 0, $previous );
+		$this->string = $string;
+		$this->offset = $offset;
+	}
 
-    /**
-     * @return int
-     */
-    public function offset(): int
-    {
-        return $this->offset;
-    }
+	/**
+	 * @return string
+	 */
+	public function string(): string {
+		return $this->string;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function offset(): int {
+		return $this->offset;
+	}
 }

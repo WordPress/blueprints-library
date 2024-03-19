@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,110 +18,100 @@
 
 namespace Opis\JsonSchema\Parsers;
 
-abstract class Vocabulary
-{
-    /** @var KeywordParser[] */
-    protected $keywords;
+abstract class Vocabulary {
 
-    /** @var KeywordValidatorParser[] */
-    protected $keywordValidators;
+	/** @var KeywordParser[] */
+	protected $keywords;
 
-    /** @var PragmaParser[] */
-    protected $pragmas;
+	/** @var KeywordValidatorParser[] */
+	protected $keywordValidators;
 
-    /**
-     * @param KeywordParser[] $keywords
-     * @param KeywordValidatorParser[] $keywordValidators
-     * @param PragmaParser[] $pragmas
-     */
-    public function __construct(array $keywords = [], array $keywordValidators = [], array $pragmas = [])
-    {
-        $this->keywords = $keywords;
-        $this->keywordValidators = $keywordValidators;
-        $this->pragmas = $pragmas;
-    }
+	/** @var PragmaParser[] */
+	protected $pragmas;
 
-    /**
-     * @return KeywordParser[]
-     */
-    public function keywords(): array
-    {
-        return $this->keywords;
-    }
+	/**
+	 * @param KeywordParser[]          $keywords
+	 * @param KeywordValidatorParser[] $keywordValidators
+	 * @param PragmaParser[]           $pragmas
+	 */
+	public function __construct( array $keywords = array(), array $keywordValidators = array(), array $pragmas = array() ) {
+		$this->keywords          = $keywords;
+		$this->keywordValidators = $keywordValidators;
+		$this->pragmas           = $pragmas;
+	}
 
-    /**
-     * @return KeywordValidatorParser[]
-     */
-    public function keywordValidators(): array
-    {
-        return $this->keywordValidators;
-    }
+	/**
+	 * @return KeywordParser[]
+	 */
+	public function keywords(): array {
+		return $this->keywords;
+	}
 
-    /**
-     * @return PragmaParser[]
-     */
-    public function pragmas(): array
-    {
-        return $this->pragmas;
-    }
+	/**
+	 * @return KeywordValidatorParser[]
+	 */
+	public function keywordValidators(): array {
+		return $this->keywordValidators;
+	}
 
-    /**
-     * @param KeywordParser $keyword
-     * @return Vocabulary
-     */
-    public function appendKeyword($keyword): self
-    {
-        $this->keywords[] = $keyword;
-        return $this;
-    }
+	/**
+	 * @return PragmaParser[]
+	 */
+	public function pragmas(): array {
+		return $this->pragmas;
+	}
 
-    /**
-     * @param KeywordParser $keyword
-     * @return Vocabulary
-     */
-    public function prependKeyword($keyword): self
-    {
-        array_unshift($this->keywords, $keyword);
-        return $this;
-    }
+	/**
+	 * @param KeywordParser $keyword
+	 * @return Vocabulary
+	 */
+	public function appendKeyword( $keyword ): self {
+		$this->keywords[] = $keyword;
+		return $this;
+	}
 
-    /**
-     * @param KeywordValidatorParser $keywordValidatorParser
-     * @return Vocabulary
-     */
-    public function appendKeywordValidator($keywordValidatorParser): self
-    {
-        $this->keywordValidators[] = $keywordValidatorParser;
-        return $this;
-    }
+	/**
+	 * @param KeywordParser $keyword
+	 * @return Vocabulary
+	 */
+	public function prependKeyword( $keyword ): self {
+		array_unshift( $this->keywords, $keyword );
+		return $this;
+	}
 
-    /**
-     * @param KeywordValidatorParser $keywordValidator
-     * @return Vocabulary
-     */
-    public function prependKeywordValidator($keywordValidator): self
-    {
-        array_unshift($this->keywordValidators, $keywordValidator);
-        return $this;
-    }
+	/**
+	 * @param KeywordValidatorParser $keywordValidatorParser
+	 * @return Vocabulary
+	 */
+	public function appendKeywordValidator( $keywordValidatorParser ): self {
+		$this->keywordValidators[] = $keywordValidatorParser;
+		return $this;
+	}
 
-    /**
-     * @param PragmaParser $pragma
-     * @return Vocabulary
-     */
-    public function appendPragma($pragma): self
-    {
-        $this->pragmas[] = $pragma;
-        return $this;
-    }
+	/**
+	 * @param KeywordValidatorParser $keywordValidator
+	 * @return Vocabulary
+	 */
+	public function prependKeywordValidator( $keywordValidator ): self {
+		array_unshift( $this->keywordValidators, $keywordValidator );
+		return $this;
+	}
 
-    /**
-     * @param PragmaParser $pragma
-     * @return Vocabulary
-     */
-    public function prependPragma($pragma): self
-    {
-        array_unshift($this->pragmas, $pragma);
-        return $this;
-    }
+	/**
+	 * @param PragmaParser $pragma
+	 * @return Vocabulary
+	 */
+	public function appendPragma( $pragma ): self {
+		$this->pragmas[] = $pragma;
+		return $this;
+	}
+
+	/**
+	 * @param PragmaParser $pragma
+	 * @return Vocabulary
+	 */
+	public function prependPragma( $pragma ): self {
+		array_unshift( $this->pragmas, $pragma );
+		return $this;
+	}
 }

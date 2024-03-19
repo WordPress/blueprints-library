@@ -39,19 +39,19 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  * stage2.finish();
  */
 class Tracker {
-	private $selfWeight = 1;
-	private $selfDone = false;
+	private $selfWeight   = 1;
+	private $selfDone     = false;
 	private $selfProgress = 0;
-	private $selfCaption = '';
+	private $selfCaption  = '';
 	private $weight;
-	private $subTrackers = [];
+	private $subTrackers = array();
 
 	public $events;
 
-	public function __construct( $options = [] ) {
-		$this->weight = $options['weight'] ?? 1;
+	public function __construct( $options = array() ) {
+		$this->weight      = $options['weight'] ?? 1;
 		$this->selfCaption = $options['caption'] ?? '';
-		$this->events = new EventDispatcher();
+		$this->events      = new EventDispatcher();
 	}
 
 	/**
@@ -100,28 +100,36 @@ class Tracker {
 		}
 		$this->selfWeight -= $weight;
 
-		$subTracker = new Tracker( [
-			'caption' => $caption,
-			'weight'  => $weight,
-		] );
+		$subTracker          = new Tracker(
+			array(
+				'caption' => $caption,
+				'weight'  => $weight,
+			)
+		);
 		$this->subTrackers[] = $subTracker;
-		$subTracker->events->addListener( ProgressEvent::class, function () {
-			$this->notifyProgress();
-		} );
-		$subTracker->events->addListener( DoneEvent::class, function () {
-			if ( $this->isDone() ) {
-				$this->notifyDone();
+		$subTracker->events->addListener(
+			ProgressEvent::class,
+			function () {
+				$this->notifyProgress();
 			}
-		} );
+		);
+		$subTracker->events->addListener(
+			DoneEvent::class,
+			function () {
+				if ( $this->isDone() ) {
+					$this->notifyDone();
+				}
+			}
+		);
 
 		return $subTracker;
 	}
 
 	/**
-  * @param float $value
-  * @param string|null $caption
-  */
- public function set( $value, $caption = null ) {
+	 * @param float       $value
+	 * @param string|null $caption
+	 */
+	public function set( $value, $caption = null ) {
 		if ( $value < $this->selfProgress ) {
 			throw new \InvalidArgumentException( "Progress cannot go backwards (tried updating to $value when it already was $this->selfProgress)" );
 		}
@@ -145,7 +153,7 @@ class Tracker {
 	}
 
 	public function finish() {
-		$this->selfDone = true;
+		$this->selfDone     = true;
 		$this->selfProgress = 100;
 		$this->notifyProgress();
 		$this->notifyDone();
@@ -170,9 +178,13 @@ class Tracker {
 		if ( $this->selfDone ) {
 			return 100;
 		}
-		$sum = array_reduce( $this->subTrackers, function ( $sum, $tracker ) {
-			return $sum + $tracker->getProgress() * $tracker->getWeight();
-		}, $this->selfProgress * $this->selfWeight );
+		$sum = array_reduce(
+			$this->subTrackers,
+			function ( $sum, $tracker ) {
+				return $sum + $tracker->getProgress() * $tracker->getWeight();
+			},
+			$this->selfProgress * $this->selfWeight
+		);
 
 		return round( $sum * 10000 ) / 10000;
 	}
@@ -193,5 +205,4 @@ class Tracker {
 	private function notifyDone() {
 		$this->events->dispatch( new DoneEvent() );
 	}
-
 }

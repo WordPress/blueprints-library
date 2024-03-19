@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,64 +23,68 @@ use Opis\JsonSchema\Resolvers\ContentEncodingResolver;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\UnresolvedContentEncodingException;
 
-class ContentEncodingKeyword implements Keyword
-{
-    use ErrorTrait;
+class ContentEncodingKeyword implements Keyword {
 
-    /**
-     * @var string
-     */
-    protected $name;
+	use ErrorTrait;
 
-    /**
-     * @var \Opis\JsonSchema\Resolvers\ContentEncodingResolver|null
-     */
-    protected $resolver;
+	/**
+	 * @var string
+	 */
+	protected $name;
 
-    /** @var bool|null|callable|ContentEncoding */
-    protected $encoding = false;
+	/**
+	 * @var \Opis\JsonSchema\Resolvers\ContentEncodingResolver|null
+	 */
+	protected $resolver;
 
-    /**
-     * @param string $name
-     * @param null|ContentEncodingResolver $resolver
-     */
-    public function __construct(string $name, $resolver = null)
-    {
-        $this->name = $name;
-        $this->resolver = $resolver;
-    }
+	/** @var bool|null|callable|ContentEncoding */
+	protected $encoding = false;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (!$this->resolver) {
-            return null;
-        }
+	/**
+	 * @param string                       $name
+	 * @param null|ContentEncodingResolver $resolver
+	 */
+	public function __construct( string $name, $resolver = null ) {
+		$this->name     = $name;
+		$this->resolver = $resolver;
+	}
 
-        if ($this->encoding === false) {
-            $this->encoding = $this->resolver->resolve($this->name);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( ! $this->resolver ) {
+			return null;
+		}
 
-        if ($this->encoding === null) {
-            throw new UnresolvedContentEncodingException($this->name, $schema, $context);
-        }
+		if ( $this->encoding === false ) {
+			$this->encoding = $this->resolver->resolve( $this->name );
+		}
 
-        $result = $this->encoding instanceof ContentEncoding
-            ? $this->encoding->decode($context->currentData(), $this->name)
-            : ($this->encoding)($context->currentData(), $this->name);
+		if ( $this->encoding === null ) {
+			throw new UnresolvedContentEncodingException( $this->name, $schema, $context );
+		}
 
-        if ($result === null) {
-            return $this->error($schema, $context, 'contentEncoding', "The value must be encoded as '{encoding}'", [
-                'encoding' => $this->name,
-            ]);
-        }
+		$result = $this->encoding instanceof ContentEncoding
+			? $this->encoding->decode( $context->currentData(), $this->name )
+			: ( $this->encoding )( $context->currentData(), $this->name );
 
-        $context->setDecodedContent($result);
+		if ( $result === null ) {
+			return $this->error(
+				$schema,
+				$context,
+				'contentEncoding',
+				"The value must be encoded as '{encoding}'",
+				array(
+					'encoding' => $this->name,
+				)
+			);
+		}
 
-        return null;
-    }
+		$context->setDecodedContent( $result );
+
+		return null;
+	}
 }

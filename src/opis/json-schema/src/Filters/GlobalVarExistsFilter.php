@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,32 +20,31 @@ namespace Opis\JsonSchema\Filters;
 
 use Opis\JsonSchema\{ValidationContext, Filter, Schema};
 
-class GlobalVarExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $var = $args['var'] ?? $context->currentData();
+class GlobalVarExistsFilter implements Filter {
 
-        if (!is_string($var)) {
-            return false;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$var = $args['var'] ?? $context->currentData();
 
-        $globals = $context->globals();
+		if ( ! is_string( $var ) ) {
+			return false;
+		}
 
-        if (!array_key_exists($var, $globals)) {
-            return false;
-        }
+		$globals = $context->globals();
 
-        if (array_key_exists('value', $args)) {
-            return $globals[$var] == $args['value'];
-        }
+		if ( ! array_key_exists( $var, $globals ) ) {
+			return false;
+		}
 
-        return true;
-    }
+		if ( array_key_exists( 'value', $args ) ) {
+			return $globals[ $var ] == $args['value'];
+		}
+
+		return true;
+	}
 }

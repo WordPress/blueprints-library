@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,66 +18,63 @@
 
 namespace Opis\JsonSchema\Parsers;
 
-abstract class Draft extends Vocabulary
-{
-    /**
-     * @param Vocabulary|null $extraVocabulary
-     */
-    public function __construct($extraVocabulary = null)
-    {
-        $keywords = $this->getKeywordParsers();
-        $keywordValidators = $this->getKeywordValidatorParsers();
-        $pragmas = $this->getPragmaParsers();
+abstract class Draft extends Vocabulary {
 
-        if ($extraVocabulary) {
-            $keywords = array_merge($keywords, $extraVocabulary->keywords());
-            $keywordValidators = array_merge($keywordValidators, $extraVocabulary->keywordValidators());
-            $pragmas = array_merge($pragmas, $extraVocabulary->pragmas());
-        }
+	/**
+	 * @param Vocabulary|null $extraVocabulary
+	 */
+	public function __construct( $extraVocabulary = null ) {
+		$keywords          = $this->getKeywordParsers();
+		$keywordValidators = $this->getKeywordValidatorParsers();
+		$pragmas           = $this->getPragmaParsers();
 
-        array_unshift($keywords, $this->getRefKeywordParser());
+		if ( $extraVocabulary ) {
+			$keywords          = array_merge( $keywords, $extraVocabulary->keywords() );
+			$keywordValidators = array_merge( $keywordValidators, $extraVocabulary->keywordValidators() );
+			$pragmas           = array_merge( $pragmas, $extraVocabulary->pragmas() );
+		}
 
-        parent::__construct($keywords, $keywordValidators, $pragmas);
-    }
+		array_unshift( $keywords, $this->getRefKeywordParser() );
 
-    /**
-     * @return string
-     */
-    abstract public function version(): string;
+		parent::__construct( $keywords, $keywordValidators, $pragmas );
+	}
 
-    /**
-     * @return bool
-     */
-    abstract public function allowKeywordsAlongsideRef(): bool;
+	/**
+	 * @return string
+	 */
+	abstract public function version(): string;
 
-    /**
-     * @return bool
-     */
-    abstract public function supportsAnchorId(): bool;
+	/**
+	 * @return bool
+	 */
+	abstract public function allowKeywordsAlongsideRef(): bool;
 
-    /**
-     * @return KeywordParser
-     */
-    abstract protected function getRefKeywordParser(): KeywordParser;
+	/**
+	 * @return bool
+	 */
+	abstract public function supportsAnchorId(): bool;
 
-    /**
-     * @return KeywordParser[]
-     */
-    abstract protected function getKeywordParsers(): array;
+	/**
+	 * @return KeywordParser
+	 */
+	abstract protected function getRefKeywordParser(): KeywordParser;
 
-    /**
-     * @return KeywordValidatorParser[]
-     */
-    protected function getKeywordValidatorParsers(): array
-    {
-        return [];
-    }
+	/**
+	 * @return KeywordParser[]
+	 */
+	abstract protected function getKeywordParsers(): array;
 
-    /**
-     * @return PragmaParser[]
-     */
-    protected function getPragmaParsers(): array
-    {
-        return [];
-    }
+	/**
+	 * @return KeywordValidatorParser[]
+	 */
+	protected function getKeywordValidatorParsers(): array {
+		return array();
+	}
+
+	/**
+	 * @return PragmaParser[]
+	 */
+	protected function getPragmaParsers(): array {
+		return array();
+	}
 }

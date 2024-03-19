@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,67 +22,65 @@ use Opis\Uri\UriTemplate;
 use Opis\JsonSchema\{ValidationContext, Filter, Schema, Uri};
 use Opis\JsonSchema\Variables\VariablesContainer;
 
-class SchemaExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $ref = $args['ref'] ?? $context->currentData();
-        if (!is_string($ref)) {
-            return false;
-        }
+class SchemaExistsFilter implements Filter {
 
-        if (UriTemplate::isTemplate($ref)) {
-            if (isset($args['vars']) && is_object($args['vars'])) {
-                $vars = new VariablesContainer($args['vars'], false);
-                $vars = $vars->resolve($context->rootData(), $context->currentDataPath());
-                if (!is_array($vars)) {
-                    $vars = (array)$vars;
-                }
-                $vars += $context->globals();
-            } else {
-                $vars = $context->globals();
-            }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$ref = $args['ref'] ?? $context->currentData();
+		if ( ! is_string( $ref ) ) {
+			return false;
+		}
 
-            $ref = (new UriTemplate($ref))->resolve($vars);
+		if ( UriTemplate::isTemplate( $ref ) ) {
+			if ( isset( $args['vars'] ) && is_object( $args['vars'] ) ) {
+				$vars = new VariablesContainer( $args['vars'], false );
+				$vars = $vars->resolve( $context->rootData(), $context->currentDataPath() );
+				if ( ! is_array( $vars ) ) {
+					$vars = (array) $vars;
+				}
+				$vars += $context->globals();
+			} else {
+				$vars = $context->globals();
+			}
 
-            unset($vars);
-        }
+			$ref = ( new UriTemplate( $ref ) )->resolve( $vars );
 
-        unset($args);
+			unset( $vars );
+		}
 
-        return $this->refExists($ref, $context, $schema);
-    }
+		unset( $args );
 
-    /**
-     * @param string $ref
-     * @param ValidationContext $context
-     * @param Schema $schema
-     * @return bool
-     */
-    protected function refExists($ref, $context, $schema): bool
-    {
-        if ($ref === '') {
-            return false;
-        }
+		return $this->refExists( $ref, $context, $schema );
+	}
 
-        if ($ref === '#') {
-            return true;
-        }
+	/**
+	 * @param string            $ref
+	 * @param ValidationContext $context
+	 * @param Schema            $schema
+	 * @return bool
+	 */
+	protected function refExists( $ref, $context, $schema ): bool {
+		if ( $ref === '' ) {
+			return false;
+		}
 
-        $info = $schema->info();
+		if ( $ref === '#' ) {
+			return true;
+		}
 
-        $id = Uri::merge($ref, $info->idBaseRoot(), true);
+		$info = $schema->info();
 
-        if ($id === null) {
-            return false;
-        }
+		$id = Uri::merge( $ref, $info->idBaseRoot(), true );
 
-        return $context->loader()->loadSchemaById($id) !== null;
-    }
+		if ( $id === null ) {
+			return false;
+		}
+
+		return $context->loader()->loadSchemaById( $id ) !== null;
+	}
 }

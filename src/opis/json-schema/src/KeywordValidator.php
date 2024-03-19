@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,16 +18,16 @@
 
 namespace Opis\JsonSchema;
 
-interface KeywordValidator extends SchemaValidator
-{
-    /**
-     * @return KeywordValidator|null
-     */
-    public function next();
+interface KeywordValidator extends SchemaValidator {
 
-    /**
-     * @param KeywordValidator|null $next
-     * @return KeywordValidator
-     */
-    public function setNext($next): KeywordValidator;
+	/**
+	 * @return KeywordValidator|null
+	 */
+	public function next();
+
+	/**
+	 * @param KeywordValidator|null $next
+	 * @return KeywordValidator
+	 */
+	public function setNext( $next ): KeywordValidator;
 }

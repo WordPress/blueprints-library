@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,324 +20,308 @@ namespace Opis\JsonSchema\Resolvers;
 
 use Opis\JsonSchema\Uri;
 
-class SchemaResolver
-{
-    /** @var bool[]|object[] */
-    protected $raw = [];
+class SchemaResolver {
 
-    /** @var string[] */
-    protected $files = [];
+	/** @var bool[]|object[] */
+	protected $raw = array();
 
-    /** @var callable[] */
-    protected $protocols = [];
+	/** @var string[] */
+	protected $files = array();
 
-    /** @var array */
-    protected $prefixes = [];
+	/** @var callable[] */
+	protected $protocols = array();
 
-    /** @var array */
-    protected $dirs = [];
+	/** @var array */
+	protected $prefixes = array();
 
-    /**
-     * @param Uri $uri
-     * @return bool|mixed|object|null
-     */
-    public function resolve($uri)
-    {
-        if (!$uri->isAbsolute()) {
-            return null;
-        }
+	/** @var array */
+	protected $dirs = array();
 
-        $scheme = $uri->scheme();
-        if (isset($this->protocols[$scheme])) {
-            return ($this->protocols[$scheme])($uri);
-        }
+	/**
+	 * @param Uri $uri
+	 * @return bool|mixed|object|null
+	 */
+	public function resolve( $uri ) {
+		if ( ! $uri->isAbsolute() ) {
+			return null;
+		}
 
-        $id = (string) $uri;
-        if (isset($this->raw[$id])) {
-            return $this->raw[$id];
-        }
+		$scheme = $uri->scheme();
+		if ( isset( $this->protocols[ $scheme ] ) ) {
+			return ( $this->protocols[ $scheme ] )( $uri );
+		}
 
-        $path = $this->resolvePath($uri);
+		$id = (string) $uri;
+		if ( isset( $this->raw[ $id ] ) ) {
+			return $this->raw[ $id ];
+		}
 
-        if ($path === null || !is_file($path)) {
-            return null;
-        }
+		$path = $this->resolvePath( $uri );
 
-        $data = file_get_contents($path);
-        if (!is_string($data)) {
-            return null;
-        }
+		if ( $path === null || ! is_file( $path ) ) {
+			return null;
+		}
 
-        $data = json_decode($data, false);
+		$data = file_get_contents( $path );
+		if ( ! is_string( $data ) ) {
+			return null;
+		}
 
-        return $data;
-    }
+		$data = json_decode( $data, false );
 
-    /**
-     * @param bool|object|string $schema
-     * @param string|null $id
-     * @return bool
-     */
-    public function registerRaw($schema, $id = null): bool
-    {
-        if (is_string($schema)) {
-            $schema = json_decode($schema, false);
-        }
+		return $data;
+	}
 
-        if ($id !== null && strpos($id, '#') === false) {
-            $id .= '#';
-        }
+	/**
+	 * @param bool|object|string $schema
+	 * @param string|null        $id
+	 * @return bool
+	 */
+	public function registerRaw( $schema, $id = null ): bool {
+		if ( is_string( $schema ) ) {
+			$schema = json_decode( $schema, false );
+		}
 
-        if (is_bool($schema)) {
-            if ($id === null) {
-                return false;
-            }
-            $this->raw[$id] = $schema;
-            return true;
-        }
+		if ( $id !== null && strpos( $id, '#' ) === false ) {
+			$id .= '#';
+		}
 
-        if (!is_object($schema)) {
-            return false;
-        }
+		if ( is_bool( $schema ) ) {
+			if ( $id === null ) {
+				return false;
+			}
+			$this->raw[ $id ] = $schema;
+			return true;
+		}
 
+		if ( ! is_object( $schema ) ) {
+			return false;
+		}
 
-        if ($id === null) {
-            if (!isset($schema->{'$id'}) || !is_string($schema->{'$id'})) {
-                return false;
-            }
+		if ( $id === null ) {
+			if ( ! isset( $schema->{'$id'} ) || ! is_string( $schema->{'$id'} ) ) {
+				return false;
+			}
 
-            $id = $schema->{'$id'};
-            if (strpos($id, '#') === false) {
-                $id .= '#';
-            }
-        }
+			$id = $schema->{'$id'};
+			if ( strpos( $id, '#' ) === false ) {
+				$id .= '#';
+			}
+		}
 
-        $this->raw[$id] = $schema;
+		$this->raw[ $id ] = $schema;
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * @param string $id
-     * @return bool
-     */
-    public function unregisterRaw($id): bool
-    {
-        if (strpos($id, '#') === false) {
-            $id .= '#';
-        }
+	/**
+	 * @param string $id
+	 * @return bool
+	 */
+	public function unregisterRaw( $id ): bool {
+		if ( strpos( $id, '#' ) === false ) {
+			$id .= '#';
+		}
 
-        if (isset($this->raw[$id])) {
-            unset($this->raw[$id]);
-            return true;
-        }
+		if ( isset( $this->raw[ $id ] ) ) {
+			unset( $this->raw[ $id ] );
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * @param string $id
-     * @param string $file
-     * @return SchemaResolver
-     */
-    public function registerFile($id, $file): self
-    {
-        if (strpos($id, '#') === false) {
-            $id .= '#';
-        }
+	/**
+	 * @param string $id
+	 * @param string $file
+	 * @return SchemaResolver
+	 */
+	public function registerFile( $id, $file ): self {
+		if ( strpos( $id, '#' ) === false ) {
+			$id .= '#';
+		}
 
-        $this->files[$id] = $file;
+		$this->files[ $id ] = $file;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param string $id
-     * @return bool
-     */
-    public function unregisterFile($id): bool
-    {
-        if (strpos($id, '#') === false) {
-            $id .= '#';
-        }
+	/**
+	 * @param string $id
+	 * @return bool
+	 */
+	public function unregisterFile( $id ): bool {
+		if ( strpos( $id, '#' ) === false ) {
+			$id .= '#';
+		}
 
-        if (!isset($this->files[$id])) {
-            return false;
-        }
+		if ( ! isset( $this->files[ $id ] ) ) {
+			return false;
+		}
 
-        unset($this->files[$id]);
+		unset( $this->files[ $id ] );
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * @param string $scheme
-     * @param callable $handler
-     * @return SchemaResolver
-     */
-    public function registerProtocol($scheme, $handler): self
-    {
-        $this->protocols[$scheme] = $handler;
+	/**
+	 * @param string   $scheme
+	 * @param callable $handler
+	 * @return SchemaResolver
+	 */
+	public function registerProtocol( $scheme, $handler ): self {
+		$this->protocols[ $scheme ] = $handler;
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param string $scheme
-     * @return bool
-     */
-    public function unregisterProtocol($scheme): bool
-    {
-        if (isset($this->protocols[$scheme])) {
-            unset($this->protocols[$scheme]);
+	/**
+	 * @param string $scheme
+	 * @return bool
+	 */
+	public function unregisterProtocol( $scheme ): bool {
+		if ( isset( $this->protocols[ $scheme ] ) ) {
+			unset( $this->protocols[ $scheme ] );
 
-            return true;
-        }
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * @param string $scheme
-     * @param string $host
-     * @param string|null $dir
-     * @return SchemaResolver
-     */
-    public function registerProtocolDir($scheme, $host, $dir): self
-    {
-        if ($dir === null) {
-            unset($this->dirs[$scheme][$host]);
-        } else {
-            $this->dirs[$scheme][$host] = rtrim($dir, '/');
-        }
+	/**
+	 * @param string      $scheme
+	 * @param string      $host
+	 * @param string|null $dir
+	 * @return SchemaResolver
+	 */
+	public function registerProtocolDir( $scheme, $host, $dir ): self {
+		if ( $dir === null ) {
+			unset( $this->dirs[ $scheme ][ $host ] );
+		} else {
+			$this->dirs[ $scheme ][ $host ] = rtrim( $dir, '/' );
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param string $scheme
-     * @return bool
-     */
-    public function unregisterProtocolDirs($scheme): bool
-    {
-        if (isset($this->dirs[$scheme])) {
-            unset($this->dirs[$scheme]);
+	/**
+	 * @param string $scheme
+	 * @return bool
+	 */
+	public function unregisterProtocolDirs( $scheme ): bool {
+		if ( isset( $this->dirs[ $scheme ] ) ) {
+			unset( $this->dirs[ $scheme ] );
 
-            return true;
-        }
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * @param string $prefix
-     * @param string $dir
-     * @return SchemaResolver
-     */
-    public function registerPrefix($prefix, $dir): self
-    {
-        $this->prefixes[$prefix] = rtrim($dir, '/');
+	/**
+	 * @param string $prefix
+	 * @param string $dir
+	 * @return SchemaResolver
+	 */
+	public function registerPrefix( $prefix, $dir ): self {
+		$this->prefixes[ $prefix ] = rtrim( $dir, '/' );
 
-        // Sort
-        uksort($this->prefixes, [$this, 'sortPrefixKeys']);
+		// Sort
+		uksort( $this->prefixes, array( $this, 'sortPrefixKeys' ) );
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @param string $prefix
-     * @return SchemaResolver
-     */
-    public function unregisterPrefix($prefix): self
-    {
-        if (isset($this->prefixes[$prefix])) {
-            unset($this->prefixes[$prefix]);
-            // Sort
-            uksort($this->prefixes, [$this, 'sortPrefixKeys']);
-        }
+	/**
+	 * @param string $prefix
+	 * @return SchemaResolver
+	 */
+	public function unregisterPrefix( $prefix ): self {
+		if ( isset( $this->prefixes[ $prefix ] ) ) {
+			unset( $this->prefixes[ $prefix ] );
+			// Sort
+			uksort( $this->prefixes, array( $this, 'sortPrefixKeys' ) );
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
 
-    public function __serialize(): array
-    {
-        return [
-            'raw' => $this->raw,
-            'protocols' => $this->protocols,
-            'prefixes' => $this->prefixes,
-            'dirs' => $this->dirs,
-        ];
-    }
+	public function __serialize(): array {
+		return array(
+			'raw'       => $this->raw,
+			'protocols' => $this->protocols,
+			'prefixes'  => $this->prefixes,
+			'dirs'      => $this->dirs,
+		);
+	}
 
-    public function __unserialize(array $data)
-    {
-        $this->raw = $data['raw'];
-        $this->protocols = $data['protocols'];
-        $this->prefixes = $data['prefixes'];
-        $this->dirs = $data['dirs'];
-    }
+	public function __unserialize( array $data ) {
+		$this->raw       = $data['raw'];
+		$this->protocols = $data['protocols'];
+		$this->prefixes  = $data['prefixes'];
+		$this->dirs      = $data['dirs'];
+	}
 
-    /**
-     * @param string $a
-     * @param string $b
-     * @return int
-     */
-    protected function sortPrefixKeys($a, $b): int
-    {
-        $la = strlen($a);
-        $lb = strlen($b);
+	/**
+	 * @param string $a
+	 * @param string $b
+	 * @return int
+	 */
+	protected function sortPrefixKeys( $a, $b ): int {
+		$la = strlen( $a );
+		$lb = strlen( $b );
 
-        if ($lb > $la) {
-            return 1;
-        }
+		if ( $lb > $la ) {
+			return 1;
+		}
 
-        if ($lb === $la) {
-            return $b < $a ? 1 : ($b === $a ? 0 : -1);
-        }
+		if ( $lb === $la ) {
+			return $b < $a ? 1 : ( $b === $a ? 0 : -1 );
+		}
 
-        return -1;
-    }
+		return -1;
+	}
 
-    /**
-     * @param Uri $uri
-     * @return string|null
-     */
-    protected function resolvePath($uri)
-    {
-        $id = (string)$uri;
+	/**
+	 * @param Uri $uri
+	 * @return string|null
+	 */
+	protected function resolvePath( $uri ) {
+		$id = (string) $uri;
 
-        if (isset($this->files[$id])) {
-            return $this->files[$id];
-        }
+		if ( isset( $this->files[ $id ] ) ) {
+			return $this->files[ $id ];
+		}
 
-        $scheme = $uri->scheme();
+		$scheme = $uri->scheme();
 
-        if (isset($this->dirs[$scheme])) {
-            $host = (string)$uri->host();
-            if (isset($this->dirs[$scheme][$host])) {
-                return $this->dirs[$scheme][$host] . '/' . ltrim($uri->path(), '/');
-            }
-            unset($host);
-        }
+		if ( isset( $this->dirs[ $scheme ] ) ) {
+			$host = (string) $uri->host();
+			if ( isset( $this->dirs[ $scheme ][ $host ] ) ) {
+				return $this->dirs[ $scheme ][ $host ] . '/' . ltrim( $uri->path(), '/' );
+			}
+			unset( $host );
+		}
 
-        $path = null;
-        foreach ($this->prefixes as $prefix => $dir) {
-            if ($prefix === '' || strpos($id, $prefix) === 0) {
-                $path = substr($id, strlen($prefix));
-                if ($path === false || $path === '') {
-                    $path = null;
-                    continue;
-                }
-                $path = Uri::parseComponents($path);
-                if ($path && isset($path['path'])) {
-                    $path = $dir . '/' . ltrim($path['path'], '/');
-                    break;
-                }
-                $path = null;
-            }
-        }
+		$path = null;
+		foreach ( $this->prefixes as $prefix => $dir ) {
+			if ( $prefix === '' || strpos( $id, $prefix ) === 0 ) {
+				$path = substr( $id, strlen( $prefix ) );
+				if ( $path === false || $path === '' ) {
+					$path = null;
+					continue;
+				}
+				$path = Uri::parseComponents( $path );
+				if ( $path && isset( $path['path'] ) ) {
+					$path = $dir . '/' . ltrim( $path['path'], '/' );
+					break;
+				}
+				$path = null;
+			}
+		}
 
-        return $path;
-    }
+		return $path;
+	}
 }

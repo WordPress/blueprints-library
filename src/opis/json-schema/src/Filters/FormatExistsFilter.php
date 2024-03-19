@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,39 +20,38 @@ namespace Opis\JsonSchema\Filters;
 
 use Opis\JsonSchema\{ValidationContext, Filter, Schema};
 
-class FormatExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $format = $args['format'] ?? $context->currentData();
-        if (!is_string($format)) {
-            return false;
-        }
+class FormatExistsFilter implements Filter {
 
-        $type = null;
-        if (isset($args['type'])) {
-            if (!is_string($args['type'])) {
-                return false;
-            }
-            $type = $args['type'];
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$format = $args['format'] ?? $context->currentData();
+		if ( ! is_string( $format ) ) {
+			return false;
+		}
 
-        $resolver = $context->loader()->parser()->getFormatResolver();
+		$type = null;
+		if ( isset( $args['type'] ) ) {
+			if ( ! is_string( $args['type'] ) ) {
+				return false;
+			}
+			$type = $args['type'];
+		}
 
-        if (!$resolver) {
-            return false;
-        }
+		$resolver = $context->loader()->parser()->getFormatResolver();
 
-        if ($type === null) {
-            return (bool)$resolver->resolveAll($format);
-        }
+		if ( ! $resolver ) {
+			return false;
+		}
 
-        return (bool)$resolver->resolve($format, $type);
-    }
+		if ( $type === null ) {
+			return (bool) $resolver->resolveAll( $format );
+		}
+
+		return (bool) $resolver->resolve( $format, $type );
+	}
 }

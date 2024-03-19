@@ -8,7 +8,7 @@ use WordPress\Blueprints\Progress\Tracker;
 class EvalPHPCallbackStepRunner extends BaseStepRunner {
 	/**
 	 * @param EvalPHPCallbackStep $input
-	 * @param Tracker $tracker
+	 * @param Tracker             $tracker
 	 */
 	function run( $input, $tracker ) {
 		if ( ! is_callable( $input->callback ) ) {

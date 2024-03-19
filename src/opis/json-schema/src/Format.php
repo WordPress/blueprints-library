@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +18,11 @@
 
 namespace Opis\JsonSchema;
 
-interface Format
-{
-    /**
-     * @param $data
-     * @return bool
-     */
-    public function validate($data): bool;
+interface Format {
+
+	/**
+	 * @param $data
+	 * @return bool
+	 */
+	public function validate( $data ): bool;
 }

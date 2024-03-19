@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,91 +21,92 @@ namespace Opis\JsonSchema\Parsers\Keywords;
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 use Opis\JsonSchema\Keywords\{RequiredDataKeyword, RequiredKeyword};
 
-class RequiredKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class RequiredKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $filter = $this->propertiesFilter($parser, $schema);
+		$value = $this->keywordValue( $schema );
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new RequiredDataKeyword($pointer, $filter);
-            }
-        }
+		$filter = $this->propertiesFilter( $parser, $schema );
 
-        if (!is_array($value)) {
-            throw $this->keywordException("{keyword} must be an array of strings", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new RequiredDataKeyword( $pointer, $filter );
+			}
+		}
 
-        foreach ($value as $name) {
-            if (!is_string($name)) {
-                throw $this->keywordException("{keyword} must be an array of strings", $info);
-            }
-        }
+		if ( ! is_array( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an array of strings', $info );
+		}
 
-        if ($filter) {
-            $value = array_filter($value, $filter === null ? function ($value, $key) : bool {
-                return !empty($value);
-            } : $filter, $filter === null ? ARRAY_FILTER_USE_BOTH : 0);
-        }
+		foreach ( $value as $name ) {
+			if ( ! is_string( $name ) ) {
+				throw $this->keywordException( '{keyword} must be an array of strings', $info );
+			}
+		}
 
-        return $value ? new RequiredKeyword(array_unique($value)) : null;
-    }
+		if ( $filter ) {
+			$value = array_filter(
+				$value,
+				$filter === null ? function ( $value, $key ): bool {
+					return ! empty( $value );
+				} : $filter,
+				$filter === null ? ARRAY_FILTER_USE_BOTH : 0
+			);
+		}
 
-    /**
-     * @param SchemaParser $parser
-     * @param object $schema
-     * @return callable|null
-     */
-    protected function propertiesFilter($parser, $schema)
-    {
-        if (!$parser->option('allowDefaults')) {
-            return null;
-        }
+		return $value ? new RequiredKeyword( array_unique( $value ) ) : null;
+	}
 
-        if (!property_exists($schema, 'properties') || !is_object($schema->properties)) {
-            return null;
-        }
+	/**
+	 * @param SchemaParser $parser
+	 * @param object       $schema
+	 * @return callable|null
+	 */
+	protected function propertiesFilter( $parser, $schema ) {
+		if ( ! $parser->option( 'allowDefaults' ) ) {
+			return null;
+		}
 
-        $props = $schema->properties;
+		if ( ! property_exists( $schema, 'properties' ) || ! is_object( $schema->properties ) ) {
+			return null;
+		}
 
-        return static function (string $name) use ($props) {
-            if (!property_exists($props, $name)) {
-                return true;
-            }
+		$props = $schema->properties;
 
-            if (is_object($props->{$name}) && property_exists($props->{$name}, 'default')) {
-                return false;
-            }
+		return static function ( string $name ) use ( $props ) {
+			if ( ! property_exists( $props, $name ) ) {
+				return true;
+			}
 
-            return true;
-        };
-    }
+			if ( is_object( $props->{$name} ) && property_exists( $props->{$name}, 'default' ) ) {
+				return false;
+			}
+
+			return true;
+		};
+	}
 }

@@ -4,7 +4,7 @@ namespace WordPress\Blueprints;
 
 use Exception;
 
-class BlueprintException extends Exception
-{
+class BlueprintException extends Exception {
+
 
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,42 +19,47 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    Helper,
-    ValidationContext,
-    Keyword,
-    Schema
+	Helper,
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class UniqueItemsKeyword implements Keyword
-{
-    use ErrorTrait;
+class UniqueItemsKeyword implements Keyword {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $data = $context->currentData();
-        if (!$data) {
-            return null;
-        }
+	use ErrorTrait;
 
-        $count = count($data);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$data = $context->currentData();
+		if ( ! $data ) {
+			return null;
+		}
 
-        for ($i = 0; $i < $count - 1; $i++) {
-            for ($j = $i + 1; $j < $count; $j++) {
-                if (Helper::equals($data[$i], $data[$j])) {
-                    return $this->error($schema, $context, 'uniqueItems', 'Array must have unique items', [
-                        'duplicate' => $data[$i],
-                        'indexes' => [$i, $j],
-                    ]);
-                }
-            }
-        }
+		$count = count( $data );
 
-        return null;
-    }
+		for ( $i = 0; $i < $count - 1; $i++ ) {
+			for ( $j = $i + 1; $j < $count; $j++ ) {
+				if ( Helper::equals( $data[ $i ], $data[ $j ] ) ) {
+					return $this->error(
+						$schema,
+						$context,
+						'uniqueItems',
+						'Array must have unique items',
+						array(
+							'duplicate' => $data[ $i ],
+							'indexes'   => array( $i, $j ),
+						)
+					);
+				}
+			}
+		}
+
+		return null;
+	}
 }

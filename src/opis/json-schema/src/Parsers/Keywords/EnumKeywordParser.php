@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,90 +22,88 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\{Keyword, Helper};
 use Opis\JsonSchema\Keywords\{EnumDataKeyword, EnumKeyword};
 use Opis\JsonSchema\Parsers\{
-    KeywordParser, DataKeywordTrait, SchemaParser
+	KeywordParser, DataKeywordTrait, SchemaParser
 };
 
-class EnumKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class EnumKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_BEFORE;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_BEFORE;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new EnumDataKeyword($pointer);
-            }
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!is_array($value) || !$value) {
-            throw $this->keywordException("{keyword} must be a non-empty array", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new EnumDataKeyword( $pointer );
+			}
+		}
 
-        $hasConst = property_exists($schema, 'const');
-        $constMatched = false;
+		if ( ! is_array( $value ) || ! $value ) {
+			throw $this->keywordException( '{keyword} must be a non-empty array', $info );
+		}
 
-        $allowedTypes = isset($shared->types) ? $shared->types : null;
-        $foundTypes = [];
-        $list = [];
-        foreach ($value as $item) {
-            $type = Helper::getJsonType($item);
-            if ($type === null) {
-                throw $this->keywordException("{keyword} contains invalid json data type", $info);
-            }
+		$hasConst     = property_exists( $schema, 'const' );
+		$constMatched = false;
 
-            if ($allowedTypes && !Helper::jsonTypeMatches($type, $allowedTypes)) {
-                continue;
-            }
+		$allowedTypes = isset( $shared->types ) ? $shared->types : null;
+		$foundTypes   = array();
+		$list         = array();
+		foreach ( $value as $item ) {
+			$type = Helper::getJsonType( $item );
+			if ( $type === null ) {
+				throw $this->keywordException( '{keyword} contains invalid json data type', $info );
+			}
 
-            if ($hasConst && Helper::equals($item, $schema->const)) {
-                $constMatched = true;
-                break;
-            }
+			if ( $allowedTypes && ! Helper::jsonTypeMatches( $type, $allowedTypes ) ) {
+				continue;
+			}
 
-            if (!in_array($type, $foundTypes)) {
-                $foundTypes[] = $type;
-            }
+			if ( $hasConst && Helper::equals( $item, $schema->const ) ) {
+				$constMatched = true;
+				break;
+			}
 
-            $list[] = $item;
-        }
+			if ( ! in_array( $type, $foundTypes ) ) {
+				$foundTypes[] = $type;
+			}
 
-        if ($hasConst) {
-            if ($constMatched) {
-                return null;
-            }
-            throw $this->keywordException("{keyword} does not contain the value of const keyword", $info);
-        }
+			$list[] = $item;
+		}
 
-        if ($foundTypes) {
-            if ($allowedTypes === null) {
-                $shared->types = $foundTypes;
-            } else {
-                $shared->types = array_unique(array_merge($shared->types, $foundTypes));
-            }
-        }
+		if ( $hasConst ) {
+			if ( $constMatched ) {
+				return null;
+			}
+			throw $this->keywordException( '{keyword} does not contain the value of const keyword', $info );
+		}
 
-        return new EnumKeyword($list);
-    }
+		if ( $foundTypes ) {
+			if ( $allowedTypes === null ) {
+				$shared->types = $foundTypes;
+			} else {
+				$shared->types = array_unique( array_merge( $shared->types, $foundTypes ) );
+			}
+		}
+
+		return new EnumKeyword( $list );
+	}
 }

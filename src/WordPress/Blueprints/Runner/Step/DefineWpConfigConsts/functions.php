@@ -68,24 +68,24 @@
  *
  * @return string
  */
-function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
+function rewrite_wp_config_to_define_constants( $content, $constants = array() ) {
 	$tokens              = array_reverse( token_get_all( $content ) );
-	$output              = [];
-	$defined_expressions = [];
+	$output              = array();
+	$defined_expressions = array();
 
 	// Look through all the tokens and find the define calls
 	do {
-		$buffer           = [];
-		$name_buffer      = [];
-		$value_buffer     = [];
-		$third_arg_buffer = [];
+		$buffer           = array();
+		$name_buffer      = array();
+		$value_buffer     = array();
+		$third_arg_buffer = array();
 
 		// Capture everything until the define call into output.
 		// Capturing the define call into a buffer.
 		// Example:
-		//     <?php echo 'a'; define  (
-		//     ^^^^^^^^^^^^^^^^^^^^^^
-		//           output   |buffer
+		// <?php echo 'a'; define  (
+		// ^^^^^^^^^^^^^^^^^^^^^^
+		// output   |buffer
 		while ( $token = array_pop( $tokens ) ) {
 			if ( is_array( $token ) && $token[0] === T_STRING && ( strtolower( $token[1] ) === 'define' || strtolower( $token[1] ) === 'defined' ) ) {
 				$buffer[] = $token;
@@ -102,26 +102,26 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 		// Keep track of the "defined" expressions that are already accounted for
 		if ( $token[1] === 'defined' ) {
 			$output[]           = $token;
-			$defined_expression = [];
+			$defined_expression = array();
 			$open_parenthesis   = 0;
 			// Capture everything up to the opening parenthesis, including the parenthesis
 			// e.g. defined  (
-			//           ^^^^
+			// ^^^^
 			while ( $token = array_pop( $tokens ) ) {
 				$output[] = $token;
-				if ( $token === "(" ) {
-					++ $open_parenthesis;
+				if ( $token === '(' ) {
+					++$open_parenthesis;
 					break;
 				}
 			}
 
 			// Capture everything up to the closing parenthesis, including the parenthesis
 			// e.g. defined  (
-			//           ^^^^
+			// ^^^^
 			while ( $token = array_pop( $tokens ) ) {
 				$output[] = $token;
-				if ( $token === ")" ) {
-					-- $open_parenthesis;
+				if ( $token === ')' ) {
+					--$open_parenthesis;
 				}
 				if ( $open_parenthesis === 0 ) {
 					break;
@@ -135,10 +135,10 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 
 		// Capture everything up to the opening parenthesis, including the parenthesis
 		// e.g. define  (
-		//           ^^^^
+		// ^^^^
 		while ( $token = array_pop( $tokens ) ) {
 			$buffer[] = $token;
-			if ( $token === "(" ) {
+			if ( $token === '(' ) {
 				break;
 			}
 		}
@@ -146,19 +146,19 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 		// Capture the first argument – it's the first expression after the opening
 		// parenthesis and before the comma:
 		// Examples:
-		//     define("WP_DEBUG", true);
-		//            ^^^^^^^^^^^
+		// define("WP_DEBUG", true);
+		// ^^^^^^^^^^^
 		//
-		//     define(count([1,2]) > 2 ? 'WP_DEBUG' : 'FOO', true);
-		//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		// define(count([1,2]) > 2 ? 'WP_DEBUG' : 'FOO', true);
+		// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		$open_parenthesis = 0;
 		while ( $token = array_pop( $tokens ) ) {
 			$buffer[] = $token;
-			if ( $token === "(" || $token === "[" || $token === "{" ) {
-				++ $open_parenthesis;
-			} elseif ( $token === ")" || $token === "]" || $token === "}" ) {
-				-- $open_parenthesis;
-			} elseif ( $token === "," && $open_parenthesis === 0 ) {
+			if ( $token === '(' || $token === '[' || $token === '{' ) {
+				++$open_parenthesis;
+			} elseif ( $token === ')' || $token === ']' || $token === '}' ) {
+				--$open_parenthesis;
+			} elseif ( $token === ',' && $open_parenthesis === 0 ) {
 				break;
 			}
 
@@ -167,20 +167,20 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 		}
 
 		// Capture everything until the closing parenthesis
-		//     define("WP_DEBUG", true);
-		//                       ^^^^^^
+		// define("WP_DEBUG", true);
+		// ^^^^^^
 		$open_parenthesis   = 0;
 		$is_second_argument = true;
 		while ( $token = array_pop( $tokens ) ) {
 			$buffer[] = $token;
-			if ( $token === ")" && $open_parenthesis === 0 ) {
+			if ( $token === ')' && $open_parenthesis === 0 ) {
 				// Final parenthesis of the define call.
 				break;
-			} elseif ( $token === "(" || $token === "[" || $token === "{" ) {
-				++ $open_parenthesis;
-			} elseif ( $token === ")" || $token === "]" || $token === "}" ) {
-				-- $open_parenthesis;
-			} elseif ( $token === "," && $open_parenthesis === 0 ) {
+			} elseif ( $token === '(' || $token === '[' || $token === '{' ) {
+				++$open_parenthesis;
+			} elseif ( $token === ')' || $token === ']' || $token === '}' ) {
+				--$open_parenthesis;
+			} elseif ( $token === ',' && $open_parenthesis === 0 ) {
 				// This define call has more than 2 arguments! The third one is the
 				// boolean value indicating $is_case_insensitive. Let's continue capturing
 				// to $third_arg_buffer.
@@ -194,11 +194,11 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 		}
 
 		// Capture until the semicolon
-		//     define("WP_DEBUG", true)  ;
-		//                             ^^^
+		// define("WP_DEBUG", true)  ;
+		// ^^^
 		while ( $token = array_pop( $tokens ) ) {
 			$buffer[] = $token;
-			if ( $token === ";" ) {
+			if ( $token === ';' ) {
 				break;
 			}
 		}
@@ -218,7 +218,7 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 					$name_is_literal = false;
 					break;
 				}
-			} elseif ( $token !== "(" && $token !== ")" ) {
+			} elseif ( $token !== '(' && $token !== ')' ) {
 				$name_is_literal = false;
 				break;
 			}
@@ -237,16 +237,16 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 			}
 			$output = array_merge(
 				$output,
-				[ "if(!defined(" ],
+				array( 'if(!defined(' ),
 				$name_buffer,
-				[ ")) {\n     " ],
-				[ 'define(' ],
+				array( ")) {\n     " ),
+				array( 'define(' ),
 				$name_buffer,
-				[ ',' ],
+				array( ',' ),
 				$value_buffer,
 				$third_arg_buffer,
-				[ ");" ],
-				[ "\n}\n" ]
+				array( ');' ),
+				array( "\n}\n" )
 			);
 			continue;
 		}
@@ -266,12 +266,12 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 		// Let's rewrite its value to the one
 		$output = array_merge(
 			$output,
-			[ 'define(' ],
+			array( 'define(' ),
 			$name_buffer,
-			[ ',' ],
-			[ var_export( $constants[ $name ], true ) ],
+			array( ',' ),
+			array( var_export( $constants[ $name ], true ) ),
 			$third_arg_buffer,
-			[ ");" ]
+			array( ');' )
 		);
 
 		// Remove the constant from the list so we can process any remaining
@@ -281,22 +281,22 @@ function rewrite_wp_config_to_define_constants( $content, $constants = [] ) {
 
 	// Add any constants that weren't found in the file
 	if ( count( $constants ) ) {
-		$prepend = [
+		$prepend = array(
 			"<?php \n",
-		];
+		);
 		foreach ( $constants as $name => $value ) {
 			$prepend = array_merge(
 				$prepend,
-				[
-					"define(",
+				array(
+					'define(',
 					var_export( $name, true ),
 					',',
 					var_export( $value, true ),
 					");\n",
-				]
+				)
 			);
 		}
-		$prepend[] = "?>";
+		$prepend[] = '?>';
 		$output    = array_merge(
 			$prepend,
 			$output
@@ -321,7 +321,7 @@ function stringify_tokens( $tokens ) {
 }
 
 function skip_whitespace( $tokens ) {
-	$output = [];
+	$output = array();
 	foreach ( $tokens as $token ) {
 		if ( is_array( $token ) && ( $token[0] === T_WHITESPACE || $token[0] === T_COMMENT || $token[0] === T_DOC_COMMENT ) ) {
 			continue;

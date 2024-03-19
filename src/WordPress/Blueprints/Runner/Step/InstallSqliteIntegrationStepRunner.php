@@ -9,10 +9,10 @@ use WordPress\Blueprints\Progress\Tracker;
 class InstallSqliteIntegrationStepRunner extends InstallAssetStepRunner {
 	/**
 	 * @param InstallSqliteIntegrationStep $input
-	 * @param Tracker $tracker
+	 * @param Tracker                      $tracker
 	 */
 	function run( $input, $tracker ) {
-		$pluginDir = 'sqlite-database-integration';
+		$pluginDir  = 'sqlite-database-integration';
 		$targetPath = $this->getRuntime()->resolvePath( 'wp-content/mu-plugins/' . $pluginDir );
 		$this->unzipAssetTo( $input->sqlitePluginZip, $targetPath );
 
@@ -29,12 +29,13 @@ class InstallSqliteIntegrationStepRunner extends InstallAssetStepRunner {
 			$db
 		);
 		file_put_contents( $this->getRuntime()->resolvePath( 'wp-content/db.php' ), $db );
-		file_put_contents( $this->getRuntime()->resolvePath( 'wp-content/mu-plugins/0-sqlite.php' ),
-			'<?php require_once __DIR__ . "/sqlite-database-integration/load.php"; ' );
+		file_put_contents(
+			$this->getRuntime()->resolvePath( 'wp-content/mu-plugins/0-sqlite.php' ),
+			'<?php require_once __DIR__ . "/sqlite-database-integration/load.php"; '
+		);
 	}
 
 	public function getDefaultCaption( $input ) {
-		return "Installing SQLite integration plugin";
+		return 'Installing SQLite integration plugin';
 	}
-
 }

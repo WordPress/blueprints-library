@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,50 +19,53 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class MaxLengthKeyword implements Keyword
-{
-    use ErrorTrait;
+class MaxLengthKeyword implements Keyword {
 
-    /**
-     * @var int
-     */
-    protected $length;
+	use ErrorTrait;
 
-    /**
-     * @param int $length
-     */
-    public function __construct(int $length)
-    {
-        $this->length = $length;
-    }
+	/**
+	 * @var int
+	 */
+	protected $length;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->length === 0) {
-            return null;
-        }
+	/**
+	 * @param int $length
+	 */
+	public function __construct( int $length ) {
+		$this->length = $length;
+	}
 
-        $length = $context->getStringLength();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->length === 0 ) {
+			return null;
+		}
 
-        if ($length <= $this->length) {
-            return null;
-        }
+		$length = $context->getStringLength();
 
-        return $this->error($schema, $context, 'maxLength', "Maximum string length is {max}, found {length}",
-            [
-                'max' => $this->length,
-                'length' => $length,
-            ]);
-    }
+		if ( $length <= $this->length ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'maxLength',
+			'Maximum string length is {max}, found {length}',
+			array(
+				'max'    => $this->length,
+				'length' => $length,
+			)
+		);
+	}
 }

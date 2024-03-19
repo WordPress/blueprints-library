@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,90 +22,89 @@ use ArrayObject;
 use Opis\JsonSchema\{ValidationContext, Schema};
 use Opis\JsonSchema\Errors\{ValidationError, ErrorContainer};
 
-trait IterableDataValidationTrait
-{
-    use ErrorTrait;
+trait IterableDataValidationTrait {
 
-    /**
-     * @param int $maxErrors
-     * @return ErrorContainer
-     */
-    protected function errorContainer($maxErrors = 1): ErrorContainer
-    {
-        return new ErrorContainer($maxErrors);
-    }
+	use ErrorTrait;
 
-    /**
-     * @param Schema $schema
-     * @param ValidationContext $context
-     * @param iterable $iterator
-     * @param ArrayObject|null $keys
-     * @return ErrorContainer
-     */
-    protected function iterateAndValidate(
-        $schema,
-        $context,
-        $iterator,
-        $keys = null
-    ): ErrorContainer {
-        $container = $this->errorContainer($context->maxErrors());
+	/**
+	 * @param int $maxErrors
+	 * @return ErrorContainer
+	 */
+	protected function errorContainer( $maxErrors = 1 ): ErrorContainer {
+		return new ErrorContainer( $maxErrors );
+	}
 
-        if ($keys) {
-            foreach ($iterator as $key) {
-                $context->pushDataPath($key);
-                $error = $schema->validate($context);
-                $context->popDataPath();
+	/**
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 * @param iterable          $iterator
+	 * @param ArrayObject|null  $keys
+	 * @return ErrorContainer
+	 */
+	protected function iterateAndValidate(
+		$schema,
+		$context,
+		$iterator,
+		$keys = null
+	): ErrorContainer {
+		$container = $this->errorContainer( $context->maxErrors() );
 
-                if ($error) {
-                    if (!$container->isFull()) {
-                        $container->add($error);
-                    }
-                } else {
-                    $keys[] = $key;
-                }
-            }
-        } else {
-            foreach ($iterator as $key) {
-                $context->pushDataPath($key);
-                $error = $schema->validate($context);
-                $context->popDataPath();
+		if ( $keys ) {
+			foreach ( $iterator as $key ) {
+				$context->pushDataPath( $key );
+				$error = $schema->validate( $context );
+				$context->popDataPath();
 
-                if ($error && $container->add($error)->isFull()) {
-                    break;
-                }
-            }
-        }
+				if ( $error ) {
+					if ( ! $container->isFull() ) {
+						$container->add( $error );
+					}
+				} else {
+					$keys[] = $key;
+				}
+			}
+		} else {
+			foreach ( $iterator as $key ) {
+				$context->pushDataPath( $key );
+				$error = $schema->validate( $context );
+				$context->popDataPath();
 
-        return $container;
-    }
+				if ( $error && $container->add( $error )->isFull() ) {
+					break;
+				}
+			}
+		}
 
-    /**
-     * @param Schema $parentSchema
-     * @param Schema $schema
-     * @param ValidationContext $context
-     * @param iterable $iterator
-     * @param string $keyword
-     * @param string $message
-     * @param array $args
-     * @param ArrayObject|null $visited_keys
-     * @return ValidationError|null
-     */
-    protected function validateIterableData(
-        $parentSchema,
-        $schema,
-        $context,
-        $iterator,
-        $keyword,
-        $message,
-        $args = [],
-        $visited_keys = null
-    ) {
-        $errors = $this->iterateAndValidate($schema, $context, $iterator, $visited_keys);
+		return $container;
+	}
 
-        if ($errors->isEmpty()) {
-            return null;
-        }
+	/**
+	 * @param Schema            $parentSchema
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 * @param iterable          $iterator
+	 * @param string            $keyword
+	 * @param string            $message
+	 * @param array             $args
+	 * @param ArrayObject|null  $visited_keys
+	 * @return ValidationError|null
+	 */
+	protected function validateIterableData(
+		$parentSchema,
+		$schema,
+		$context,
+		$iterator,
+		$keyword,
+		$message,
+		$args = array(),
+		$visited_keys = null
+	) {
+		$errors = $this->iterateAndValidate( $schema, $context, $iterator, $visited_keys );
 
-        return $this->error($parentSchema, $context, $keyword, $message, $args, $errors);
-    }
+		if ( $errors->isEmpty() ) {
+			return null;
+		}
+
+		return $this->error( $parentSchema, $context, $keyword, $message, $args, $errors );
+	}
 }

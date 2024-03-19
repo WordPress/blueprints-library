@@ -7,12 +7,12 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class RunWordPressInstallerStepRunner extends BaseStepRunner {
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep $input
-  * @param \WordPress\Blueprints\Progress\Tracker $tracker
-  */
- function run( $input, $tracker ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep $input
+	 * @param \WordPress\Blueprints\Progress\Tracker                          $tracker
+	 */
+	function run( $input, $tracker ) {
 		return $this->getRuntime()->runShellCommand(
-			[
+			array(
 				'php',
 				'wp-cli.phar',
 				'core',
@@ -22,13 +22,12 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 				'--admin_user=' . $input->options->adminUsername,
 				'--admin_password=' . $input->options->adminPassword,
 				'--admin_email=admin@wordpress.internal',
-			],
+			),
 			$this->getRuntime()->getDocumentRoot()
 		);
 	}
 
 	public function getDefaultCaption( $input ) {
-		return "Installing WordPress";
+		return 'Installing WordPress';
 	}
-
 }

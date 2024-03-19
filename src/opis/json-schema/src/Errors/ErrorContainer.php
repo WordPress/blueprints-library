@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,7 @@ class ErrorContainer implements Countable, Iterator {
 	protected $maxErrors;
 
 	/** @var ValidationError[] */
-	protected $errors = [];
+	protected $errors = array();
 
 	/**
 	 * ErrorContainer constructor.
