@@ -21,6 +21,7 @@ class ActivatePluginStepRunner extends BaseStepRunner {
 			array(
 				'php',
 				'wp-cli.phar',
+				'--allow-root',
 				'plugin',
 				'activate',
 				$input->slug,
