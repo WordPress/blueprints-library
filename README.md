@@ -91,15 +91,30 @@ vendor/bin/phpunit --testdox
 ### Regenerate models files from JSON schema with
 
 ```shell
- php src/WordPress/Blueprints/bin/autogenerate_models.php
+composer global require jane-php/json-schema
+php src/WordPress/Blueprints/bin/autogenerate_models.php
 ```
 
 ## Building to .phar
 
-The Blueprints library is distributed as a .phar library. To build the .phar file, run:
+The Blueprints library is distributed as a .phar library. To build the .phar file, install box:
 
 ```shell
-vendor/bin/box compile
+composer global require humbug/box
+```
+
+And then run:
+
+```shell
+rm composer.lock
+rm -rf vendor
+COMPOSER=composer-web.json composer install --no-dev
+rm -rf vendor/pimple/pimple/ext/
+rm -rf vendor/symfony/*/*.md
+rm -rf vendor/symfony/*/composer.json
+rm -rf vendor/symfony/*/*.dist
+rm -rf vendor/*/*/LICENSE
+box compile
 ```
 
 Note that in box.json, the `"check-requirements"` option is set to `false`. Somehow, keeping it as `true` results in a
@@ -111,6 +126,52 @@ To try the built .phar file, run:
 ```shell
 rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
 ```
+
+## PHP 7.0 Compatibility
+
+This project is compatible with PHP >= 7.0.
+
+Part of the process is automated with [rector](https://github.com/rectorphp/rector),
+which transpiles the features added in PHP 7.1 and later to PHP 7.0.
+
+There's also a manual part, to remove unsupported features using regexps.
+
+### Automated part
+
+To transpile the code to PHP 7.1, run:
+
+```bash
+# Install rector:
+composer require rector/rector --ignore-platform-req=php
+
+# Transpile:
+php vendor/bin/rector process src
+```
+
+Unfortunately, Rector does not support downgrading to PHP 7.0 yet, so we need to do the
+last stretch manually.
+
+### Manual part
+
+Rector will downgrade PHP code to PHP 7.1 but not further. We need PHP 7.0 compat
+so here's a few additional regexps to run. Regexps are not, of course, reliable in
+the general case, but they seem to do the trick here.
+
+List of manual replacements
+
+* `: \?[a-zA-Z_0-9]+` -> (empty string) to remove the unsupported return type
+  from `function(): ?SchemaResolver {}` -> `function() {}`.
+* `: iterable` to fix `Fatal error: Generators may only declare a return type of Generator, Iterator or Traversable`.
+* `\?[a-zA-Z_0-9]+ \$` -> `$` to remove the unsupported nullable type from function signatures,
+  e.g. `function(?Schema $schema){}` -> `function($schema){}`.
+* `(protected|public|private) const` -> `const` as const visibility is not supported in PHP 7.0.
+* `: void` -> `` as `void` return type is unsupported in PHP 7.0.
+
+@TODO:
+
+* `[$ns, $name] = $this->parseName($name);` -> `list($ns, $name) = $this->parseName($name);`
+* `foreach ($data as [$cp, $chars]) {` -> `foreach ($data as list($cp, $chars)) {`
+* Find or write Rector rules for downgrading to PHP 7.0
 
 ## License
 
