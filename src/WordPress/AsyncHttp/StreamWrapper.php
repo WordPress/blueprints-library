@@ -30,7 +30,10 @@ class StreamWrapper extends VanillaStreamWrapper {
 		return true;
 	}
 
-	public function stream_cast( int $cast_as ) {
+	/**
+  * @param int $cast_as
+  */
+ public function stream_cast( $cast_as ) {
 		$this->initialize();
 
 		return parent::stream_cast( $cast_as );

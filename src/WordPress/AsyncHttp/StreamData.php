@@ -6,8 +6,8 @@ use WordPress\Streams\VanillaStreamWrapperData;
 
 class StreamData extends VanillaStreamWrapperData {
 
-	public Request $request;
-	public Client $client;
+	public $request;
+	public $client;
 
 	public function __construct( Request $request, Client $group ) {
 		parent::__construct( null );

@@ -10,10 +10,16 @@ use WordPress\Streams\StreamPeekerWrapper;
 
 class UrlSource extends BaseDataSource {
 
+	protected $client;
+	protected $cache;
+
 	public function __construct(
-		protected Client $client,
-		protected CacheInterface $cache
+		Client $client,
+		CacheInterface $cache
 	) {
+		$this->client = $client;
+		$this->cache = $cache;
+
 		parent::__construct();
 		$client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
 			$this->events->dispatch( new DataSourceProgressEvent(
@@ -62,7 +68,7 @@ class UrlSource extends BaseDataSource {
 		return StreamPeekerWrapper::create_resource(
 			new StreamPeekerData(
 				$stream,
-				$onChunk,
+				$onChunk
 			)
 		);
 	}

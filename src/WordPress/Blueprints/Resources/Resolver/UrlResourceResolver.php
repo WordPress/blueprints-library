@@ -11,14 +11,17 @@ use WordPress\DataSource\DataSourceProgressEvent;
 
 class UrlResourceResolver implements ResourceResolverInterface {
 
-	protected DataSourceInterface $data_source;
+	protected $data_source;
 
 	public function __construct( DataSourceInterface $data_source ) {
 		$this->data_source = $data_source;
 	}
 
-	public function parseUrl( string $url ): ?ResourceDefinitionInterface {
-		if ( ! str_starts_with( $url, 'http://' ) && ! str_starts_with( $url, 'https://' ) ) {
+	/**
+  * @param string $url
+  */
+ public function parseUrl( $url ) {
+		if ( strncmp($url, 'http://', strlen('http://')) !== 0 && strncmp($url, 'https://', strlen('https://')) !== 0 ) {
 			return null;
 		}
 
@@ -30,11 +33,18 @@ class UrlResourceResolver implements ResourceResolverInterface {
 		return UrlResource::class;
 	}
 
-	public function supports( ResourceDefinitionInterface $resource ): bool {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  */
+ public function supports( $resource ): bool {
 		return $resource instanceof UrlResource;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource, Tracker $progress_tracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  * @param \WordPress\Blueprints\Progress\Tracker $progress_tracker
+  */
+ public function stream( $resource, $progress_tracker ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}

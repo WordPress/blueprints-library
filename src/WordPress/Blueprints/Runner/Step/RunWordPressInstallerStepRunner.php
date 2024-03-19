@@ -6,7 +6,11 @@ use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Progress\Tracker;
 
 class RunWordPressInstallerStepRunner extends BaseStepRunner {
-	function run( RunWordPressInstallerStep $input, Tracker $tracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ function run( $input, $tracker ) {
 		return $this->getRuntime()->runShellCommand(
 			[
 				'php',
@@ -23,8 +27,8 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 		);
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Installing WordPress";
 	}
-	
+
 }

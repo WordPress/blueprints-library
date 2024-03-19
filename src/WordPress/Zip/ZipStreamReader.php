@@ -143,7 +143,7 @@ class ZipStreamReader {
 			$data['firstByteAt'] + 30 + $data['pathLength'] + $data['fileCommentLength'] + $data['extraLength'] + $data['compressionMethod'] - 1,
 			$path,
 			$extra,
-			$fileComment,
+			$fileComment
 		);
 	}
 

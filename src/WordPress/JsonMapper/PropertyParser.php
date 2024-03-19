@@ -40,7 +40,7 @@ class PropertyParser {
 	 *
 	 * @return array<string,Property> the property map, key: property name
 	 */
-	public static function compute_property_map( ReflectionClass $reflection_class ) {
+	public static function compute_property_map( $reflection_class ) {
 		$property_map = array();
 
 		foreach ( self::get_properties( $reflection_class ) as $reflection_property ) {

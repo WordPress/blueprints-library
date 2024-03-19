@@ -96,10 +96,13 @@ function streams_http_requests_send( $streams ) {
 	$remaining_streams = $streams;
 	while ( count( $remaining_streams ) ) {
 		$write = $remaining_streams;
-		$ready = @stream_select( $read, $write, $except, 0, 5000000 );
+		sleep( 2 );
+		$ready = @stream_select( $read, $write, $except, 5, 5000000 );
 		if ( $ready === false ) {
 			throw new Exception( "Error: " . error_get_last()['message'] );
 		} elseif ( $ready <= 0 ) {
+			var_dump( $ready );
+			die();
 			throw new Exception( "stream_select timed out" );
 		}
 
@@ -172,7 +175,7 @@ function parse_http_headers( string $headers ) {
 	];
 	$headers = [];
 	foreach ( $lines as $line ) {
-		if ( ! str_contains( $line, ': ' ) ) {
+		if ( strpos($line, ': ') === false ) {
 			continue;
 		}
 		$line = explode( ': ', $line );
@@ -231,7 +234,7 @@ function streams_http_response_await_headers( $streams ) {
 		}
 		foreach ( $bytes as $k => $byte ) {
 			$headers[ $k ] .= $byte;
-			if ( str_ends_with( $headers[ $k ], "\r\n\r\n" ) ) {
+			if ( substr_compare($headers[ $k ], "\r\n\r\n", -strlen("\r\n\r\n")) === 0 ) {
 				unset( $remaining_streams[ $k ] );
 			}
 		}

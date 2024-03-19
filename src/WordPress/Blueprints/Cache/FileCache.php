@@ -9,7 +9,10 @@ use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 class FileCache implements CacheInterface {
 	private $filesystem;
 
-	public function __construct( private string|null $cacheDirectory = null ) {
+	private $cacheDirectory;
+
+	public function __construct( $cacheDirectory = null ) {
+		$this->cacheDirectory = $cacheDirectory;
 		// initialize the Filesystem component
 		$this->filesystem = new Filesystem();
 
@@ -34,7 +37,10 @@ class FileCache implements CacheInterface {
 		}
 	}
 
-	public function get( $key, $default = null ): mixed {
+	/**
+  * @return mixed
+  */
+ public function get( $key, $default = null ) {
 		$filepath = $this->getFilePathForKey( $key );
 		if ( ! file_exists( $filepath ) ) {
 			return $default;
@@ -47,7 +53,7 @@ class FileCache implements CacheInterface {
 
 	public function set( $key, $value, $ttl = null ): bool {
 		$filepath = $this->getFilePathForKey( $key );
-		$data     = serialize( $value );
+		$data = serialize( $value );
 
 		return file_put_contents( $filepath, $data ) !== false;
 	}

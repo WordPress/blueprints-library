@@ -7,7 +7,10 @@ use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
 
 class DefineSiteUrlStepRunner extends BaseStepRunner {
 
-	function run( DefineSiteUrlStep $input ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\DefineSiteUrlStep $input
+  */
+ function run( $input ) {
 		// @TODO: Don't manually construct the step object like this.
 		//        There may be more required fields in the future.
 		//        Instead, either remove this step, move the const-setting
@@ -21,7 +24,7 @@ class DefineSiteUrlStepRunner extends BaseStepRunner {
 		);
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Defining site URL";
 	}
 }

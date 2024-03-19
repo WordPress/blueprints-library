@@ -7,7 +7,10 @@ use WordPress\Blueprints\Model\DataClass\Blueprint;
 
 class BlueprintSerializer {
 
-	public function toJson( Blueprint $blueprint ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  */
+ public function toJson( $blueprint ) {
 		return json_encode( $blueprint );
 	}
 

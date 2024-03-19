@@ -8,7 +8,11 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class InstallPluginStepRunner extends InstallAssetStepRunner {
 
-	function run( InstallPluginStep $input, Tracker $tracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\InstallPluginStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ function run( $input, $tracker ) {
 		// @TODO: inject this information into this step
 		$pluginDir = 'plugin' . rand( 0, 1000 );
 		$targetPath = $this->getRuntime()->resolvePath( 'wp-content/plugins/' . $pluginDir );
@@ -26,7 +30,7 @@ class InstallPluginStepRunner extends InstallAssetStepRunner {
 		}
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Installing plugin " . $input->pluginZipFile;
 	}
 }

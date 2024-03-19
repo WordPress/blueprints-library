@@ -17,7 +17,7 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class BlueprintCompiler {
 	protected $stepRunnerFactory;
-	protected ResourceResolverInterface $resourceResolver;
+	protected $resourceResolver;
 
 	public function __construct(
 		$stepRunnerFactory,
@@ -27,7 +27,10 @@ class BlueprintCompiler {
 		$this->stepRunnerFactory = $stepRunnerFactory;
 	}
 
-	public function compile( Blueprint $blueprint ): CompiledBlueprint {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  */
+ public function compile( $blueprint ): CompiledBlueprint {
 		$blueprint->steps = array_merge( $this->expandShorthandsIntoSteps( $blueprint ), $blueprint->steps );
 
 		$progressTracker = new Tracker();
@@ -42,7 +45,10 @@ class BlueprintCompiler {
 		);
 	}
 
-	protected function expandShorthandsIntoSteps( Blueprint $blueprint ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  */
+ protected function expandShorthandsIntoSteps( $blueprint ) {
 		// @TODO: This duplicates the logic in BlueprintComposer.
 		//        It cannot be easily reused because of the dichotomy between the
 		//        Step and Step model classes. Let's alter the code generation
@@ -87,7 +93,11 @@ class BlueprintCompiler {
 		return $additional_steps;
 	}
 
-	protected function compileSteps( Blueprint $blueprint, Tracker $progress ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  * @param \WordPress\Blueprints\Progress\Tracker $progress
+  */
+ protected function compileSteps( $blueprint, $progress ) {
 		$stepRunnerFactory = $this->stepRunnerFactory;
 		// Compile, ensure all the runners may be created and configured
 		$totalProgressWeight = 0;
@@ -114,13 +124,17 @@ class BlueprintCompiler {
 		return $compiledSteps;
 	}
 
-	protected function compileResources( Blueprint $blueprint, Tracker $progress ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  * @param \WordPress\Blueprints\Progress\Tracker $progress
+  */
+ protected function compileResources( $blueprint, $progress ) {
 		$resources = [];
 		$this->findResources( $blueprint, $resources );
 
 		$totalProgressWeight = count( $resources );
 		$compiledResources = [];
-		foreach ( $resources as $path => [$declaration, $resource] ) {
+		foreach ( $resources as $path => list( $declaration, $resource ) ) {
 			/** @var $resource ResourceDefinitionInterface */
 			$compiledResources[ $path ] = new CompiledResource(
 				$declaration,
@@ -151,13 +165,14 @@ class BlueprintCompiler {
 			// Check if the @var annotation mentions a ResourceDefinitionInterface
 			foreach ( get_object_vars( $blueprintFragment ) as $key => $value ) {
 				$reflection = new \ReflectionProperty( $blueprintFragment, $key );
+    $reflection->setAccessible(true);
 				$docComment = $reflection->getDocComment();
 				$parseNestedUrls = false;
 				if ( preg_match( '/@var\s+([^\s]+)/', $docComment, $matches ) ) {
 					$className = $matches[1];
 					if (
-						str_contains( $className, 'string' ) &&
-						str_contains( $className, 'ResourceDefinitionInterface' )
+						false !== strpos( $className, 'string' ) &&
+						false !== strpos( $className, 'ResourceDefinitionInterface' )
 					) {
 						$parseNestedUrls = true;
 					}

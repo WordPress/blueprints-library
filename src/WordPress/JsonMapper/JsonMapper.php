@@ -45,7 +45,7 @@ class JsonMapper {
 	 * @throws JsonMapperException If mapping the value to an associated property type failed or if setting was
 	 *                             impossible.
 	 */
-	public function hydrate( stdClass $json, string $class_name ) {
+	public function hydrate( $json, $class_name ) {
 		return $this->has_factory( $class_name )
 			? $this->run_factory( $class_name, $json )
 			: $this->create_and_hydrate( $class_name, $json );

@@ -3,8 +3,12 @@
 namespace WordPress\Blueprints\Progress;
 
 class ProgressCaptionEvent extends \Symfony\Contracts\EventDispatcher\Event {
-	public function __construct(
-		public string $caption
-	) {
-	}
+	/**
+  * @var string
+  */
+ public $caption;
+ public function __construct(string $caption)
+ {
+     $this->caption = $caption;
+ }
 }

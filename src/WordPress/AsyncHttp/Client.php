@@ -89,7 +89,7 @@ use function WordPress\Streams\streams_send_http_requests;
  */
 class Client {
 	protected $concurrency = 10;
-	protected Map $requests;
+	protected $requests;
 	protected $onProgress;
 	protected $queue_needs_processing = false;
 
@@ -150,7 +150,7 @@ class Client {
 	 *
 	 * @return resource
 	 */
-	public function get_stream( Request $request ) {
+	public function get_stream( $request ) {
 		if ( ! isset( $this->requests[ $request ] ) ) {
 			$this->enqueue_request( $request );
 		}
@@ -162,7 +162,10 @@ class Client {
 		return $this->requests[ $request ]->stream;
 	}
 
-	protected function enqueue_request( Request $request ) {
+	/**
+  * @param \WordPress\AsyncHttp\Request $request
+  */
+ protected function enqueue_request( $request ) {
 		$stream = StreamWrapper::create_resource(
 			new StreamData( $request, $this )
 		);
@@ -232,7 +235,7 @@ class Client {
 	 * @return false|string
 	 * @throws Exception
 	 */
-	public function read_bytes( Request $request, $length ) {
+	public function read_bytes( $request, $length ) {
 		if ( ! isset( $this->requests[ $request ] ) ) {
 			return false;
 		}

@@ -4,7 +4,7 @@ namespace WordPress\AsyncHttp;
 
 class Request {
 
-	public string $url;
+	public $url;
 
 	/**
 	 * @param string $url

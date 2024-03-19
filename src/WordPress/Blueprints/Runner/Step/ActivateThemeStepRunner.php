@@ -16,13 +16,18 @@ class ActivateThemeStepRunner extends BaseStepRunner {
 	}
 
 	/**
-	 * @param ActivateThemeStep $input
-	 */
-	public function getDefaultCaption( $input ): string|null {
+  * @param ActivateThemeStep $input
+  * @return string|null
+  */
+ public function getDefaultCaption( $input ) {
 		return "Activating theme " . $input->slug;
 	}
 
-	public function run( ActivateThemeStep $input, Tracker $tracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ActivateThemeStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ public function run( $input, $tracker ) {
 		// @TODO: Compare performance to the wp_activate_theme.php script.
 		//        On the first sight it seems to be significantly faster.
 		return $this->getRuntime()->runShellCommand(

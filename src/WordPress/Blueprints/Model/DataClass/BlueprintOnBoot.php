@@ -14,14 +14,20 @@ class BlueprintOnBoot
 	public $login;
 
 
-	public function setOpenUrl(string $openUrl)
+	/**
+  * @param string $openUrl
+  */
+ public function setOpenUrl($openUrl)
 	{
 		$this->openUrl = $openUrl;
 		return $this;
 	}
 
 
-	public function setLogin(bool $login)
+	/**
+  * @param bool $login
+  */
+ public function setLogin($login)
 	{
 		$this->login = $login;
 		return $this;

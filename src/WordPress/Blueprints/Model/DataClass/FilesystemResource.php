@@ -19,14 +19,20 @@ class FilesystemResource implements ResourceDefinitionInterface
 	public $path;
 
 
-	public function setResource(string $resource)
+	/**
+  * @param string $resource
+  */
+ public function setResource($resource)
 	{
 		$this->resource = $resource;
 		return $this;
 	}
 
 
-	public function setPath(string $path)
+	/**
+  * @param string $path
+  */
+ public function setPath($path)
 	{
 		$this->path = $path;
 		return $this;
