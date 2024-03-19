@@ -6,11 +6,21 @@ use WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface;
 use WordPress\Blueprints\Progress\Tracker;
 
 interface ResourceResolverInterface {
-	public function parseUrl( string $url ): ?ResourceDefinitionInterface;
+	/**
+  * @param string $url
+  */
+ public function parseUrl( $url );
 
-	public function supports( ResourceDefinitionInterface $resource ): bool;
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  */
+ public function supports( $resource ): bool;
 
 	static public function getResourceClass(): string;
 
-	public function stream( ResourceDefinitionInterface $resource, Tracker $progress_tracker );
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  * @param \WordPress\Blueprints\Progress\Tracker $progress_tracker
+  */
+ public function stream( $resource, $progress_tracker );
 }

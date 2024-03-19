@@ -25,21 +25,30 @@ class UrlResource implements ResourceDefinitionInterface
 	public $caption;
 
 
-	public function setResource(string $resource)
+	/**
+  * @param string $resource
+  */
+ public function setResource($resource)
 	{
 		$this->resource = $resource;
 		return $this;
 	}
 
 
-	public function setUrl(string $url)
+	/**
+  * @param string $url
+  */
+ public function setUrl($url)
 	{
 		$this->url = $url;
 		return $this;
 	}
 
 
-	public function setCaption(string $caption)
+	/**
+  * @param string $caption
+  */
+ public function setCaption($caption)
 	{
 		$this->caption = $caption;
 		return $this;

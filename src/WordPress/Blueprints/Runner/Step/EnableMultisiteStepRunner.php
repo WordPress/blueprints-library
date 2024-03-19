@@ -8,7 +8,7 @@ class EnableMultisiteStepRunner extends BaseStepRunner {
 	/**
 	 * @param EnableMultisiteStep $input
 	 */
-	function run( EnableMultisiteStep $input ) {
+	function run( $input ) {
 		throw new \LogicException( 'Not implemented yet' );
 
 		// @TODO:

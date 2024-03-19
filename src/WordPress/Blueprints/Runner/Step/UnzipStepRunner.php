@@ -16,8 +16,8 @@ class UnzipStepRunner extends BaseStepRunner {
 	 * @return void
 	 */
 	public function run(
-		UnzipStep $input,
-		Tracker $progress_tracker
+		$input,
+		$progress_tracker
 	) {
 		$progress_tracker->set( 10, 'Unzipping...' );
 

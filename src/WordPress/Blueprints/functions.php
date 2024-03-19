@@ -8,6 +8,7 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use WordPress\Blueprints\Runtime\Runtime;
 
 function run_blueprint( $json, $options = [] ) {
+
 	$environment = $options['environment'] ?? ContainerBuilder::ENVIRONMENT_NATIVE;
 	$documentRoot = $options['documentRoot'] ?? '/wordpress';
 	$progressSubscriber = $options['progressSubscriber'] ?? null;

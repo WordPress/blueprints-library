@@ -5,10 +5,25 @@ namespace WordPress\DataSource;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class DataSourceProgressEvent extends Event {
-	public function __construct(
-		public string $url,
-		public int $downloadedBytes,
-		public int|null $totalBytes
-	) {
-	}
+	/**
+  * @var string
+  */
+ public $url;
+ /**
+  * @var int
+  */
+ public $downloadedBytes;
+ /**
+  * @var int|null
+  */
+ public $totalBytes;
+ /**
+  * @param int|null $totalBytes
+  */
+ public function __construct(string $url, int $downloadedBytes, $totalBytes)
+ {
+     $this->url = $url;
+     $this->downloadedBytes = $downloadedBytes;
+     $this->totalBytes = $totalBytes;
+ }
 }

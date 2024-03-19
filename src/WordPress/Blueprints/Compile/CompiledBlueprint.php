@@ -5,13 +5,23 @@ namespace WordPress\Blueprints\Compile;
 use WordPress\Blueprints\Progress\Tracker;
 
 class CompiledBlueprint {
+	public $compiledSteps;
+	public $compiledResources;
+	public $progressTracker;
+	public $stepsProgressStage;
 
-	public function __construct(
-		public array $compiledSteps,
-		public array $compiledResources,
-		public Tracker $progressTracker,
-		public Tracker $stepsProgressStage,
-	) {
+	/**
+	 * @param $compiledSteps
+	 * @param $compiledResources
+	 * @param $progressTracker
+	 * @param $stepsProgressStage
+	 */
+	public function __construct( $compiledSteps, $compiledResources, $progressTracker, $stepsProgressStage ) {
+		$this->compiledSteps = $compiledSteps;
+		$this->compiledResources = $compiledResources;
+		$this->progressTracker = $progressTracker;
+		$this->stepsProgressStage = $stepsProgressStage;
 	}
+
 
 }

@@ -28,35 +28,50 @@ class MvStep implements StepDefinitionInterface
 	public $toPath;
 
 
-	public function setProgress(Progress $progress)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+  */
+ public function setProgress($progress)
 	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	public function setContinueOnError(bool $continueOnError)
+	/**
+  * @param bool $continueOnError
+  */
+ public function setContinueOnError($continueOnError)
 	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	public function setStep(string $step)
+	/**
+  * @param string $step
+  */
+ public function setStep($step)
 	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setFromPath(string $fromPath)
+	/**
+  * @param string $fromPath
+  */
+ public function setFromPath($fromPath)
 	{
 		$this->fromPath = $fromPath;
 		return $this;
 	}
 
 
-	public function setToPath(string $toPath)
+	/**
+  * @param string $toPath
+  */
+ public function setToPath($toPath)
 	{
 		$this->toPath = $toPath;
 		return $this;

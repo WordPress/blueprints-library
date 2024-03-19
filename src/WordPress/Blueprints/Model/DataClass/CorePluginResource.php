@@ -19,14 +19,20 @@ class CorePluginResource implements ResourceDefinitionInterface
 	public $slug;
 
 
-	public function setResource(string $resource)
+	/**
+  * @param string $resource
+  */
+ public function setResource($resource)
 	{
 		$this->resource = $resource;
 		return $this;
 	}
 
 
-	public function setSlug(string $slug)
+	/**
+  * @param string $slug
+  */
+ public function setSlug($slug)
 	{
 		$this->slug = $slug;
 		return $this;

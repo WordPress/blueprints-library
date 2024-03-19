@@ -4,24 +4,24 @@ namespace WordPress\Zip;
 
 class ZipCentralDirectoryEntry {
 
-	public bool $isDirectory;
-	public int $firstByteAt;
-	public int $versionCreated;
-	public int $versionNeeded;
-	public int $generalPurpose;
-	public int $compressionMethod;
-	public int $lastModifiedTime;
-	public int $lastModifiedDate;
-	public int $crc;
-	public int $compressedSize;
-	public int $uncompressedSize;
-	public int $diskNumber;
-	public int $internalAttributes;
-	public int $externalAttributes;
-	public int $lastByteAt;
-	public string $path;
-	public string $extra;
-	public string $fileComment;
+	public $isDirectory;
+	public $firstByteAt;
+	public $versionCreated;
+	public $versionNeeded;
+	public $generalPurpose;
+	public $compressionMethod;
+	public $lastModifiedTime;
+	public $lastModifiedDate;
+	public $crc;
+	public $compressedSize;
+	public $uncompressedSize;
+	public $diskNumber;
+	public $internalAttributes;
+	public $externalAttributes;
+	public $lastByteAt;
+	public $path;
+	public $extra;
+	public $fileComment;
 
 	public function __construct(
 		int $versionCreated,
@@ -42,24 +42,24 @@ class ZipCentralDirectoryEntry {
 		string $extra,
 		string $fileComment
 	) {
-		$this->fileComment        = $fileComment;
-		$this->extra              = $extra;
-		$this->path               = $path;
-		$this->lastByteAt         = $lastByteAt;
+		$this->fileComment = $fileComment;
+		$this->extra = $extra;
+		$this->path = $path;
+		$this->lastByteAt = $lastByteAt;
 		$this->externalAttributes = $externalAttributes;
 		$this->internalAttributes = $internalAttributes;
-		$this->diskNumber         = $diskNumber;
-		$this->uncompressedSize   = $uncompressedSize;
-		$this->compressedSize     = $compressedSize;
-		$this->crc                = $crc;
-		$this->lastModifiedDate   = $lastModifiedDate;
-		$this->lastModifiedTime   = $lastModifiedTime;
-		$this->compressionMethod  = $compressionMethod;
-		$this->generalPurpose     = $generalPurpose;
-		$this->versionNeeded      = $versionNeeded;
-		$this->versionCreated     = $versionCreated;
-		$this->firstByteAt        = $firstByteAt;
-		$this->isDirectory        = $this->path[- 1] === '/';
+		$this->diskNumber = $diskNumber;
+		$this->uncompressedSize = $uncompressedSize;
+		$this->compressedSize = $compressedSize;
+		$this->crc = $crc;
+		$this->lastModifiedDate = $lastModifiedDate;
+		$this->lastModifiedTime = $lastModifiedTime;
+		$this->compressionMethod = $compressionMethod;
+		$this->generalPurpose = $generalPurpose;
+		$this->versionNeeded = $versionNeeded;
+		$this->versionCreated = $versionCreated;
+		$this->firstByteAt = $firstByteAt;
+		$this->isDirectory = $this->path[ - 1 ] === '/';
 	}
 
 	public function isFileEntry() {

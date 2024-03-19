@@ -7,10 +7,15 @@ use WordPress\Blueprints\Model\DataClass\StepDefinitionInterface;
 
 class StepFailure extends BlueprintException implements StepResultInterface {
 
-	public function __construct(
-		public StepDefinitionInterface $step,
+	/**
+  * @var \WordPress\Blueprints\Model\DataClass\StepDefinitionInterface
+  */
+ public $step;
+ public function __construct(
+		StepDefinitionInterface $step,
 		\Exception $cause
 	) {
-		parent::__construct( "Error when executing step $step->step", 0, $cause );
+		$this->step = $step;
+  parent::__construct( "Error when executing step $step->step", 0, $cause );
 	}
 }

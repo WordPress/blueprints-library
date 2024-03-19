@@ -2,8 +2,7 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class Blueprint
-{
+class Blueprint {
 	/**
 	 * Optional description. It doesn't do anything but is exposed as a courtesy to developers who may want to document which blueprint file does what.
 	 * @var string
@@ -50,58 +49,73 @@ class Blueprint
 	public $steps = [];
 
 
-	public function setDescription(string $description)
-	{
+	/**
+  * @param string $description
+  */
+ public function setDescription( $description ) {
 		$this->description = $description;
+
 		return $this;
 	}
 
 
-	public function setWordPressVersion(string $WordPressVersion)
-	{
+	/**
+  * @param string $WordPressVersion
+  */
+ public function setWordPressVersion( $WordPressVersion ) {
 		$this->WordPressVersion = $WordPressVersion;
+
 		return $this;
 	}
 
 
-	public function setRuntime(iterable $runtime)
-	{
+	public function setRuntime( $runtime ) {
 		$this->runtime = $runtime;
+
 		return $this;
 	}
 
 
-	public function setOnBoot(BlueprintOnBoot $onBoot)
-	{
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\BlueprintOnBoot $onBoot
+  */
+ public function setOnBoot( $onBoot ) {
 		$this->onBoot = $onBoot;
+
 		return $this;
 	}
 
 
-	public function setConstants(iterable $constants)
-	{
+	public function setConstants( $constants ) {
 		$this->constants = $constants;
+
 		return $this;
 	}
 
 
-	public function setPlugins(array $plugins)
-	{
+	/**
+  * @param mixed[] $plugins
+  */
+ public function setPlugins( $plugins ) {
 		$this->plugins = $plugins;
+
 		return $this;
 	}
 
 
-	public function setSiteOptions(iterable $siteOptions)
-	{
+	public function setSiteOptions( $siteOptions ) {
 		$this->siteOptions = $siteOptions;
+
 		return $this;
 	}
 
 
-	public function setSteps(array $steps)
-	{
+	/**
+  * @param mixed[] $steps
+  */
+ public function setSteps( $steps ) {
 		$this->steps = $steps;
+
 		return $this;
 	}
 }

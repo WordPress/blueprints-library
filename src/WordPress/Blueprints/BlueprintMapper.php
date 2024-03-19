@@ -34,7 +34,7 @@ class BlueprintMapper {
 	 *
 	 * @return Blueprint
 	 */
-	public function map( stdClass $blueprint ): Blueprint {
+	public function map( $blueprint ): Blueprint {
 		return $this->mapper->hydrate( $blueprint, Blueprint::class );
 	}
 

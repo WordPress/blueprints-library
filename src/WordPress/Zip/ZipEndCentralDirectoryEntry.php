@@ -4,13 +4,34 @@ namespace WordPress\Zip;
 
 class ZipEndCentralDirectoryEntry {
 
-	public int $diskNumber;
-	public int $centralDirectoryStartDisk;
-	public int $numberCentralDirectoryRecordsOnThisDisk;
-	public int $numberCentralDirectoryRecords;
-	public int $centralDirectorySize;
-	public int $centralDirectoryOffset;
-	public string $comment;
+	/**
+  * @var int
+  */
+ public $diskNumber;
+	/**
+  * @var int
+  */
+ public $centralDirectoryStartDisk;
+	/**
+  * @var int
+  */
+ public $numberCentralDirectoryRecordsOnThisDisk;
+	/**
+  * @var int
+  */
+ public $numberCentralDirectoryRecords;
+	/**
+  * @var int
+  */
+ public $centralDirectorySize;
+	/**
+  * @var int
+  */
+ public $centralDirectoryOffset;
+	/**
+  * @var string
+  */
+ public $comment;
 
 	public function __construct(
 		int $diskNumber,

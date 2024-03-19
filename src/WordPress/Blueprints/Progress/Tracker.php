@@ -46,7 +46,7 @@ class Tracker {
 	private $weight;
 	private $subTrackers = [];
 
-	public EventDispatcher $events;
+	public $events;
 
 	public function __construct( $options = [] ) {
 		$this->weight = $options['weight'] ?? 1;
@@ -117,7 +117,11 @@ class Tracker {
 		return $subTracker;
 	}
 
-	public function set( float $value, ?string $caption = null ): void {
+	/**
+  * @param float $value
+  * @param string|null $caption
+  */
+ public function set( $value, $caption = null ) {
 		if ( $value < $this->selfProgress ) {
 			throw new \InvalidArgumentException( "Progress cannot go backwards (tried updating to $value when it already was $this->selfProgress)" );
 		}
@@ -181,7 +185,7 @@ class Tracker {
 		$this->events->dispatch(
 			new ProgressEvent(
 				$this->getProgress(),
-				$this->getCaption(),
+				$this->getCaption()
 			)
 		);
 	}

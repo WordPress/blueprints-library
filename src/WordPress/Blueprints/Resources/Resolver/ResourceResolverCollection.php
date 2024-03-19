@@ -10,7 +10,7 @@ use WordPress\Blueprints\Progress\Tracker;
 class ResourceResolverCollection implements ResourceResolverInterface {
 
 	/** @var ResourceResolverInterface[] */
-	protected array $resource_resolvers;
+	protected $resource_resolvers;
 
 	public function __construct(
 		array $resource_resolvers
@@ -22,7 +22,10 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		throw new RuntimeException( 'Not implemented' );
 	}
 
-	public function parseUrl( string $url ): ?ResourceDefinitionInterface {
+	/**
+  * @param string $url
+  */
+ public function parseUrl( $url ) {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			$resource = $resolver->parseUrl( $url );
@@ -34,7 +37,10 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		return null;
 	}
 
-	public function supports( ResourceDefinitionInterface $resource ): bool {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  */
+ public function supports( $resource ): bool {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			if ( $resolver->supports( $resource ) ) {
@@ -45,7 +51,11 @@ class ResourceResolverCollection implements ResourceResolverInterface {
 		return false;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource, Tracker $progressTracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  * @param \WordPress\Blueprints\Progress\Tracker $progressTracker
+  */
+ public function stream( $resource, $progressTracker ) {
 		foreach ( $this->resource_resolvers as $resolver ) {
 			/** @var ResourceResolverInterface $resolver */
 			if ( $resolver->supports( $resource ) ) {

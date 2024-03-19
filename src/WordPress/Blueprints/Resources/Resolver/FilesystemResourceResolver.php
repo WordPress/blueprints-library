@@ -8,8 +8,11 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class FilesystemResourceResolver implements ResourceResolverInterface {
 
-	public function parseUrl( string $url ): ?ResourceDefinitionInterface {
-		if ( ! str_starts_with( $url, 'file://' ) ) {
+	/**
+  * @param string $url
+  */
+ public function parseUrl( $url ) {
+		if ( strncmp($url, 'file://', strlen('file://')) !== 0 ) {
 			return null;
 		}
 
@@ -20,11 +23,18 @@ class FilesystemResourceResolver implements ResourceResolverInterface {
 		return FilesystemResource::class;
 	}
 
-	public function supports( ResourceDefinitionInterface $resource ): bool {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  */
+ public function supports( $resource ): bool {
 		return $resource instanceof FilesystemResource;
 	}
 
-	public function stream( ResourceDefinitionInterface $resource, Tracker $progress_tracker ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+  * @param \WordPress\Blueprints\Progress\Tracker $progress_tracker
+  */
+ public function stream( $resource, $progress_tracker ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new \InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}

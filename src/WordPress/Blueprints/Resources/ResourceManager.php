@@ -9,9 +9,9 @@ use WordPress\Util\Map;
 
 class ResourceManager {
 
-	protected Filesystem $fs;
-	protected Map $map;
-	protected ResourceResolverCollection $resource_resolvers;
+	protected $fs;
+	protected $map;
+	protected $resource_resolvers;
 
 	public function __construct(
 		ResourceResolverCollection $resource_resolvers
@@ -21,7 +21,10 @@ class ResourceManager {
 		$this->map = new Map();
 	}
 
-	public function enqueue( array $compiledResources ) {
+	/**
+  * @param mixed[] $compiledResources
+  */
+ public function enqueue( $compiledResources ) {
 		foreach ( $compiledResources as $compiled ) {
 			/** @var CompiledResource $compiled */
 

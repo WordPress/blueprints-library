@@ -8,8 +8,12 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class ActivatePluginStepRunner extends BaseStepRunner {
 
-	function run( ActivatePluginStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( $input->progress->caption ?? "Activating plugin " . $input->slug );
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ActivatePluginStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ function run( $input, $tracker ) {
+		($nullsafeVariable1 = $tracker) ? $nullsafeVariable1->setCaption($input->progress->caption ?? "Activating plugin " . $input->slug) : null;
 
 		// @TODO: Compare performance to the wp_activate_plugin.php script.
 		//        On the first sight it seems to be significantly faster.
@@ -31,7 +35,7 @@ class ActivatePluginStepRunner extends BaseStepRunner {
 //		);
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Activating plugin";
 	}
 }

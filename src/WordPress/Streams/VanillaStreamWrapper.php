@@ -11,7 +11,10 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 
 	const SCHEME = 'vanilla';
 
-	static public function create_resource( VanillaStreamWrapperData $data ) {
+	/**
+  * @param \WordPress\Streams\VanillaStreamWrapperData $data
+  */
+ static public function create_resource( $data ) {
 		static::register();
 
 		$context = stream_context_create( [
@@ -38,7 +41,12 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 	}
 
 
-	public function stream_set_option( int $option, int $arg1, ?int $arg2 ): bool {
+	/**
+  * @param int $option
+  * @param int $arg1
+  * @param int|null $arg2
+  */
+ public function stream_set_option( $option, $arg1, $arg2 = null ): bool {
 		if ( \STREAM_OPTION_BLOCKING === $option ) {
 			return stream_set_blocking( $this->stream, (bool) $arg1 );
 		} elseif ( \STREAM_OPTION_READ_TIMEOUT === $option ) {
@@ -64,7 +72,10 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 		return true;
 	}
 
-	public function stream_cast( int $cast_as ) {
+	/**
+  * @param int $cast_as
+  */
+ public function stream_cast( $cast_as ) {
 		return $this->stream;
 	}
 

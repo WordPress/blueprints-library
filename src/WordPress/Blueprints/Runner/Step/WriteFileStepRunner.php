@@ -6,9 +6,13 @@ use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use WordPress\Blueprints\Progress\Tracker;
 
 class WriteFileStepRunner extends BaseStepRunner {
-	public function run(
-		WriteFileStep $input,
-		Tracker $progress = null
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\WriteFileStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker|null $progress
+  */
+ public function run(
+		$input,
+		$progress = null
 	) {
 		$path = $this->getRuntime()->resolvePath( $input->path );
 		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
@@ -25,7 +29,7 @@ class WriteFileStepRunner extends BaseStepRunner {
 		fclose( $fp2 );
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Writing file " . $input->path;
 	}
 

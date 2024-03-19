@@ -28,21 +28,30 @@ class InstallThemeStep implements StepDefinitionInterface
 	public $activate = true;
 
 
-	public function setProgress(Progress $progress)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+  */
+ public function setProgress($progress)
 	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	public function setContinueOnError(bool $continueOnError)
+	/**
+  * @param bool $continueOnError
+  */
+ public function setContinueOnError($continueOnError)
 	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	public function setStep(string $step)
+	/**
+  * @param string $step
+  */
+ public function setStep($step)
 	{
 		$this->step = $step;
 		return $this;
@@ -56,7 +65,10 @@ class InstallThemeStep implements StepDefinitionInterface
 	}
 
 
-	public function setActivate(bool $activate)
+	/**
+  * @param bool $activate
+  */
+ public function setActivate($activate)
 	{
 		$this->activate = $activate;
 		return $this;

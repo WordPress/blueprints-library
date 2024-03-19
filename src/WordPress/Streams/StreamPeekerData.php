@@ -4,7 +4,13 @@ namespace WordPress\Streams;
 
 class StreamPeekerData extends VanillaStreamWrapperData {
 
-	public function __construct( public $fp, public $onChunk = null, public $onClose = null ) {
-		parent::__construct( $fp );
+	public $fp;
+ public $onChunk = null;
+ public $onClose = null;
+ public function __construct( $fp, $onChunk = null, $onClose = null ) {
+		$this->fp = $fp;
+  $this->onChunk = $onChunk;
+  $this->onClose = $onClose;
+  parent::__construct( $fp );
 	}
 }

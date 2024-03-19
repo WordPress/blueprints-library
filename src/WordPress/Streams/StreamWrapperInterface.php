@@ -13,14 +13,17 @@ interface StreamWrapperInterface {
 	 *
 	 * @return bool
 	 */
-	public function stream_set_option( int $option, int $arg1, ?int $arg2 ): bool;
+	public function stream_set_option( $option, $arg1, $arg2 = null ): bool;
 
 	/**
 	 * Opens the stream
 	 */
 	public function stream_open( $path, $mode, $options, &$opened_path );
 
-	public function stream_cast( int $cast_as );
+	/**
+  * @param int $cast_as
+  */
+ public function stream_cast( $cast_as );
 
 	/**
 	 * Reads from the stream

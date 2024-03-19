@@ -78,7 +78,9 @@ foreach ( $janeClasses as $ref => $class ) {
  */
 $modelInfoClass = ( new PhpNamespace( $targetNamespace ) )->addClass( 'ModelInfo' );
 foreach ( $interfaceImplementors as $interfaceName => $implementors ) {
-	$implementorsClassExpressions = array_map( fn( $implementor ) => $implementor . '::class', $implementors );
+	$implementorsClassExpressions = array_map( function ($implementor) {
+     return $implementor . '::class';
+ }, $implementors );
 	$modelInfoClass->addMethod( 'get' . $interfaceName . 'Implementations' )
 		->setStatic( true )
 		->setReturnType( 'array' )
@@ -109,7 +111,9 @@ $unionReplacements = [];
 foreach ( $interfaceImplementors as $interfaceName => $implementors ) {
 	$unionReplacements[ implode( '|', $implementors ) ] = $interfaceName;
 
-	$arrayUnion = array_map( fn( $implementor ) => $implementor . '[]', $implementors );
+	$arrayUnion = array_map( function ($implementor) {
+     return $implementor . '[]';
+ }, $implementors );
 	$unionReplacements[ implode( '|', $arrayUnion ) ] = $interfaceName . '[]';
 }
 
@@ -143,7 +147,7 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 		$description = $janeProperty->getDescription();
 		$typeHint = $janeProperty->getType()->getTypeHint( '' );
 		$docTypeHint = $janeProperty->getType()->getDocTypeHint( '' );
-		if ( str_contains( $docTypeHint, $targetNamespace ) ) {
+		if ( strpos($docTypeHint, $targetNamespace) !== false ) {
 			// Jane prepends "\$namespace\Model\" to type hints, let's remove that.
 			$docTypeHint = str_replace( '\\' . $targetNamespace . '\\Model\\', '', $docTypeHint );
 			// Let's replace the lengthy union types with the interface types.
@@ -182,7 +186,7 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 		$setterArg = $setter->addParameter( $janeProperty->getName() );
 		$argTypeHint = $janeProperty->getType()->getTypeHint( $targetNamespace ) . '';
 		if ( $argTypeHint ) {
-			if ( str_contains( $argTypeHint, '\\' ) ) {
+			if ( strpos($argTypeHint, '\\') !== false ) {
 				$argTypeHint = $targetNamespace . '\\' . str_replace( '\\' . $targetNamespace . '\\Model\\',
 						'',
 						$argTypeHint );

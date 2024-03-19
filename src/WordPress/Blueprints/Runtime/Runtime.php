@@ -9,14 +9,14 @@ use function WordPress\Blueprints\join_paths;
 
 class Runtime implements RuntimeInterface {
 
-	public Filesystem $fs;
-    protected string $documentRoot;
+	public $fs;
+	protected $documentRoot;
 
-    public function __construct(
+	public function __construct(
 		string $documentRoot
 	) {
-        $this->documentRoot = $documentRoot;
-        $this->fs = new Filesystem();
+		$this->documentRoot = $documentRoot;
+		$this->fs = new Filesystem();
 		if ( ! file_exists( $this->getDocumentRoot() ) ) {
 			$this->fs->mkdir( $this->getDocumentRoot() );
 		}
@@ -34,7 +34,10 @@ class Runtime implements RuntimeInterface {
 		return $this->documentRoot;
 	}
 
-	public function resolvePath( string $path ): string {
+	/**
+  * @param string $path
+  */
+ public function resolvePath( $path ): string {
 		return Path::makeAbsolute( $path, $this->getDocumentRoot() );
 	}
 
@@ -68,11 +71,15 @@ class Runtime implements RuntimeInterface {
 	}
 
 	// @TODO: Move this to a separate class
-	public function evalPhpInSubProcess(
+ /**
+  * @param mixed[]|null $env
+  * @param float $timeout
+  */
+ public function evalPhpInSubProcess(
 		$code,
-		?array $env = null,
+		$env = null,
 		$input = null,
-		?float $timeout = 60
+		$timeout = 60
 	) {
 		return $this->runShellCommand(
 			[
@@ -81,22 +88,30 @@ class Runtime implements RuntimeInterface {
 				'?>' . $code,
 			],
 			null,
-			[
-				'DOCROOT' => $this->getDocumentRoot(),
-				...( $env ?? [] ),
-			],
+			array_merge(
+				[
+					'DOCROOT' => $this->getDocumentRoot(),
+				],
+				$env ?? []
+			),
 			$input,
 			$timeout
 		);
 	}
 
 	// @TODO: Move this to a separate class
-	public function runShellCommand(
-		array $command,
-		?string $cwd = null,
-		?array $env = null,
+ /**
+  * @param mixed[] $command
+  * @param string|null $cwd
+  * @param mixed[]|null $env
+  * @param float $timeout
+  */
+ public function runShellCommand(
+		$command,
+		$cwd = null,
+		$env = null,
 		$input = null,
-		?float $timeout = 60
+		$timeout = 60
 	) {
 		$process = $this->startProcess(
 			$command,
@@ -114,14 +129,20 @@ class Runtime implements RuntimeInterface {
 		return $process->getOutput();
 	}
 
-	public function startProcess(
-		array $command,
-		?string $cwd = null,
-		?array $env = null,
+	/**
+  * @param mixed[] $command
+  * @param string|null $cwd
+  * @param mixed[]|null $env
+  * @param float $timeout
+  */
+ public function startProcess(
+		$command,
+		$cwd = null,
+		$env = null,
 		$input = null,
-		?float $timeout = 60
+		$timeout = 60
 	): Process {
-		$cwd ??= $this->getDocumentRoot();
+		$cwd = $cwd ?? $this->getDocumentRoot();
 
 		return new Process(
 			$command,

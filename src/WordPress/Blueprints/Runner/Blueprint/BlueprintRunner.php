@@ -11,8 +11,8 @@ use WordPress\Blueprints\Runtime\RuntimeInterface;
 
 class BlueprintRunner {
 
-	public EventDispatcher $events;
-	protected RuntimeInterface $runtime;
+	public $events;
+	protected $runtime;
 	protected $resourceManagerFactory;
 
 	public function __construct(
@@ -24,7 +24,10 @@ class BlueprintRunner {
 		$this->events = new EventDispatcher();
 	}
 
-	public function run( CompiledBlueprint $blueprint ) {
+	/**
+  * @param \WordPress\Blueprints\Compile\CompiledBlueprint $blueprint
+  */
+ public function run( $blueprint ) {
 		$resourceManagerFactory = $this->resourceManagerFactory;
 		$resourceManager = $resourceManagerFactory();
 		$resourceManager->enqueue(

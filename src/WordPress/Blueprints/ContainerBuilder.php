@@ -80,7 +80,11 @@ class ContainerBuilder {
 	}
 
 
-	public function build( string $environment, RuntimeInterface $runtime ) {
+	/**
+  * @param string $environment
+  * @param \WordPress\Blueprints\Runtime\RuntimeInterface $runtime
+  */
+ public function build( $environment, $runtime ) {
 		$container = $this->container;
 		$container['runtime'] = function () use ( $runtime ) {
 			return $runtime;
@@ -230,7 +234,7 @@ class ContainerBuilder {
 		$container['resource.supported_resolvers'] = function ( $c ) {
 			$ResourceResolvers = array();
 			foreach ( $c->keys() as $key ) {
-				if ( str_starts_with( $key, 'resource.resolver.' ) ) {
+				if ( 0 === strpos( $key, 'resource.resolver.' ) ) {
 					$ResourceResolvers[] = $c[ $key ];
 				}
 			}

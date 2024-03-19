@@ -13,20 +13,20 @@ class ProgressEvent extends Event {
 	 *
 	 * @var float $progress
 	 */
-	public float $progress;
+	public $progress;
 
 	/**
 	 * The caption to display during progress, a string.
 	 *
 	 * @var ?string $caption
 	 */
-	public ?string $caption;
+	public $caption;
 
 	public function __construct(
 		float $progress,
-		?string $caption
+		string $caption
 	) {
-		$this->caption  = $caption;
+		$this->caption = $caption;
 		$this->progress = $progress;
 	}
 }
