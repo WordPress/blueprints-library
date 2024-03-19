@@ -15,6 +15,7 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 			array(
 				'php',
 				'wp-cli.phar',
+				'--allow-root',
 				'core',
 				'install',
 				'--url=http://localhost:8081',

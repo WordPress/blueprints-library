@@ -2,7 +2,7 @@
 
 namespace WordPress\DataSource;
 
-use Symfony\Contracts\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\Event;
 
 class DataSourceProgressEvent extends Event {
 	/**

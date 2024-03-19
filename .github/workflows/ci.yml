@@ -10,6 +10,8 @@ jobs:
   php-cs-check:
     name: 'PHP 7.4 compatibility (via PHP Code Sniffer)'
     runs-on: ubuntu-latest
+    env:
+      COMPOSER: ${{ github.workspace }}/composer-dev.json
 
     steps:
       - name: Checkout code
@@ -30,6 +32,8 @@ jobs:
 
   test-unit:
     runs-on: ${{ matrix.os }}
+    env:
+      COMPOSER: ${{ github.workspace }}/composer-dev.json
     strategy:
       fail-fast: true
       matrix:

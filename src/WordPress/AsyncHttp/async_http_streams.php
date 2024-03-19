@@ -150,7 +150,7 @@ function streams_http_requests_send( $streams ) {
  * @return array|false An array of chunks read from the streams, or false if no streams are available.
  * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
  */
-function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 500000 ) {
+function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 5000000 ) {
 	$read = $streams;
 	if ( count( $read ) === 0 ) {
 		return false;
@@ -253,7 +253,7 @@ function streams_http_response_await_headers( $streams ) {
 		}
 		foreach ( $bytes as $k => $byte ) {
 			$headers[ $k ] .= $byte;
-			if ( substr_compare( $headers[ $k ], "\r\n\r\n", - strlen( "\r\n\r\n" ) ) === 0 ) {
+			if ( strlen($headers[$k]) >= 4 && substr_compare( $headers[ $k ], "\r\n\r\n", - strlen( "\r\n\r\n" ) ) === 0 ) {
 				unset( $remaining_streams[ $k ] );
 			}
 		}

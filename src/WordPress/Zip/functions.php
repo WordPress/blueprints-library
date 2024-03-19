@@ -17,6 +17,9 @@ function zip_extract_to( $fp, $to_path ) {
 		$path   = Path::canonicalize( $to_path . '/' . $entry->path );
 		$parent = Path::getDirectory( $path );
 		if ( ! is_dir( $parent ) ) {
+			if(is_file($parent)) {
+				unlink($parent);
+			}
 			mkdir( $parent, 0777, true );
 		}
 

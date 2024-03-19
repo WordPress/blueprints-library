@@ -28,6 +28,7 @@ class ImportFileStepRunner extends BaseStepRunner {
 					array(
 						'php',
 						'wp-cli.phar',
+						'--allow-root',
 						'import',
 						$path,
 						'--authors=create',

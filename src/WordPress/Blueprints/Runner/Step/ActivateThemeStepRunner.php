@@ -34,6 +34,7 @@ class ActivateThemeStepRunner extends BaseStepRunner {
 			array(
 				'php',
 				'wp-cli.phar',
+				'--allow-root',
 				'theme',
 				'activate',
 				$input->slug,

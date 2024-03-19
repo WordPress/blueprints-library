@@ -9,19 +9,20 @@ $client = new Client();
 $client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
 	echo "$request->url – Downloaded: $downloaded / $total\n";
 } );
+
 $streams1 = $client->enqueue( [
 	new Request( "https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip" ),
 	new Request( "https://downloads.wordpress.org/theme/pendant.zip" ),
 ] );
 // Enqueuing another request here is instant and won't start the download yet.
-$streams2 = $client->enqueue( [
-	new Request( "https://downloads.wordpress.org/plugin/hello-dolly.1.7.3.zip" ),
-] );
+//$streams2 = $client->enqueue( [
+//	new Request( "https://downloads.wordpress.org/plugin/hello-dolly.1.7.3.zip" ),
+//] );
 
 // Stream a single file, while streaming all the files
 file_put_contents( 'output-round1-0.zip', stream_get_contents( $streams1[0] ) );
-file_put_contents( 'output-round1-1.zip', stream_get_contents( $streams1[1] ) );
-
+//file_put_contents( 'output-round1-1.zip', stream_get_contents( $streams1[1] ) );
+die();
 // Initiate more HTTPS requests
 $streams3 = $client->enqueue( [
 	new Request( "https://downloads.wordpress.org/plugin/akismet.4.1.12.zip" ),
