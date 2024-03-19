@@ -12,21 +12,23 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 	const SCHEME = 'vanilla';
 
 	/**
-  * @param \WordPress\Streams\VanillaStreamWrapperData $data
-  */
- static public function create_resource( $data ) {
+	 * @param \WordPress\Streams\VanillaStreamWrapperData $data
+	 */
+	public static function create_resource( $data ) {
 		static::register();
 
-		$context = stream_context_create( [
-			static::SCHEME => [
-				'wrapper_data' => $data,
-			],
-		] );
+		$context = stream_context_create(
+			array(
+				static::SCHEME => array(
+					'wrapper_data' => $data,
+				),
+			)
+		);
 
 		return fopen( static::SCHEME . '://', 'r', false, $context );
 	}
 
-	static public function register() {
+	public static function register() {
 		if ( in_array( static::SCHEME, stream_get_wrappers() ) ) {
 			return;
 		}
@@ -36,17 +38,17 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 		}
 	}
 
-	static public function unregister() {
+	public static function unregister() {
 		stream_wrapper_unregister( 'async' );
 	}
 
 
 	/**
-  * @param int $option
-  * @param int $arg1
-  * @param int|null $arg2
-  */
- public function stream_set_option( $option, $arg1, $arg2 = null ): bool {
+	 * @param int      $option
+	 * @param int      $arg1
+	 * @param int|null $arg2
+	 */
+	public function stream_set_option( $option, $arg1, $arg2 = null ): bool {
 		if ( \STREAM_OPTION_BLOCKING === $option ) {
 			return stream_set_blocking( $this->stream, (bool) $arg1 );
 		} elseif ( \STREAM_OPTION_READ_TIMEOUT === $option ) {
@@ -73,9 +75,9 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 	}
 
 	/**
-  * @param int $cast_as
-  */
- public function stream_cast( $cast_as ) {
+	 * @param int $cast_as
+	 */
+	public function stream_cast( $cast_as ) {
 		return $this->stream;
 	}
 
@@ -104,6 +106,6 @@ class VanillaStreamWrapper implements StreamWrapperInterface {
 	}
 
 	public function stream_stat() {
-		return [];
+		return array();
 	}
 }

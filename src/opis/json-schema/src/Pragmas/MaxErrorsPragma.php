@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,42 +20,39 @@ namespace Opis\JsonSchema\Pragmas;
 
 use Opis\JsonSchema\{ValidationContext, Pragma};
 
-class MaxErrorsPragma implements Pragma
-{
+class MaxErrorsPragma implements Pragma {
 
-    /**
-     * @var int
-     */
-    protected $maxErrors;
 
-    /**
-     * @param int $maxErrors
-     */
-    public function __construct(int $maxErrors)
-    {
-        $this->maxErrors = $maxErrors;
-    }
+	/**
+	 * @var int
+	 */
+	protected $maxErrors;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function enter($context)
-    {
-        $data = $context->maxErrors();
-        $context->setMaxErrors($this->maxErrors);
-        return $data;
-    }
+	/**
+	 * @param int $maxErrors
+	 */
+	public function __construct( int $maxErrors ) {
+		$this->maxErrors = $maxErrors;
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function leave($context, $data)
-    {
-        if ($data === null) {
-            return;
-        }
-        $context->setMaxErrors($data);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function enter( $context ) {
+		$data = $context->maxErrors();
+		$context->setMaxErrors( $this->maxErrors );
+		return $data;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function leave( $context, $data ) {
+		if ( $data === null ) {
+			return;
+		}
+		$context->setMaxErrors( $data );
+	}
 }

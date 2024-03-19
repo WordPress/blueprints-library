@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,47 +21,44 @@ namespace Opis\JsonSchema\Pragmas;
 use Opis\JsonSchema\{ValidationContext, Pragma};
 use Opis\JsonSchema\Variables;
 
-class GlobalsPragma implements Pragma
-{
+class GlobalsPragma implements Pragma {
 
-    /**
-     * @var \Opis\JsonSchema\Variables
-     */
-    protected $globals;
 
-    /**
-     * @param Variables $globals
-     */
-    public function __construct(Variables $globals)
-    {
-        $this->globals = $globals;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Variables
+	 */
+	protected $globals;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function enter($context)
-    {
-        $resolved = (array) $this->globals->resolve($context->rootData(), $context->currentDataPath());
-        if (!$resolved) {
-            return null;
-        }
+	/**
+	 * @param Variables $globals
+	 */
+	public function __construct( Variables $globals ) {
+		$this->globals = $globals;
+	}
 
-        $data = $context->globals();
-        $context->setGlobals($resolved, false);
-        return $data;
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function enter( $context ) {
+		$resolved = (array) $this->globals->resolve( $context->rootData(), $context->currentDataPath() );
+		if ( ! $resolved ) {
+			return null;
+		}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function leave($context, $data)
-    {
-        if ($data === null) {
-            return;
-        }
-        $context->setGlobals($data, true);
-    }
+		$data = $context->globals();
+		$context->setGlobals( $resolved, false );
+		return $data;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function leave( $context, $data ) {
+		if ( $data === null ) {
+			return;
+		}
+		$context->setGlobals( $data, true );
+	}
 }

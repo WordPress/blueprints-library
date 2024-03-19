@@ -12,7 +12,6 @@ class StreamData extends VanillaStreamWrapperData {
 	public function __construct( Request $request, Client $group ) {
 		parent::__construct( null );
 		$this->request = $request;
-		$this->client = $group;
+		$this->client  = $group;
 	}
-
 }

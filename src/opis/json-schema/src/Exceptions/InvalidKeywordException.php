@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,31 +20,30 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\Info\SchemaInfo;
 
-class InvalidKeywordException extends ParseException
-{
+class InvalidKeywordException extends ParseException {
 
-    /**
-     * @var string
-     */
-    protected $keyword;
 
-    /**
-     * InvalidKeywordException constructor.
-     * @param string $message
-     * @param string $keyword
-     * @param SchemaInfo|null $info
-     */
-    public function __construct(string $message, string $keyword, $info = null)
-    {
-        parent::__construct($message, $info);
-        $this->keyword = $keyword;
-    }
+	/**
+	 * @var string
+	 */
+	protected $keyword;
 
-    /**
-     * @return string
-     */
-    public function keyword(): string
-    {
-        return $this->keyword;
-    }
+	/**
+	 * InvalidKeywordException constructor.
+	 *
+	 * @param string          $message
+	 * @param string          $keyword
+	 * @param SchemaInfo|null $info
+	 */
+	public function __construct( string $message, string $keyword, $info = null ) {
+		parent::__construct( $message, $info );
+		$this->keyword = $keyword;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function keyword(): string {
+		return $this->keyword;
+	}
 }

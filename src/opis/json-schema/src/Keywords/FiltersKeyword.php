@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,78 +19,88 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    Filter,
-    ValidationContext,
-    Keyword,
-    Schema
+	Filter,
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\{ValidationError, CustomError};
 use Opis\JsonSchema\Exceptions\UnresolvedFilterException;
 
-class FiltersKeyword implements Keyword
-{
-    use ErrorTrait;
+class FiltersKeyword implements Keyword {
 
-    /** @var array|object[] */
-    protected $filters;
+	use ErrorTrait;
 
-    /**
-     * @param object[] $filters
-     */
-    public function __construct(array $filters)
-    {
-        $this->filters = $filters;
-    }
+	/** @var array|object[] */
+	protected $filters;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $type = $context->currentDataType();
+	/**
+	 * @param object[] $filters
+	 */
+	public function __construct( array $filters ) {
+		$this->filters = $filters;
+	}
 
-        foreach ($this->filters as $filter) {
-            if (!isset($filter->types[$type])) {
-                throw new UnresolvedFilterException($filter->name, $type, $schema, $context);
-            }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$type = $context->currentDataType();
 
-            $func = $filter->types[$type];
+		foreach ( $this->filters as $filter ) {
+			if ( ! isset( $filter->types[ $type ] ) ) {
+				throw new UnresolvedFilterException( $filter->name, $type, $schema, $context );
+			}
 
-            if ($filter->args) {
-                $args = (array)$filter->args->resolve($context->rootData(), $context->currentDataPath());
-                $args += $context->globals();
-            } else {
-                $args = $context->globals();
-            }
+			$func = $filter->types[ $type ];
 
-            try {
-                if ($func instanceof Filter) {
-                    $ok = $func->validate($context, $schema, $args);
-                } else {
-                    $ok = $func($context->currentData(), $args);
-                }
-            } catch (CustomError $error) {
-                return $this->error($schema, $context, '$filters', $error->getMessage(), $error->getArgs() + [
-                    'filter' => $filter->name,
-                    'type' => $type,
-                    'args' => $args,
-                ]);
-            }
+			if ( $filter->args ) {
+				$args  = (array) $filter->args->resolve( $context->rootData(), $context->currentDataPath() );
+				$args += $context->globals();
+			} else {
+				$args = $context->globals();
+			}
 
-            if ($ok) {
-                unset($func, $args, $ok);
-                continue;
-            }
+			try {
+				if ( $func instanceof Filter ) {
+					$ok = $func->validate( $context, $schema, $args );
+				} else {
+					$ok = $func( $context->currentData(), $args );
+				}
+			} catch ( CustomError $error ) {
+				return $this->error(
+					$schema,
+					$context,
+					'$filters',
+					$error->getMessage(),
+					$error->getArgs() + array(
+						'filter' => $filter->name,
+						'type'   => $type,
+						'args'   => $args,
+					)
+				);
+			}
 
-            return $this->error($schema, $context, '$filters', "Filter '{filter}' ({type}) was not passed", [
-                'filter' => $filter->name,
-                'type' => $type,
-                'args' => $args,
-            ]);
-        }
+			if ( $ok ) {
+				unset( $func, $args, $ok );
+				continue;
+			}
 
-        return null;
-    }
+			return $this->error(
+				$schema,
+				$context,
+				'$filters',
+				"Filter '{filter}' ({type}) was not passed",
+				array(
+					'filter' => $filter->name,
+					'type'   => $type,
+					'args'   => $args,
+				)
+			);
+		}
+
+		return null;
+	}
 }

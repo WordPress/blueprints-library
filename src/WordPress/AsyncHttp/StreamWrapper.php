@@ -31,9 +31,9 @@ class StreamWrapper extends VanillaStreamWrapper {
 	}
 
 	/**
-  * @param int $cast_as
-  */
- public function stream_cast( $cast_as ) {
+	 * @param int $cast_as
+	 */
+	public function stream_cast( $cast_as ) {
 		$this->initialize();
 
 		return parent::stream_cast( $cast_as );
@@ -103,7 +103,6 @@ class StreamWrapper extends VanillaStreamWrapper {
 	 * Let's refuse to call fclose() in that scenario.
 	 */
 	protected function has_valid_stream() {
-		return get_resource_type( $this->stream ) !== "Unknown";
+		return get_resource_type( $this->stream ) !== 'Unknown';
 	}
-
 }

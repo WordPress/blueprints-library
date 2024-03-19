@@ -38,7 +38,7 @@ class JsonMapper {
 	 * Creates an instance of $class_name based on parsed JSON data.
 	 *
 	 * @param stdClass $json The JSON object containing the data to populate the new object with.
-	 * @param string $class_name The fully qualified name of the class to create an instance of.
+	 * @param string   $class_name The fully qualified name of the class to create an instance of.
 	 *
 	 * @return object An instance of the class specified by $class_name, populated with data from $json.
 	 * @throws ReflectionException If the class does not exist and the instance is being created manually.
@@ -55,7 +55,7 @@ class JsonMapper {
 	 * Populates an instance of $class_name created via ReflectionClass::newInstance.
 	 *
 	 * @param stdClass $json The JSON object containing the data to populate the new object with.
-	 * @param string $class_name The fully qualified name of the class to create an instance of.
+	 * @param string   $class_name The fully qualified name of the class to create an instance of.
 	 *
 	 * @return object An instance of the class specified by $class_name, populated with data from $json.
 	 * @throws ReflectionException If the class does not exist.
@@ -64,8 +64,8 @@ class JsonMapper {
 	 */
 	private function create_and_hydrate( string $class_name, stdClass $json ) {
 		$reflection_class = new ReflectionClass( $class_name );
-		$object = $reflection_class->newInstance();
-		$property_map = PropertyParser::compute_property_map( $reflection_class );
+		$object           = $reflection_class->newInstance();
+		$property_map     = PropertyParser::compute_property_map( $reflection_class );
 
 		foreach ( (array) $json as $key => $value ) {
 			// Ignore null data in JSON.
@@ -91,7 +91,7 @@ class JsonMapper {
 	 * Warning - array depths are not fully checked during mapping.
 	 *
 	 * @param Property $property The Property object with a list of possible types the value could be mapped to.
-	 * @param mixed $value The value from the JSON object.
+	 * @param mixed    $value The value from the JSON object.
 	 *
 	 * @return mixed The mapped value, of the type specified by the Property.
 	 * @throws JsonMapperException If the Property type is not supported, or if the value cannot be mapped to the Property type.
@@ -104,8 +104,8 @@ class JsonMapper {
 
 		foreach ( $property->property_types as $property_type ) {
 			$array_dimensions = PropertyParser::get_array_dimensions( $property_type );
-			$property_type = PropertyParser::without_dimensions( $property_type );
-			$type_is_array = 'array' === $property_type || $array_dimensions > 0;
+			$property_type    = PropertyParser::without_dimensions( $property_type );
+			$type_is_array    = 'array' === $property_type || $array_dimensions > 0;
 
 			if ( is_array( $value ) && $type_is_array && count( $value ) === 0 ) {
 				return array();
@@ -146,7 +146,7 @@ class JsonMapper {
 		// Use a setter if it exists.
 		$method_name = 'set' . ucfirst( $property->name );
 		if ( method_exists( $object, $method_name ) ) {
-			$method = new ReflectionMethod( $object, $method_name );
+			$method     = new ReflectionMethod( $object, $method_name );
 			$parameters = $method->getParameters();
 
 			if ( is_array( $value ) && count( $parameters ) === 1 && $parameters[0]->isVariadic() ) {
@@ -171,7 +171,6 @@ class JsonMapper {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			"Property: '" . get_class( $object ) . "::$property->name' is non-public and no setter method was found."
 		);
-
 	}
 
 	private function is_scalar_recursive( $value, string $property_type ) {
@@ -311,7 +310,7 @@ class JsonMapper {
 	}
 
 	private function run_factory( string $class_name, $params ) {
-		return $this->factories[$this->sanitize_class_name( $class_name )]( $params );
+		return $this->factories[ $this->sanitize_class_name( $class_name ) ]( $params );
 	}
 
 	private function add_factory( string $class_name, callable $factory ) {

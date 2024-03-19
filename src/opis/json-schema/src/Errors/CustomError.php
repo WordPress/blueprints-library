@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,19 +20,19 @@ namespace Opis\JsonSchema\Errors;
 
 use Exception;
 
-class CustomError extends Exception
-{
-    /**
-     * @var mixed[]
-     */
-    protected $args;
+class CustomError extends Exception {
 
-    public function __construct(string $message, array $args = []) {
-        parent::__construct($message);
-        $this->args = $args;
-    }
+	/**
+	 * @var mixed[]
+	 */
+	protected $args;
 
-    public function getArgs(): array {
-        return $this->args;
-    }
+	public function __construct( string $message, array $args = array() ) {
+		parent::__construct( $message );
+		$this->args = $args;
+	}
+
+	public function getArgs(): array {
+		return $this->args;
+	}
 }

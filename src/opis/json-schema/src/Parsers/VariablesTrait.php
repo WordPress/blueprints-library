@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,22 +21,21 @@ namespace Opis\JsonSchema\Parsers;
 use Opis\JsonSchema\Variables;
 use Opis\JsonSchema\Variables\{VariablesContainer};
 
-trait VariablesTrait
-{
-    /**
-     * @param SchemaParser $parser
-     * @param array|object $vars
-     * @param bool $lazy
-     * @return Variables
-     */
-    protected function createVariables($parser, $vars, $lazy = true): Variables
-    {
-        return new VariablesContainer(
-            $vars,
-            $lazy,
-            $parser->option('varRefKey', '$ref'),
-            $parser->option('varEachKey', '$each'),
-            $parser->option('varDefaultKey', 'default')
-        );
-    }
+trait VariablesTrait {
+
+	/**
+	 * @param SchemaParser $parser
+	 * @param array|object $vars
+	 * @param bool         $lazy
+	 * @return Variables
+	 */
+	protected function createVariables( $parser, $vars, $lazy = true ): Variables {
+		return new VariablesContainer(
+			$vars,
+			$lazy,
+			$parser->option( 'varRefKey', '$ref' ),
+			$parser->option( 'varEachKey', '$each' ),
+			$parser->option( 'varDefaultKey', 'default' )
+		);
+	}
 }

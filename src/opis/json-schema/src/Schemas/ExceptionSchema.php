@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,31 +23,29 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\SchemaException;
 
-final class ExceptionSchema extends AbstractSchema
-{
+final class ExceptionSchema extends AbstractSchema {
 
-    /**
-     * @var \Opis\JsonSchema\Exceptions\SchemaException
-     */
-    private $exception;
 
-    /**
-     * @param SchemaInfo $info
-     * @param SchemaException $exception
-     */
-    public function __construct(SchemaInfo $info, SchemaException $exception)
-    {
-        parent::__construct($info);
-        $this->exception = $exception;
-    }
+	/**
+	 * @var \Opis\JsonSchema\Exceptions\SchemaException
+	 */
+	private $exception;
 
-    /**
-     * @inheritDoc
-     * @throws SchemaException
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function validate($context)
-    {
-        throw $this->exception;
-    }
+	/**
+	 * @param SchemaInfo      $info
+	 * @param SchemaException $exception
+	 */
+	public function __construct( SchemaInfo $info, SchemaException $exception ) {
+		parent::__construct( $info );
+		$this->exception = $exception;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @throws SchemaException
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function validate( $context ) {
+		throw $this->exception;
+	}
 }

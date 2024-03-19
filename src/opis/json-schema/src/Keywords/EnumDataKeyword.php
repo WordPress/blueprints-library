@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,41 +21,45 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class EnumDataKeyword extends EnumKeyword
-{
+class EnumDataKeyword extends EnumKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /**
-     * @param JsonPointer $value
-     */
-    public function __construct(JsonPointer $value)
-    {
-        $this->value = $value;
-        parent::__construct([]);
-    }
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $value = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
-        if ($value === $this || !is_array($value) || empty($value)) {
-            return $this->error($schema, $context, 'enum', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @param JsonPointer $value
+	 */
+	public function __construct( JsonPointer $value ) {
+		$this->value = $value;
+		parent::__construct( array() );
+	}
 
-        $this->enum = $this->listByType($value);
-        $ret = parent::validate($context, $schema);
-        $this->enum = null;
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$value = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
+		if ( $value === $this || ! is_array( $value ) || empty( $value ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				'enum',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        return $ret;
-    }
+		$this->enum = $this->listByType( $value );
+		$ret        = parent::validate( $context, $schema );
+		$this->enum = null;
+
+		return $ret;
+	}
 }

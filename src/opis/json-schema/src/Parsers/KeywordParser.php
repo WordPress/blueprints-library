@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,43 +21,43 @@ namespace Opis\JsonSchema\Parsers;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keyword;
 
-abstract class KeywordParser
-{
-    const TYPE_PREPEND = '_prepend';
-    const TYPE_BEFORE = '_before';
-    const TYPE_AFTER = '_after';
-    const TYPE_APPEND = '_append';
+abstract class KeywordParser {
 
-    const TYPE_AFTER_REF = '_after_ref';
+	const TYPE_PREPEND = '_prepend';
+	const TYPE_BEFORE  = '_before';
+	const TYPE_AFTER   = '_after';
+	const TYPE_APPEND  = '_append';
 
-    const TYPE_STRING = 'string';
-    const TYPE_NUMBER = 'number';
-    const TYPE_ARRAY = 'array';
-    const TYPE_OBJECT = 'object';
+	const TYPE_AFTER_REF = '_after_ref';
 
-    use KeywordParserTrait;
+	const TYPE_STRING = 'string';
+	const TYPE_NUMBER = 'number';
+	const TYPE_ARRAY  = 'array';
+	const TYPE_OBJECT = 'object';
 
-    /**
-     * The keyword type, can be one of the TYPE_* const
-     * @return string
-     */
-    abstract public function type(): string;
+	use KeywordParserTrait;
 
-    /**
-     * @param SchemaInfo $info
-     * @param SchemaParser $parser
-     * @param object $shared
-     * @return Keyword|null
-     */
-    abstract public function parse($info, $parser, $shared);
+	/**
+	 * The keyword type, can be one of the TYPE_* const
+	 *
+	 * @return string
+	 */
+	abstract public function type(): string;
 
-    /**
-     * @param SchemaInfo $info
-     * @return bool
-     */
-    protected function trackEvaluated($info): bool
-    {
-        $draft = $info->draft();
-        return $draft !== '06' && $draft !== '07';
-    }
+	/**
+	 * @param SchemaInfo   $info
+	 * @param SchemaParser $parser
+	 * @param object       $shared
+	 * @return Keyword|null
+	 */
+	abstract public function parse( $info, $parser, $shared );
+
+	/**
+	 * @param SchemaInfo $info
+	 * @return bool
+	 */
+	protected function trackEvaluated( $info ): bool {
+		$draft = $info->draft();
+		return $draft !== '06' && $draft !== '07';
+	}
 }

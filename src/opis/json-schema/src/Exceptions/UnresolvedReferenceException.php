@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,30 +20,28 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\{ValidationContext, Schema};
 
-class UnresolvedReferenceException extends UnresolvedException
-{
+class UnresolvedReferenceException extends UnresolvedException {
 
-    /**
-     * @var string
-     */
-    protected $ref;
 
-    /**
-     * @param string $ref
-     * @param Schema $schema
-     * @param ValidationContext $context
-     */
-    public function __construct(string $ref, Schema $schema, ValidationContext $context)
-    {
-        parent::__construct("Unresolved reference: {$ref}", $schema, $context);
-        $this->ref = $ref;
-    }
+	/**
+	 * @var string
+	 */
+	protected $ref;
 
-    /**
-     * @return string
-     */
-    public function getRef(): string
-    {
-        return $this->ref;
-    }
+	/**
+	 * @param string            $ref
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 */
+	public function __construct( string $ref, Schema $schema, ValidationContext $context ) {
+		parent::__construct( "Unresolved reference: {$ref}", $schema, $context );
+		$this->ref = $ref;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getRef(): string {
+		return $this->ref;
+	}
 }

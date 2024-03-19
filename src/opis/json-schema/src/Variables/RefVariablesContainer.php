@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,93 +21,87 @@ namespace Opis\JsonSchema\Variables;
 use Opis\JsonSchema\JsonPointer;
 use Opis\JsonSchema\Variables;
 
-final class RefVariablesContainer implements Variables
-{
+final class RefVariablesContainer implements Variables {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    private $pointer;
 
-    /**
-     * @var \Opis\JsonSchema\Variables|null
-     */
-    private $each;
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	private $pointer;
 
-    /**
-     * @var bool
-     */
-    private $hasDefault;
+	/**
+	 * @var \Opis\JsonSchema\Variables|null
+	 */
+	private $each;
 
-    /** @var mixed */
-    private $defaultValue;
+	/**
+	 * @var bool
+	 */
+	private $hasDefault;
 
-    /**
-     * @param JsonPointer $pointer
-     * @param Variables|null $each
-     * @param mixed $default
-     */
-    public function __construct(JsonPointer $pointer, $each = null, $default = null)
-    {
-        $this->pointer = $pointer;
-        $this->each = $each;
-        $this->hasDefault = func_num_args() === 3;
-        $this->defaultValue = $default;
-    }
+	/** @var mixed */
+	private $defaultValue;
 
-    /**
-     * @return JsonPointer
-     */
-    public function pointer(): JsonPointer
-    {
-        return $this->pointer;
-    }
+	/**
+	 * @param JsonPointer    $pointer
+	 * @param Variables|null $each
+	 * @param mixed          $default
+	 */
+	public function __construct( JsonPointer $pointer, $each = null, $default = null ) {
+		$this->pointer      = $pointer;
+		$this->each         = $each;
+		$this->hasDefault   = func_num_args() === 3;
+		$this->defaultValue = $default;
+	}
 
-    /**
-     * @return null|Variables
-     */
-    public function each()
-    {
-        return $this->each;
-    }
+	/**
+	 * @return JsonPointer
+	 */
+	public function pointer(): JsonPointer {
+		return $this->pointer;
+	}
 
-    /**
-     * @return bool
-     */
-    public function hasDefaultValue(): bool
-    {
-        return $this->hasDefault;
-    }
+	/**
+	 * @return null|Variables
+	 */
+	public function each() {
+		return $this->each;
+	}
 
-    /**
-     * @return mixed|null
-     */
-    public function defaultValue()
-    {
-        return $this->defaultValue;
-    }
+	/**
+	 * @return bool
+	 */
+	public function hasDefaultValue(): bool {
+		return $this->hasDefault;
+	}
 
-    /**
-     * @inheritDoc
-     * @param mixed[] $path
-     */
-    public function resolve($data, $path = [])
-    {
-        $resolved = $this->pointer->data($data, $path, $this);
-        if ($resolved === $this) {
-            return $this->defaultValue;
-        }
+	/**
+	 * @return mixed|null
+	 */
+	public function defaultValue() {
+		return $this->defaultValue;
+	}
 
-        if ($this->each && (is_array($resolved) || is_object($resolved))) {
-            $path = $this->pointer->absolutePath($path);
-            foreach ($resolved as $key => &$value) {
-                $path[] = $key;
-                $value = $this->each->resolve($data, $path);
-                array_pop($path);
-                unset($value);
-            }
-        }
+	/**
+	 * @inheritDoc
+	 * @param mixed[] $path
+	 */
+	public function resolve( $data, $path = array() ) {
+		$resolved = $this->pointer->data( $data, $path, $this );
+		if ( $resolved === $this ) {
+			return $this->defaultValue;
+		}
 
-        return $resolved;
-    }
+		if ( $this->each && ( is_array( $resolved ) || is_object( $resolved ) ) ) {
+			$path = $this->pointer->absolutePath( $path );
+			foreach ( $resolved as $key => &$value ) {
+				$path[] = $key;
+				$value  = $this->each->resolve( $data, $path );
+				array_pop( $path );
+				unset( $value );
+			}
+		}
+
+		return $resolved;
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020-2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,28 +20,26 @@ namespace Opis\String\Exception;
 
 use Throwable;
 
-class InvalidCodePointException extends UnicodeException
-{
-    /**
-     * @var mixed
-     */
-    protected $codePoint;
+class InvalidCodePointException extends UnicodeException {
 
-    /**
-     * @param $codePoint
-     * @param Throwable|null $previous
-     */
-    public function __construct($codePoint, Throwable $previous = null)
-    {
-        parent::__construct("Invalid code point", 0, $previous);
-        $this->codePoint = $codePoint;
-    }
+	/**
+	 * @var mixed
+	 */
+	protected $codePoint;
 
-    /**
-     * @return mixed
-     */
-    public function codePoint()
-    {
-        return$this->codePoint;
-    }
+	/**
+	 * @param $codePoint
+	 * @param Throwable|null $previous
+	 */
+	public function __construct( $codePoint, Throwable $previous = null ) {
+		parent::__construct( 'Invalid code point', 0, $previous );
+		$this->codePoint = $codePoint;
+	}
+
+	/**
+	 * @return mixed
+	 */
+	public function codePoint() {
+		return $this->codePoint;
+	}
 }

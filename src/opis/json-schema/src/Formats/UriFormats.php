@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,50 +21,47 @@ namespace Opis\JsonSchema\Formats;
 use Opis\JsonSchema\Uri;
 use Opis\Uri\UriTemplate;
 
-class UriFormats
-{
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function uri($value): bool
-    {
-        if ($value === '') {
-            return false;
-        }
+class UriFormats {
 
-        $uri = Uri::parse($value);
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function uri( $value ): bool {
+		if ( $value === '' ) {
+			return false;
+		}
 
-        return $uri !== null && $uri->isAbsolute();
-    }
+		$uri = Uri::parse( $value );
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function uriReference($value): bool
-    {
-        if ($value === '') {
-            return true;
-        }
+		return $uri !== null && $uri->isAbsolute();
+	}
 
-        return Uri::parse($value) !== null;
-    }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function uriReference( $value ): bool {
+		if ( $value === '' ) {
+			return true;
+		}
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function uriTemplate($value): bool
-    {
-        if ($value === '') {
-            return true;
-        }
+		return Uri::parse( $value ) !== null;
+	}
 
-        if (UriTemplate::isTemplate($value)) {
-            return true;
-        }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function uriTemplate( $value ): bool {
+		if ( $value === '' ) {
+			return true;
+		}
 
-        return Uri::parse($value) !== null;
-    }
+		if ( UriTemplate::isTemplate( $value ) ) {
+			return true;
+		}
+
+		return Uri::parse( $value ) !== null;
+	}
 }

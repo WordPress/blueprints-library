@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,63 +19,74 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class AllOfKeyword implements Keyword
-{
-    use OfTrait;
-    use ErrorTrait;
+class AllOfKeyword implements Keyword {
 
-    /** @var bool[]|object[] */
-    protected $value;
+	use OfTrait;
+	use ErrorTrait;
 
-    /**
-     * @param bool[]|object[] $value
-     */
-    public function __construct(array $value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool[]|object[] */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $object = $this->createArrayObject($context);
+	/**
+	 * @param bool[]|object[] $value
+	 */
+	public function __construct( array $value ) {
+		$this->value = $value;
+	}
 
-        foreach ($this->value as $index => $value) {
-            if ($value === true) {
-                continue;
-            }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$object = $this->createArrayObject( $context );
 
-            if ($value === false) {
-                $this->addEvaluatedFromArrayObject($object, $context);
-                return $this->error($schema, $context, 'allOf', 'The data should match all schemas', [
-                    'index' => $index,
-                ]);
-            }
+		foreach ( $this->value as $index => $value ) {
+			if ( $value === true ) {
+				continue;
+			}
 
-            if (is_object($value) && !($value instanceof Schema)) {
-                $value = $this->value[$index] = $context->loader()->loadObjectSchema($value);
-            }
+			if ( $value === false ) {
+				$this->addEvaluatedFromArrayObject( $object, $context );
+				return $this->error(
+					$schema,
+					$context,
+					'allOf',
+					'The data should match all schemas',
+					array(
+						'index' => $index,
+					)
+				);
+			}
 
-            if ($error = $context->validateSchemaWithoutEvaluated($value, null, false, $object)) {
-                $this->addEvaluatedFromArrayObject($object, $context);
-                return $this->error($schema, $context, 'allOf', 'The data should match all schemas', [
-                    'index' => $index,
-                ], $error);
-            }
-        }
+			if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+				$value = $this->value[ $index ] = $context->loader()->loadObjectSchema( $value );
+			}
 
-        $this->addEvaluatedFromArrayObject($object, $context);
+			if ( $error = $context->validateSchemaWithoutEvaluated( $value, null, false, $object ) ) {
+				$this->addEvaluatedFromArrayObject( $object, $context );
+				return $this->error(
+					$schema,
+					$context,
+					'allOf',
+					'The data should match all schemas',
+					array(
+						'index' => $index,
+					),
+					$error
+				);
+			}
+		}
 
-        return null;
-    }
+		$this->addEvaluatedFromArrayObject( $object, $context );
+
+		return null;
+	}
 }

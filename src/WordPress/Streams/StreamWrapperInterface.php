@@ -7,8 +7,8 @@ interface StreamWrapperInterface {
 	/**
 	 * Sets an option on the stream
 	 *
-	 * @param int $option
-	 * @param int $arg1
+	 * @param int      $option
+	 * @param int      $arg1
 	 * @param int|null $arg2
 	 *
 	 * @return bool
@@ -21,9 +21,9 @@ interface StreamWrapperInterface {
 	public function stream_open( $path, $mode, $options, &$opened_path );
 
 	/**
-  * @param int $cast_as
-  */
- public function stream_cast( $cast_as );
+	 * @param int $cast_as
+	 */
+	public function stream_cast( $cast_as );
 
 	/**
 	 * Reads from the stream

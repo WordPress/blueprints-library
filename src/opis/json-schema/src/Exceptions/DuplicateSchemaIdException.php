@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,44 +21,42 @@ namespace Opis\JsonSchema\Exceptions;
 use RuntimeException;
 use Opis\JsonSchema\Uri;
 
-class DuplicateSchemaIdException extends RuntimeException implements SchemaException
-{
+class DuplicateSchemaIdException extends RuntimeException implements SchemaException {
 
-    /**
-     * @var \Opis\JsonSchema\Uri
-     */
-    protected $id;
 
-    /**
-     * @var object|null
-     */
-    protected $data;
+	/**
+	 * @var \Opis\JsonSchema\Uri
+	 */
+	protected $id;
 
-    /**
-     * DuplicateSchemaIdException constructor.
-     * @param Uri $id
-     * @param object|null $data
-     */
-    public function __construct(Uri $id, $data = null)
-    {
-        parent::__construct("Duplicate schema id: {$id}", 0);
-        $this->id = $id;
-        $this->data = $data;
-    }
+	/**
+	 * @var object|null
+	 */
+	protected $data;
 
-    /**
-     * @return null|object
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
+	/**
+	 * DuplicateSchemaIdException constructor.
+	 *
+	 * @param Uri         $id
+	 * @param object|null $data
+	 */
+	public function __construct( Uri $id, $data = null ) {
+		parent::__construct( "Duplicate schema id: {$id}", 0 );
+		$this->id   = $id;
+		$this->data = $data;
+	}
 
-    /**
-     * @return Uri
-     */
-    public function getId(): Uri
-    {
-        return $this->id;
-    }
+	/**
+	 * @return null|object
+	 */
+	public function getData() {
+		return $this->data;
+	}
+
+	/**
+	 * @return Uri
+	 */
+	public function getId(): Uri {
+		return $this->id;
+	}
 }

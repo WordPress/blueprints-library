@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,75 +21,70 @@ namespace Opis\JsonSchema;
 use JsonSerializable;
 use Opis\Uri\Uri as BaseUri;
 
-class Uri extends BaseUri implements JsonSerializable
-{
-    /**
-     * @var bool Set this to true and the qs will always be sorted
-     */
-    protected static $useNormalizedComponents = false;
+class Uri extends BaseUri implements JsonSerializable {
 
-    public function __construct(array $components)
-    {
-        if (static::$useNormalizedComponents) {
-            $components = self::normalizeComponents($components);
-        }
-        parent::__construct($components);
-    }
+	/**
+	 * @var bool Set this to true and the qs will always be sorted
+	 */
+	protected static $useNormalizedComponents = false;
 
-    /**
-     * @inheritDoc
-     */
-    public function jsonSerialize(): string
-    {
-        return $this->__toString();
-    }
+	public function __construct( array $components ) {
+		if ( static::$useNormalizedComponents ) {
+			$components = self::normalizeComponents( $components );
+		}
+		parent::__construct( $components );
+	}
 
-    /**
-     * @param string $uri
-     * @param bool $ensure_fragment
-     * @return static|null
-     */
-    public static function parse($uri, $ensure_fragment = false)
-    {
-        if ($ensure_fragment && strpos($uri, '#') === false) {
-            $uri .= '#';
-        }
+	/**
+	 * @inheritDoc
+	 */
+	public function jsonSerialize(): string {
+		return $this->__toString();
+	}
 
-        return self::create($uri);
-    }
+	/**
+	 * @param string $uri
+	 * @param bool   $ensure_fragment
+	 * @return static|null
+	 */
+	public static function parse( $uri, $ensure_fragment = false ) {
+		if ( $ensure_fragment && strpos( $uri, '#' ) === false ) {
+			$uri .= '#';
+		}
 
-    /**
-     * @param string|array|static $uri
-     * @param string|array|static $base
-     * @param bool $ensure_fragment
-     * @return static|null
-     */
-    public static function merge($uri, $base, $ensure_fragment = false)
-    {
-        $uri = self::resolveComponents($uri);
+		return self::create( $uri );
+	}
 
-        if ($uri === null) {
-            return null;
-        }
+	/**
+	 * @param string|array|static $uri
+	 * @param string|array|static $base
+	 * @param bool                $ensure_fragment
+	 * @return static|null
+	 */
+	public static function merge( $uri, $base, $ensure_fragment = false ) {
+		$uri = self::resolveComponents( $uri );
 
-        if ($ensure_fragment && !isset($uri['fragment'])) {
-            $uri['fragment'] = '';
-        }
+		if ( $uri === null ) {
+			return null;
+		}
 
-        $base = self::resolveComponents($base);
+		if ( $ensure_fragment && ! isset( $uri['fragment'] ) ) {
+			$uri['fragment'] = '';
+		}
 
-        if (!$base) {
-            return new self($uri);
-        }
+		$base = self::resolveComponents( $base );
 
-        return new self(self::mergeComponents($uri, $base));
-    }
+		if ( ! $base ) {
+			return new self( $uri );
+		}
 
-    /**
-     * @param bool $value
-     */
-    public static function useNormalizedComponents($value)
-    {
-        self::$useNormalizedComponents = $value;
-    }
+		return new self( self::mergeComponents( $uri, $base ) );
+	}
+
+	/**
+	 * @param bool $value
+	 */
+	public static function useNormalizedComponents( $value ) {
+		self::$useNormalizedComponents = $value;
+	}
 }

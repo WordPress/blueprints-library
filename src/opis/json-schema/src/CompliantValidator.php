@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,35 +18,34 @@
 
 namespace Opis\JsonSchema;
 
-class CompliantValidator extends Validator
-{
-    const COMPLIANT_OPTIONS = [
-        'allowFilters' => false,
-        'allowFormats' => true,
-        'allowMappers' => false,
-        'allowTemplates' => false,
-        'allowGlobals' => false,
-        'allowDefaults' => false,
-        'allowSlots' => false,
-        'allowKeywordValidators' => false,
-        'allowPragmas' => false,
-        'allowDataKeyword' => false,
-        'allowKeywordsAlongsideRef' => false,
-        'allowUnevaluated' => true,
-        'allowRelativeJsonPointerInRef' => false,
-        'allowExclusiveMinMaxAsBool' => false,
-        'keepDependenciesKeyword' => false,
-        'keepAdditionalItemsKeyword' => false,
-    ];
+class CompliantValidator extends Validator {
 
-    public function __construct($loader = null, int $max_errors = 1)
-    {
-        parent::__construct($loader, $max_errors);
+	const COMPLIANT_OPTIONS = array(
+		'allowFilters'                  => false,
+		'allowFormats'                  => true,
+		'allowMappers'                  => false,
+		'allowTemplates'                => false,
+		'allowGlobals'                  => false,
+		'allowDefaults'                 => false,
+		'allowSlots'                    => false,
+		'allowKeywordValidators'        => false,
+		'allowPragmas'                  => false,
+		'allowDataKeyword'              => false,
+		'allowKeywordsAlongsideRef'     => false,
+		'allowUnevaluated'              => true,
+		'allowRelativeJsonPointerInRef' => false,
+		'allowExclusiveMinMaxAsBool'    => false,
+		'keepDependenciesKeyword'       => false,
+		'keepAdditionalItemsKeyword'    => false,
+	);
 
-        // Set parser options
-        $parser = $this->parser();
-        foreach (static::COMPLIANT_OPTIONS as $name => $value) {
-            $parser->setOption($name, $value);
-        }
-    }
+	public function __construct( $loader = null, int $max_errors = 1 ) {
+		parent::__construct( $loader, $max_errors );
+
+		// Set parser options
+		$parser = $this->parser();
+		foreach ( static::COMPLIANT_OPTIONS as $name => $value ) {
+			$parser->setOption( $name, $value );
+		}
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,62 +23,60 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\DependenciesKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class DependenciesKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_OBJECT;
-    }
+class DependenciesKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$parser->option('keepDependenciesKeyword') && !in_array($info->draft(), ['06', '07'])) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_OBJECT;
+	}
 
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $parser->option( 'keepDependenciesKeyword' ) && ! in_array( $info->draft(), array( '06', '07' ) ) ) {
+			return null;
+		}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
-        if (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be an object", $info);
-        }
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $list = get_object_vars($value);
+		$value = $this->keywordValue( $schema );
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an object', $info );
+		}
 
-        foreach ($list as $name => $s) {
-            if (is_array($s)) {
-                if (!$s) {
-                    unset($list[$name]);
-                    continue;
-                }
-                foreach ($s as $p) {
-                    if (!is_string($p)) {
-                        throw $this->keywordException("{keyword} must be an object containing json schemas or arrays of property names", $info);
-                    }
-                }
-                $list[$name] = array_unique($s);
-            } elseif (is_bool($s)) {
-                if ($s) {
-                    unset($list[$name]);
-                }
-            } elseif (!is_object($s)) {
-                throw $this->keywordException("{keyword} must be an object containing json schemas or arrays of property names", $info);
-            }
-        }
+		$list = get_object_vars( $value );
 
-        return $list ? new DependenciesKeyword($list) : null;
-    }
+		foreach ( $list as $name => $s ) {
+			if ( is_array( $s ) ) {
+				if ( ! $s ) {
+					unset( $list[ $name ] );
+					continue;
+				}
+				foreach ( $s as $p ) {
+					if ( ! is_string( $p ) ) {
+						throw $this->keywordException( '{keyword} must be an object containing json schemas or arrays of property names', $info );
+					}
+				}
+				$list[ $name ] = array_unique( $s );
+			} elseif ( is_bool( $s ) ) {
+				if ( $s ) {
+					unset( $list[ $name ] );
+				}
+			} elseif ( ! is_object( $s ) ) {
+				throw $this->keywordException( '{keyword} must be an object containing json schemas or arrays of property names', $info );
+			}
+		}
+
+		return $list ? new DependenciesKeyword( $list ) : null;
+	}
 }

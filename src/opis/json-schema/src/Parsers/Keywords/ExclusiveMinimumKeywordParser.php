@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,54 +21,52 @@ namespace Opis\JsonSchema\Parsers\Keywords;
 use Opis\JsonSchema\Keyword;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 use Opis\JsonSchema\Keywords\{
-    ExclusiveMinimumDataKeyword,
-    ExclusiveMinimumKeyword
+	ExclusiveMinimumDataKeyword,
+	ExclusiveMinimumKeyword
 };
 
-class ExclusiveMinimumKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class ExclusiveMinimumKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_NUMBER;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_NUMBER;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (is_bool($value) && $parser->option('allowExclusiveMinMaxAsBool')) {
-            return null;
-        }
+		$value = $this->keywordValue( $schema );
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new ExclusiveMinimumDataKeyword($pointer);
-            }
-        }
+		if ( is_bool( $value ) && $parser->option( 'allowExclusiveMinMaxAsBool' ) ) {
+			return null;
+		}
 
-        if (!is_int($value) && !is_float($value) || is_nan($value) || !is_finite($value)) {
-            throw $this->keywordException('{keyword} must contain a valid number', $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new ExclusiveMinimumDataKeyword( $pointer );
+			}
+		}
 
-        return new ExclusiveMinimumKeyword($value);
-    }
+		if ( ! is_int( $value ) && ! is_float( $value ) || is_nan( $value ) || ! is_finite( $value ) ) {
+			throw $this->keywordException( '{keyword} must contain a valid number', $info );
+		}
+
+		return new ExclusiveMinimumKeyword( $value );
+	}
 }

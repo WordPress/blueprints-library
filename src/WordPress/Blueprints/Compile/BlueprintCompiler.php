@@ -23,19 +23,19 @@ class BlueprintCompiler {
 		$stepRunnerFactory,
 		ResourceResolverInterface $resourceResolver
 	) {
-		$this->resourceResolver = $resourceResolver;
+		$this->resourceResolver  = $resourceResolver;
 		$this->stepRunnerFactory = $stepRunnerFactory;
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
-  */
- public function compile( $blueprint ): CompiledBlueprint {
+	 * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+	 */
+	public function compile( $blueprint ): CompiledBlueprint {
 		$blueprint->steps = array_merge( $this->expandShorthandsIntoSteps( $blueprint ), $blueprint->steps );
 
 		$progressTracker = new Tracker();
-		$stepsStage = $progressTracker->stage( 0.6 );
-		$resourcesStage = $progressTracker->stage( 0.4 );
+		$stepsStage      = $progressTracker->stage( 0.6 );
+		$resourcesStage  = $progressTracker->stage( 0.4 );
 
 		return new CompiledBlueprint(
 			$this->compileSteps( $blueprint, $stepsStage ),
@@ -46,14 +46,14 @@ class BlueprintCompiler {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
-  */
- protected function expandShorthandsIntoSteps( $blueprint ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+	 */
+	protected function expandShorthandsIntoSteps( $blueprint ) {
 		// @TODO: This duplicates the logic in BlueprintComposer.
-		//        It cannot be easily reused because of the dichotomy between the
-		//        Step and Step model classes. Let's alter the code generation
-		//        to only generate a single model class for each schema object.
-		$additional_steps = [];
+		// It cannot be easily reused because of the dichotomy between the
+		// Step and Step model classes. Let's alter the code generation
+		// to only generate a single model class for each schema object.
+		$additional_steps = array();
 		if ( $blueprint->WordPressVersion ) {
 			$additional_steps[] = ( new DownloadWordPressStep() )
 				->setWordPressZip(
@@ -65,7 +65,7 @@ class BlueprintCompiler {
 					( new UrlResource() )
 						->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' )
 				);
-//			 @TODO: stream_select times out here:
+			// @TODO: stream_select times out here:
 			$additional_steps[] = ( new WriteFileStep() )
 				->setPath( 'wp-cli.phar' )
 				->setData( ( new UrlResource() )->setUrl( 'https://playground.wordpress.net/wp-cli.phar' ) );
@@ -73,15 +73,15 @@ class BlueprintCompiler {
 				->setOptions( new WordPressInstallationOptions() );
 		}
 		if ( $blueprint->constants ) {
-			$step = new DefineWpConfigConstsStep();
-			$step->consts = $blueprint->constants;
+			$step               = new DefineWpConfigConstsStep();
+			$step->consts       = $blueprint->constants;
 			$additional_steps[] = $step;
 		}
 		if ( $blueprint->plugins ) {
 			foreach ( $blueprint->plugins as $plugin ) {
-				$step = new InstallPluginStep();
+				$step                = new InstallPluginStep();
 				$step->pluginZipFile = $plugin;
-				$additional_steps[] = $step;
+				$additional_steps[]  = $step;
 			}
 		}
 		if ( $blueprint->siteOptions ) {
@@ -94,10 +94,10 @@ class BlueprintCompiler {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
-  * @param \WordPress\Blueprints\Progress\Tracker $progress
-  */
- protected function compileSteps( $blueprint, $progress ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+	 * @param \WordPress\Blueprints\Progress\Tracker          $progress
+	 */
+	protected function compileSteps( $blueprint, $progress ) {
 		$stepRunnerFactory = $this->stepRunnerFactory;
 		// Compile, ensure all the runners may be created and configured
 		$totalProgressWeight = 0;
@@ -105,9 +105,9 @@ class BlueprintCompiler {
 			$totalProgressWeight += $step->progress->weight ?? 1;
 		}
 
-		$compiledSteps = [];
+		$compiledSteps = array();
 		foreach ( $blueprint->steps as $step ) {
-			$runner = $stepRunnerFactory( $step->step );
+			$runner              = $stepRunnerFactory( $step->step );
 			$stepProgressTracker = $progress->stage(
 				( $step->progress->weight ?? 1 ) / $totalProgressWeight,
 				$step->progress->caption ?? $runner->getDefaultCaption( $step )
@@ -125,15 +125,15 @@ class BlueprintCompiler {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
-  * @param \WordPress\Blueprints\Progress\Tracker $progress
-  */
- protected function compileResources( $blueprint, $progress ) {
-		$resources = [];
+	 * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+	 * @param \WordPress\Blueprints\Progress\Tracker          $progress
+	 */
+	protected function compileResources( $blueprint, $progress ) {
+		$resources = array();
 		$this->findResources( $blueprint, $resources );
 
 		$totalProgressWeight = count( $resources );
-		$compiledResources = [];
+		$compiledResources   = array();
 		foreach ( $resources as $path => list( $declaration, $resource ) ) {
 			/** @var $resource ResourceDefinitionInterface */
 			$compiledResources[ $path ] = new CompiledResource(
@@ -152,21 +152,21 @@ class BlueprintCompiler {
 	// Find all the resources in the blueprint
 	protected function findResources( $blueprintFragment, &$resources, $path = '', $parseUrls = false ) {
 		if ( $parseUrls && is_string( $blueprintFragment ) ) {
-			$resources[ $path ] = [
+			$resources[ $path ] = array(
 				$blueprintFragment,
 				$this->resourceResolver->parseUrl( $blueprintFragment ),
-			];
+			);
 		} elseif ( $blueprintFragment instanceof ResourceDefinitionInterface ) {
-			$resources[ $path ] = [
+			$resources[ $path ] = array(
 				$blueprintFragment,
 				$blueprintFragment,
-			];
+			);
 		} elseif ( is_object( $blueprintFragment ) ) {
 			// Check if the @var annotation mentions a ResourceDefinitionInterface
 			foreach ( get_object_vars( $blueprintFragment ) as $key => $value ) {
 				$reflection = new \ReflectionProperty( $blueprintFragment, $key );
-    $reflection->setAccessible(true);
-				$docComment = $reflection->getDocComment();
+				$reflection->setAccessible( true );
+				$docComment      = $reflection->getDocComment();
 				$parseNestedUrls = false;
 				if ( preg_match( '/@var\s+([^\s]+)/', $docComment, $matches ) ) {
 					$className = $matches[1];
@@ -187,5 +187,4 @@ class BlueprintCompiler {
 			return $blueprintFragment;
 		}
 	}
-
 }

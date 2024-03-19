@@ -18,16 +18,20 @@ class UrlSource extends BaseDataSource {
 		CacheInterface $cache
 	) {
 		$this->client = $client;
-		$this->cache = $cache;
+		$this->cache  = $cache;
 
 		parent::__construct();
-		$client->set_progress_callback( function ( Request $request, $downloaded, $total ) {
-			$this->events->dispatch( new DataSourceProgressEvent(
-				$request->url,
-				$downloaded,
-				$total
-			) );
-		} );
+		$client->set_progress_callback(
+			function ( Request $request, $downloaded, $total ) {
+				$this->events->dispatch(
+					new DataSourceProgressEvent(
+						$request->url,
+						$downloaded,
+						$total
+					)
+				);
+			}
+		);
 	}
 
 	public function stream( $resourceIdentifier ) {
@@ -36,13 +40,15 @@ class UrlSource extends BaseDataSource {
 		if ( false && $this->cache->has( $url ) ) {
 			// Return a stream resource.
 			// @TODO: Stream directly from the cache
-			$cached = $this->cache->get( $url );
+			$cached    = $this->cache->get( $url );
 			$data_size = strlen( $cached );
-			$this->events->dispatch( new DataSourceProgressEvent(
-				$url,
-				$data_size,
-				$data_size
-			) );
+			$this->events->dispatch(
+				new DataSourceProgressEvent(
+					$url,
+					$data_size,
+					$data_size
+				)
+			);
 			$stream = fopen( 'php://memory', 'r+' );
 			fwrite( $stream, $cached );
 			rewind( $stream );
@@ -57,11 +63,11 @@ class UrlSource extends BaseDataSource {
 		// Cache
 		$onChunk = function ( $chunk ) use ( $url, $stream ) {
 			// Handle response caching
-			static $bufferedChunks = [];
-			$bufferedChunks[] = $chunk;
+			static $bufferedChunks = array();
+			$bufferedChunks[]      = $chunk;
 			if ( feof( $stream ) ) {
 				$this->cache->set( $url, implode( '', $bufferedChunks ) );
-				$bufferedChunks = [];
+				$bufferedChunks = array();
 			}
 		};
 
@@ -72,5 +78,4 @@ class UrlSource extends BaseDataSource {
 			)
 		);
 	}
-
 }

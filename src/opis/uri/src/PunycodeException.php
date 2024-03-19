@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2021 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,7 @@ namespace Opis\Uri;
 
 use RuntimeException;
 
-class PunycodeException extends RuntimeException
-{
+class PunycodeException extends RuntimeException {
+
 
 }

@@ -17,8 +17,7 @@ class RequestInfo {
 		$this->stream = $stream;
 	}
 
-	public function isFinished() {
+	public function is_finished() {
 		return $this->state === self::STATE_FINISHED;
 	}
-
 }

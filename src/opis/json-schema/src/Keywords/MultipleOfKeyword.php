@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,43 +19,47 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema,
-    Helper
+	ValidationContext,
+	Keyword,
+	Schema,
+	Helper
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class MultipleOfKeyword implements Keyword
-{
-    use ErrorTrait;
+class MultipleOfKeyword implements Keyword {
 
-    /**
-     * @var float
-     */
-    protected $number;
+	use ErrorTrait;
 
-    /**
-     * @param float $number
-     */
-    public function __construct(float $number)
-    {
-        $this->number = $number;
-    }
+	/**
+	 * @var float
+	 */
+	protected $number;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (Helper::isMultipleOf($context->currentData(), $this->number)) {
-            return null;
-        }
+	/**
+	 * @param float $number
+	 */
+	public function __construct( float $number ) {
+		$this->number = $number;
+	}
 
-        return $this->error($schema, $context, 'multipleOf', "Number must be a multiple of {divisor}", [
-            'divisor' => $this->number,
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( Helper::isMultipleOf( $context->currentData(), $this->number ) ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'multipleOf',
+			'Number must be a multiple of {divisor}',
+			array(
+				'divisor' => $this->number,
+			)
+		);
+	}
 }

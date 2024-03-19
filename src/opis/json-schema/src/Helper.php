@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,335 +18,323 @@
 
 namespace Opis\JsonSchema;
 
-final class Helper
-{
-    /** @var string[] */
-    const JSON_TYPES = ['string', 'number', 'boolean', 'null', 'object', 'array'];
+final class Helper {
 
-    /** @var string[] */
-    const JSON_SUBTYPES = ['integer' => 'number'];
+	/** @var string[] */
+	const JSON_TYPES = array( 'string', 'number', 'boolean', 'null', 'object', 'array' );
 
-    /** @var string[] */
-    const PHP_TYPE_MAP = [
-        'NULL' => 'null',
-        'integer' => 'integer',
-        'double' => 'number',
-        'boolean' => 'boolean',
-        'array' => 'array',
-        'object' => 'object',
-        'string' => 'string',
-    ];
+	/** @var string[] */
+	const JSON_SUBTYPES = array( 'integer' => 'number' );
 
-    /**
-     * @param string $type
-     * @return bool
-     */
-    public static function isValidJsonType(string $type): bool
-    {
-        if (isset(self::JSON_SUBTYPES[$type])) {
-            return true;
-        }
+	/** @var string[] */
+	const PHP_TYPE_MAP = array(
+		'NULL'    => 'null',
+		'integer' => 'integer',
+		'double'  => 'number',
+		'boolean' => 'boolean',
+		'array'   => 'array',
+		'object'  => 'object',
+		'string'  => 'string',
+	);
 
-        return in_array($type, self::JSON_TYPES, true);
-    }
+	/**
+	 * @param string $type
+	 * @return bool
+	 */
+	public static function isValidJsonType( string $type ): bool {
+		if ( isset( self::JSON_SUBTYPES[ $type ] ) ) {
+			return true;
+		}
 
-    /**
-     * @param string $type
-     * @return null|string
-     */
-    public static function getJsonSuperType(string $type)
-    {
-        return self::JSON_SUBTYPES[$type] ?? null;
-    }
+		return in_array( $type, self::JSON_TYPES, true );
+	}
 
-    /**
-     * @param mixed $value
-     * @param bool $use_subtypes
-     * @return null|string
-     */
-    public static function getJsonType($value, bool $use_subtypes = true)
-    {
-        $type = self::PHP_TYPE_MAP[gettype($value)] ?? null;
-        if ($type === null) {
-            return null;
-        } elseif ($type === 'array') {
-            return self::isIndexedArray($value) ? 'array' : null;
-        }
+	/**
+	 * @param string $type
+	 * @return null|string
+	 */
+	public static function getJsonSuperType( string $type ) {
+		return self::JSON_SUBTYPES[ $type ] ?? null;
+	}
 
-        if ($use_subtypes) {
-            if ($type === 'number' && self::isMultipleOf($value, 1)) {
-                return 'integer';
-            }
-        } elseif ($type === 'integer') {
-            return 'number';
-        }
+	/**
+	 * @param mixed $value
+	 * @param bool  $use_subtypes
+	 * @return null|string
+	 */
+	public static function getJsonType( $value, bool $use_subtypes = true ) {
+		$type = self::PHP_TYPE_MAP[ gettype( $value ) ] ?? null;
+		if ( $type === null ) {
+			return null;
+		} elseif ( $type === 'array' ) {
+			return self::isIndexedArray( $value ) ? 'array' : null;
+		}
 
-        return $type;
-    }
+		if ( $use_subtypes ) {
+			if ( $type === 'number' && self::isMultipleOf( $value, 1 ) ) {
+				return 'integer';
+			}
+		} elseif ( $type === 'integer' ) {
+			return 'number';
+		}
 
-    /**
-     * @param string $type
-     * @param string|string[] $allowed
-     * @return bool
-     */
-    public static function jsonTypeMatches(string $type, $allowed): bool
-    {
-        if (!$allowed) {
-            return false;
-        }
+		return $type;
+	}
 
-        if (is_string($allowed)) {
-            if ($type === $allowed) {
-                return true;
-            }
+	/**
+	 * @param string          $type
+	 * @param string|string[] $allowed
+	 * @return bool
+	 */
+	public static function jsonTypeMatches( string $type, $allowed ): bool {
+		if ( ! $allowed ) {
+			return false;
+		}
 
-            return $allowed === self::getJsonSuperType($type);
-        }
+		if ( is_string( $allowed ) ) {
+			if ( $type === $allowed ) {
+				return true;
+			}
 
-        if (is_array($allowed)) {
-            if (in_array($type, $allowed, true)) {
-                return true;
-            }
+			return $allowed === self::getJsonSuperType( $type );
+		}
 
-            if ($type = self::getJsonSuperType($type)) {
-                return in_array($type, $allowed, true);
-            }
-        }
+		if ( is_array( $allowed ) ) {
+			if ( in_array( $type, $allowed, true ) ) {
+				return true;
+			}
 
-        return false;
-    }
+			if ( $type = self::getJsonSuperType( $type ) ) {
+				return in_array( $type, $allowed, true );
+			}
+		}
 
-    /**
-     * @param mixed $value
-     * @param string|string[] $type
-     * @return bool
-     */
-    public static function valueIsOfJsonType($value, $type): bool
-    {
-        $t = self::getJsonType($value);
-        if ($t === null) {
-            return false;
-        }
+		return false;
+	}
 
-        return self::jsonTypeMatches($t, $type);
-    }
+	/**
+	 * @param mixed           $value
+	 * @param string|string[] $type
+	 * @return bool
+	 */
+	public static function valueIsOfJsonType( $value, $type ): bool {
+		$t = self::getJsonType( $value );
+		if ( $t === null ) {
+			return false;
+		}
 
-    /**
-     * @param array $array
-     * @return bool
-     */
-    public static function isIndexedArray(array $array): bool
-    {
-        for ($i = 0, $max = count($array); $i < $max; $i++) {
-            if (!array_key_exists($i, $array)) {
-                return false;
-            }
-        }
+		return self::jsonTypeMatches( $t, $type );
+	}
 
-        return true;
-    }
+	/**
+	 * @param array $array
+	 * @return bool
+	 */
+	public static function isIndexedArray( array $array ): bool {
+		for ( $i = 0, $max = count( $array ); $i < $max; $i++ ) {
+			if ( ! array_key_exists( $i, $array ) ) {
+				return false;
+			}
+		}
 
-    /**
-     * Converts assoc-arrays to objects (recursive)
-     * @param scalar|object|array|null $schema
-     * @return scalar|object|array|null
-     */
-    public static function convertAssocArrayToObject($schema)
-    {
-        if (is_null($schema) || is_scalar($schema)) {
-            return $schema;
-        }
+		return true;
+	}
 
-        $keepArray = is_array($schema) && self::isIndexedArray($schema);
+	/**
+	 * Converts assoc-arrays to objects (recursive)
+	 *
+	 * @param scalar|object|array|null $schema
+	 * @return scalar|object|array|null
+	 */
+	public static function convertAssocArrayToObject( $schema ) {
+		if ( is_null( $schema ) || is_scalar( $schema ) ) {
+			return $schema;
+		}
 
-        $data = [];
+		$keepArray = is_array( $schema ) && self::isIndexedArray( $schema );
 
-        foreach ($schema as $key => $value) {
-            $data[$key] = is_array($value) || is_object($value) ? self::convertAssocArrayToObject($value) : $value;
-        }
+		$data = array();
 
-        return $keepArray ? $data : (object) $data;
-    }
+		foreach ( $schema as $key => $value ) {
+			$data[ $key ] = is_array( $value ) || is_object( $value ) ? self::convertAssocArrayToObject( $value ) : $value;
+		}
 
-    /**
-     * @param mixed $a
-     * @param mixed $b
-     * @return bool
-     */
-    public static function equals($a, $b): bool
-    {
-        if ($a === $b) {
-            return true;
-        }
+		return $keepArray ? $data : (object) $data;
+	}
 
-        $type = self::getJsonType($a, false);
-        if ($type === null || $type !== self::getJsonType($b, false)) {
-            return false;
-        }
+	/**
+	 * @param mixed $a
+	 * @param mixed $b
+	 * @return bool
+	 */
+	public static function equals( $a, $b ): bool {
+		if ( $a === $b ) {
+			return true;
+		}
 
-        if ($type === 'number') {
-            return $a == $b;
-        }
+		$type = self::getJsonType( $a, false );
+		if ( $type === null || $type !== self::getJsonType( $b, false ) ) {
+			return false;
+		}
 
-        if ($type === "array") {
-            $count = count($a);
-            if ($count !== count($b)) {
-                return false;
-            }
+		if ( $type === 'number' ) {
+			return $a == $b;
+		}
 
-            for ($i = 0; $i < $count; $i++) {
-                if (!array_key_exists($i, $a) || !array_key_exists($i, $b)) {
-                    return false;
-                }
-                if (!self::equals($a[$i], $b[$i])) {
-                    return false;
-                }
-            }
+		if ( $type === 'array' ) {
+			$count = count( $a );
+			if ( $count !== count( $b ) ) {
+				return false;
+			}
 
-            return true;
-        }
+			for ( $i = 0; $i < $count; $i++ ) {
+				if ( ! array_key_exists( $i, $a ) || ! array_key_exists( $i, $b ) ) {
+					return false;
+				}
+				if ( ! self::equals( $a[ $i ], $b[ $i ] ) ) {
+					return false;
+				}
+			}
 
-        if ($type === "object") {
-            $a = get_object_vars($a);
-            if ($a === null) {
-                return false;
-            }
+			return true;
+		}
 
-            $b = get_object_vars($b);
-            if ($b === null) {
-                return false;
-            }
+		if ( $type === 'object' ) {
+			$a = get_object_vars( $a );
+			if ( $a === null ) {
+				return false;
+			}
 
-            if (count($a) !== count($b)) {
-                return false;
-            }
+			$b = get_object_vars( $b );
+			if ( $b === null ) {
+				return false;
+			}
 
-            foreach ($a as $prop => $value) {
-                if (!array_key_exists($prop, $b)) {
-                    return false;
-                }
-                if (!self::equals($value, $b[$prop])) {
-                    return false;
-                }
-            }
+			if ( count( $a ) !== count( $b ) ) {
+				return false;
+			}
 
-            return true;
-        }
+			foreach ( $a as $prop => $value ) {
+				if ( ! array_key_exists( $prop, $b ) ) {
+					return false;
+				}
+				if ( ! self::equals( $value, $b[ $prop ] ) ) {
+					return false;
+				}
+			}
 
-        return false;
-    }
+			return true;
+		}
 
-    /**
-     * @param $number
-     * @param $divisor
-     * @param int $scale
-     * @return bool
-     */
-    public static function isMultipleOf($number, $divisor, int $scale = 14): bool
-    {
-        static $bcMath = null;
-        if ($bcMath === null) {
-            $bcMath = extension_loaded('bcmath');
-        }
-        if ($divisor == 0) {
-            return $number == 0;
-        }
+		return false;
+	}
 
-        if ($bcMath) {
-            $number = number_format($number, $scale, '.', '');
-            $divisor = number_format($divisor, $scale, '.', '');
+	/**
+	 * @param $number
+	 * @param $divisor
+	 * @param int     $scale
+	 * @return bool
+	 */
+	public static function isMultipleOf( $number, $divisor, int $scale = 14 ): bool {
+		static $bcMath = null;
+		if ( $bcMath === null ) {
+			$bcMath = extension_loaded( 'bcmath' );
+		}
+		if ( $divisor == 0 ) {
+			return $number == 0;
+		}
 
-            /** @noinspection PhpComposerExtensionStubsInspection */
-            $x = bcdiv($number, $divisor, 0);
-            /** @noinspection PhpComposerExtensionStubsInspection */
-            $x = bcmul($divisor, $x, $scale);
-            /** @noinspection PhpComposerExtensionStubsInspection */
-            $x = bcsub($number, $x, $scale);
+		if ( $bcMath ) {
+			$number  = number_format( $number, $scale, '.', '' );
+			$divisor = number_format( $divisor, $scale, '.', '' );
 
-            /** @noinspection PhpComposerExtensionStubsInspection */
-            return 0 === bccomp($x, 0, $scale);
-        }
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			$x = bcdiv( $number, $divisor, 0 );
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			$x = bcmul( $divisor, $x, $scale );
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			$x = bcsub( $number, $x, $scale );
 
-        $div = $number / $divisor;
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			return 0 === bccomp( $x, 0, $scale );
+		}
 
-        return $div == (int)$div;
-    }
+		$div = $number / $divisor;
 
-    /**
-     * @param $value
-     * @return mixed
-     */
-    public static function cloneValue($value)
-    {
-        if ($value === null || is_scalar($value)) {
-            return $value;
-        }
+		return $div == (int) $div;
+	}
 
-        if (is_array($value)) {
-            return array_map(self::class . '::cloneValue', $value);
-        }
+	/**
+	 * @param $value
+	 * @return mixed
+	 */
+	public static function cloneValue( $value ) {
+		if ( $value === null || is_scalar( $value ) ) {
+			return $value;
+		}
 
-        if (is_object($value)) {
-            return (object)array_map(self::class . '::cloneValue', get_object_vars($value));
-        }
+		if ( is_array( $value ) ) {
+			return array_map( self::class . '::cloneValue', $value );
+		}
 
-        return null;
-    }
+		if ( is_object( $value ) ) {
+			return (object) array_map( self::class . '::cloneValue', get_object_vars( $value ) );
+		}
 
-    /**
-     * @param string $pattern
-     * @return bool
-     */
-    public static function isValidPattern(string $pattern): bool
-    {
-        if (strpos($pattern, '\Z') !== false) {
-            return false;
-        }
+		return null;
+	}
 
-        return @preg_match("\x07{$pattern}\x07u", '') !== false;
-    }
+	/**
+	 * @param string $pattern
+	 * @return bool
+	 */
+	public static function isValidPattern( string $pattern ): bool {
+		if ( strpos( $pattern, '\Z' ) !== false ) {
+			return false;
+		}
 
-    /**
-     * @param string $pattern
-     * @return string
-     */
-    public static function patternToRegex(string $pattern): string
-    {
-        return "\x07{$pattern}\x07uD";
-    }
+		return @preg_match( "\x07{$pattern}\x07u", '' ) !== false;
+	}
 
-    /**
-     * @param mixed $data
-     * @return mixed
-     */
-    public static function toJSON($data)
-    {
-        if ($data === null || is_scalar($data)) {
-            return $data;
-        }
+	/**
+	 * @param string $pattern
+	 * @return string
+	 */
+	public static function patternToRegex( string $pattern ): string {
+		return "\x07{$pattern}\x07uD";
+	}
 
-        $map = [];
+	/**
+	 * @param mixed $data
+	 * @return mixed
+	 */
+	public static function toJSON( $data ) {
+		if ( $data === null || is_scalar( $data ) ) {
+			return $data;
+		}
 
-        $isArray = true;
-        $index = 0;
-        foreach ($data as $key => $value) {
-            $map[$key] = self::toJSON($value);
-            if ($isArray) {
-                if ($index !== $key) {
-                    $isArray = false;
-                } else {
-                    $index++;
-                }
-            }
-        }
+		$map = array();
 
-        if ($isArray) {
-            if (!$map && is_object($data)) {
-                return (object) $map;
-            }
-            return $map;
-        }
+		$isArray = true;
+		$index   = 0;
+		foreach ( $data as $key => $value ) {
+			$map[ $key ] = self::toJSON( $value );
+			if ( $isArray ) {
+				if ( $index !== $key ) {
+					$isArray = false;
+				} else {
+					++$index;
+				}
+			}
+		}
 
-        return (object) $map;
-    }
+		if ( $isArray ) {
+			if ( ! $map && is_object( $data ) ) {
+				return (object) $map;
+			}
+			return $map;
+		}
+
+		return (object) $map;
+	}
 }

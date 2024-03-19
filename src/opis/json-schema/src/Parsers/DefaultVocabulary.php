@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,39 +19,47 @@
 namespace Opis\JsonSchema\Parsers;
 
 use Opis\JsonSchema\Parsers\Keywords\{
-    FiltersKeywordParser,
-    SlotsKeywordParser
+	FiltersKeywordParser,
+	SlotsKeywordParser
 };
 use Opis\JsonSchema\Parsers\Pragmas\{CastPragmaParser, GlobalsPragmaParser,
-    MaxErrorsPragmaParser, SlotsPragmaParser};
+	MaxErrorsPragmaParser, SlotsPragmaParser};
 use Opis\JsonSchema\Parsers\KeywordValidators\PragmaKeywordValidatorParser;
 
-class DefaultVocabulary extends Vocabulary
-{
-    /**
-     * @param KeywordParser[] $keywords
-     * @param KeywordValidatorParser[] $keywordValidators
-     * @param PragmaParser[] $pragmas
-     */
-    public function __construct(array $keywords = [], array $keywordValidators = [], array $pragmas = [])
-    {
-        $keywords = array_merge($keywords, [
-            new FiltersKeywordParser('$filters'),
-            new SlotsKeywordParser('$slots'),
-        ]);
+class DefaultVocabulary extends Vocabulary {
 
-        $keywordValidators = array_merge([
-            // $pragma has priority
-            new PragmaKeywordValidatorParser('$pragma'),
-        ], $keywordValidators);
+	/**
+	 * @param KeywordParser[]          $keywords
+	 * @param KeywordValidatorParser[] $keywordValidators
+	 * @param PragmaParser[]           $pragmas
+	 */
+	public function __construct( array $keywords = array(), array $keywordValidators = array(), array $pragmas = array() ) {
+		$keywords = array_merge(
+			$keywords,
+			array(
+				new FiltersKeywordParser( '$filters' ),
+				new SlotsKeywordParser( '$slots' ),
+			)
+		);
 
-        $pragmas = array_merge($pragmas, [
-            new MaxErrorsPragmaParser('maxErrors'),
-            new SlotsPragmaParser('slots'),
-            new GlobalsPragmaParser('globals'),
-            new CastPragmaParser('cast'),
-        ]);
+		$keywordValidators = array_merge(
+			array(
+				// $pragma has priority
+				new PragmaKeywordValidatorParser( '$pragma' ),
+			),
+			$keywordValidators
+		);
 
-        parent::__construct($keywords, $keywordValidators, $pragmas);
-    }
+		$pragmas = array_merge(
+			$pragmas,
+			array(
+				new MaxErrorsPragmaParser( 'maxErrors' ),
+				new SlotsPragmaParser( 'slots' ),
+				new GlobalsPragmaParser( 'globals' ),
+				new CastPragmaParser( 'cast' ),
+			)
+		);
+
+		parent::__construct( $keywords, $keywordValidators, $pragmas );
+	}
 }

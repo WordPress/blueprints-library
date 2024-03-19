@@ -1,14 +1,14 @@
 <?php
 define( 'WP_ADMIN', true );
-require_once( getenv('DOCROOT'). "/wp-load.php" );
-require_once( getenv('DOCROOT'). "/wp-admin/includes/plugin.php" );
+require_once getenv( 'DOCROOT' ) . '/wp-load.php';
+require_once getenv( 'DOCROOT' ) . '/wp-admin/includes/plugin.php';
 
 // Set current user to admin
-set_current_user( get_users(array('role' => 'Administrator') )[0] );
+set_current_user( get_users( array( 'role' => 'Administrator' ) )[0] );
 
-$pluginPath = getenv('PLUGIN_PATH');
-if (!is_dir($pluginPath)) {
-	activate_plugin($pluginPath);
+$pluginPath = getenv( 'PLUGIN_PATH' );
+if ( ! is_dir( $pluginPath ) ) {
+	activate_plugin( $pluginPath );
 	die();
 }
 
@@ -21,4 +21,4 @@ foreach ( ( glob( $pluginPath . '/*.php' ) ?: array() ) as $file ) {
 }
 
 // If we got here, the plugin was not found.
-exit(1);
+exit( 1 );

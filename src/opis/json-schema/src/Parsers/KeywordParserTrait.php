@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,57 +21,53 @@ namespace Opis\JsonSchema\Parsers;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Exceptions\InvalidKeywordException;
 
-trait KeywordParserTrait
-{
-    /** @var string */
-    protected $keyword;
+trait KeywordParserTrait {
 
-    /**
-     * @param string $keyword
-     */
-    public function __construct(string $keyword)
-    {
-        $this->keyword = $keyword;
-    }
+	/** @var string */
+	protected $keyword;
 
-    /**
-     * @param object|SchemaInfo $schema
-     * @param string|null $keyword
-     * @return bool
-     */
-    protected function keywordExists($schema, $keyword = null): bool
-    {
-        if ($schema instanceof SchemaInfo) {
-            $schema = $schema->data();
-        }
+	/**
+	 * @param string $keyword
+	 */
+	public function __construct( string $keyword ) {
+		$this->keyword = $keyword;
+	}
 
-        return property_exists($schema, $keyword ?? $this->keyword);
-    }
+	/**
+	 * @param object|SchemaInfo $schema
+	 * @param string|null       $keyword
+	 * @return bool
+	 */
+	protected function keywordExists( $schema, $keyword = null ): bool {
+		if ( $schema instanceof SchemaInfo ) {
+			$schema = $schema->data();
+		}
 
-    /**
-     * @param object|SchemaInfo $schema
-     * @param string|null $keyword
-     * @return mixed
-     */
-    protected function keywordValue($schema, $keyword = null)
-    {
-        if ($schema instanceof SchemaInfo) {
-            $schema = $schema->data();
-        }
+		return property_exists( $schema, $keyword ?? $this->keyword );
+	}
 
-        return $schema->{$keyword ?? $this->keyword};
-    }
+	/**
+	 * @param object|SchemaInfo $schema
+	 * @param string|null       $keyword
+	 * @return mixed
+	 */
+	protected function keywordValue( $schema, $keyword = null ) {
+		if ( $schema instanceof SchemaInfo ) {
+			$schema = $schema->data();
+		}
 
-    /**
-     * @param string $message
-     * @param SchemaInfo $info
-     * @param string|null $keyword
-     * @return InvalidKeywordException
-     */
-    protected function keywordException($message, $info, $keyword = null): InvalidKeywordException
-    {
-        $keyword = $keyword ?? $this->keyword;
+		return $schema->{$keyword ?? $this->keyword};
+	}
 
-        return new InvalidKeywordException(str_replace('{keyword}', $keyword, $message), $keyword, $info);
-    }
+	/**
+	 * @param string      $message
+	 * @param SchemaInfo  $info
+	 * @param string|null $keyword
+	 * @return InvalidKeywordException
+	 */
+	protected function keywordException( $message, $info, $keyword = null ): InvalidKeywordException {
+		$keyword = $keyword ?? $this->keyword;
+
+		return new InvalidKeywordException( str_replace( '{keyword}', $keyword, $message ), $keyword, $info );
+	}
 }

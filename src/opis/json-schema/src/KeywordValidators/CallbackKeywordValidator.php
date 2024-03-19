@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,42 +21,38 @@ namespace Opis\JsonSchema\KeywordValidators;
 use Opis\JsonSchema\{ValidationContext, KeywordValidator};
 use Opis\JsonSchema\Errors\ValidationError;
 
-final class CallbackKeywordValidator implements KeywordValidator
-{
-    /** @var callable */
-    private $callback;
+final class CallbackKeywordValidator implements KeywordValidator {
 
-    /**
-     * @param callable $callback
-     */
-    public function __construct(callable $callback)
-    {
-        $this->callback = $callback;
-    }
+	/** @var callable */
+	private $callback;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function validate($context)
-    {
-        return ($this->callback)($context);
-    }
+	/**
+	 * @param callable $callback
+	 */
+	public function __construct( callable $callback ) {
+		$this->callback = $callback;
+	}
 
-    /**
-     * @inheritDoc
-     */
-    public function next()
-    {
-        return null;
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function validate( $context ) {
+		return ( $this->callback )( $context );
+	}
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\KeywordValidator|null $next
-     */
-    public function setNext($next): KeywordValidator
-    {
-        return $this;
-    }
+	/**
+	 * @inheritDoc
+	 */
+	public function next() {
+		return null;
+	}
+
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\KeywordValidator|null $next
+	 */
+	public function setNext( $next ): KeywordValidator {
+		return $this;
+	}
 }

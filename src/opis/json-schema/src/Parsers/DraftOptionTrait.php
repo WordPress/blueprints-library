@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,32 +18,30 @@
 
 namespace Opis\JsonSchema\Parsers;
 
-
 use Opis\JsonSchema\Info\SchemaInfo;
 
-trait DraftOptionTrait
-{
-    /**
-     * @param string $option
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     */
-    protected function optionAllowedForDraft($option, $info, $parser): bool
-    {
-        $value = $parser->option($option);
+trait DraftOptionTrait {
 
-        if (!$value) {
-            return false;
-        }
+	/**
+	 * @param string                                $option
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 */
+	protected function optionAllowedForDraft( $option, $info, $parser ): bool {
+		$value = $parser->option( $option );
 
-        if ($value === true) {
-            return true;
-        }
+		if ( ! $value ) {
+			return false;
+		}
 
-        if (is_array($value)) {
-            return in_array($info->draft(), $value);
-        }
+		if ( $value === true ) {
+			return true;
+		}
 
-        return $value === $info->draft();
-    }
+		if ( is_array( $value ) ) {
+			return in_array( $info->draft(), $value );
+		}
+
+		return $value === $info->draft();
+	}
 }

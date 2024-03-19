@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,26 +23,25 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Pragmas\MaxErrorsPragma;
 use Opis\JsonSchema\Parsers\{PragmaParser, SchemaParser};
 
-class MaxErrorsPragmaParser extends PragmaParser
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$this->pragmaExists($info)) {
-            return null;
-        }
+class MaxErrorsPragmaParser extends PragmaParser {
 
-        $value = $this->pragmaValue($info);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $this->pragmaExists( $info ) ) {
+			return null;
+		}
 
-        if (!is_int($value)) {
-            throw $this->pragmaException('Pragma {pragma} must be an integer', $info);
-        }
+		$value = $this->pragmaValue( $info );
 
-        return new MaxErrorsPragma($value);
-    }
+		if ( ! is_int( $value ) ) {
+			throw $this->pragmaException( 'Pragma {pragma} must be an integer', $info );
+		}
+
+		return new MaxErrorsPragma( $value );
+	}
 }

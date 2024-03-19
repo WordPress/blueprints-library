@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,67 +19,64 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    Helper,
-    ValidationContext,
-    Keyword,
-    Schema
+	Helper,
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class EnumKeyword implements Keyword
-{
-    use ErrorTrait;
+class EnumKeyword implements Keyword {
 
-    /**
-     * @var mixed[]|null
-     */
-    protected $enum;
+	use ErrorTrait;
 
-    /**
-     * @param array $enum
-     */
-    public function __construct(array $enum)
-    {
-        $this->enum = $this->listByType($enum);
-    }
+	/**
+	 * @var mixed[]|null
+	 */
+	protected $enum;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $type = $context->currentDataType();
-        $data = $context->currentData();
+	/**
+	 * @param array $enum
+	 */
+	public function __construct( array $enum ) {
+		$this->enum = $this->listByType( $enum );
+	}
 
-        if (isset($this->enum[$type])) {
-            foreach ($this->enum[$type] as $value) {
-                if (Helper::equals($value, $data)) {
-                    return null;
-                }
-            }
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$type = $context->currentDataType();
+		$data = $context->currentData();
 
-        return $this->error($schema, $context, 'enum', 'The data should match one item from enum');
-    }
+		if ( isset( $this->enum[ $type ] ) ) {
+			foreach ( $this->enum[ $type ] as $value ) {
+				if ( Helper::equals( $value, $data ) ) {
+					return null;
+				}
+			}
+		}
 
-    /**
-     * @param array $values
-     * @return array
-     */
-    protected function listByType($values): array
-    {
-        $list = [];
+		return $this->error( $schema, $context, 'enum', 'The data should match one item from enum' );
+	}
 
-        foreach ($values as $value) {
-            $type = Helper::getJsonType($value);
-            if (!isset($list[$type])) {
-                $list[$type] = [];
-            }
-            $list[$type][] = $value;
-        }
+	/**
+	 * @param array $values
+	 * @return array
+	 */
+	protected function listByType( $values ): array {
+		$list = array();
 
-        return $list;
-    }
+		foreach ( $values as $value ) {
+			$type = Helper::getJsonType( $value );
+			if ( ! isset( $list[ $type ] ) ) {
+				$list[ $type ] = array();
+			}
+			$list[ $type ][] = $value;
+		}
+
+		return $list;
+	}
 }

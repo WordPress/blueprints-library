@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,185 +20,175 @@ namespace Opis\JsonSchema\Pragmas;
 
 use Opis\JsonSchema\{Helper, ValidationContext, Pragma};
 
-class CastPragma implements Pragma
-{
+class CastPragma implements Pragma {
 
-    /**
-     * @var string
-     */
-    protected $cast;
 
-    /** @var callable */
-    protected $func;
+	/**
+	 * @var string
+	 */
+	protected $cast;
 
-    /**
-     * @param string $cast
-     */
-    public function __construct(string $cast)
-    {
-        $this->cast = $cast;
-        $this->func = $this->getCastFunction($cast);
-    }
+	/** @var callable */
+	protected $func;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function enter($context)
-    {
-        $currentType = $context->currentDataType();
-        if ($currentType !== null && Helper::jsonTypeMatches($currentType, $this->cast)) {
-            // Cast not needed
-            return $this;
-        }
-        unset($currentType);
+	/**
+	 * @param string $cast
+	 */
+	public function __construct( string $cast ) {
+		$this->cast = $cast;
+		$this->func = $this->getCastFunction( $cast );
+	}
 
-        $currentData = $context->currentData();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function enter( $context ) {
+		$currentType = $context->currentDataType();
+		if ( $currentType !== null && Helper::jsonTypeMatches( $currentType, $this->cast ) ) {
+			// Cast not needed
+			return $this;
+		}
+		unset( $currentType );
 
-        $context->setCurrentData(($this->func)($currentData));
+		$currentData = $context->currentData();
 
-        return $currentData;
-    }
+		$context->setCurrentData( ( $this->func )( $currentData ) );
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function leave($context, $data)
-    {
-        if ($data !== $this) {
-            $context->setCurrentData($data);
-        }
-    }
+		return $currentData;
+	}
 
-    /**
-     * @param string $type
-     * @return callable
-     */
-    protected function getCastFunction($type): callable
-    {
-        $f = 'toNull';
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function leave( $context, $data ) {
+		if ( $data !== $this ) {
+			$context->setCurrentData( $data );
+		}
+	}
 
-        switch ($type) {
-            case 'integer':
-                $f = 'toInteger';
-                break;
-            case 'number':
-                $f = 'toNumber';
-                break;
-            case 'string':
-                $f = 'toString';
-                break;
-            case 'array':
-                $f = 'toArray';
-                break;
-            case 'object':
-                $f = 'toObject';
-                break;
-            case 'boolean':
-                $f = 'toBoolean';
-                break;
-        }
+	/**
+	 * @param string $type
+	 * @return callable
+	 */
+	protected function getCastFunction( $type ): callable {
+		$f = 'toNull';
 
-        return [$this, $f];
-    }
+		switch ( $type ) {
+			case 'integer':
+				$f = 'toInteger';
+				break;
+			case 'number':
+				$f = 'toNumber';
+				break;
+			case 'string':
+				$f = 'toString';
+				break;
+			case 'array':
+				$f = 'toArray';
+				break;
+			case 'object':
+				$f = 'toObject';
+				break;
+			case 'boolean':
+				$f = 'toBoolean';
+				break;
+		}
 
-    /**
-     * @param $value
-     * @return int|null
-     */
-    public function toInteger($value)
-    {
-        if ($value === null) {
-            return 0;
-        }
+		return array( $this, $f );
+	}
 
-        return is_scalar($value) ? intval($value) : null;
-    }
+	/**
+	 * @param $value
+	 * @return int|null
+	 */
+	public function toInteger( $value ) {
+		if ( $value === null ) {
+			return 0;
+		}
 
-    /**
-     * @param $value
-     * @return float|null
-     */
-    public function toNumber($value)
-    {
-        if ($value === null) {
-            return 0.0;
-        }
+		return is_scalar( $value ) ? intval( $value ) : null;
+	}
 
-        return is_scalar($value) ? floatval($value) : null;
-    }
+	/**
+	 * @param $value
+	 * @return float|null
+	 */
+	public function toNumber( $value ) {
+		if ( $value === null ) {
+			return 0.0;
+		}
 
-    /**
-     * @param $value
-     * @return string|null
-     */
-    public function toString($value)
-    {
-        if ($value === null) {
-            return '';
-        }
+		return is_scalar( $value ) ? floatval( $value ) : null;
+	}
 
-        if (is_scalar($value)) {
-            return (string) $value;
-        }
+	/**
+	 * @param $value
+	 * @return string|null
+	 */
+	public function toString( $value ) {
+		if ( $value === null ) {
+			return '';
+		}
 
-        return null;
-    }
+		if ( is_scalar( $value ) ) {
+			return (string) $value;
+		}
 
-    /**
-     * @param $value
-     * @return array|null
-     */
-    public function toArray($value)
-    {
-        if ($value === null) {
-            return [];
-        }
+		return null;
+	}
 
-        if (is_scalar($value)) {
-            return [$value];
-        }
+	/**
+	 * @param $value
+	 * @return array|null
+	 */
+	public function toArray( $value ) {
+		if ( $value === null ) {
+			return array();
+		}
 
-        if (is_array($value)) {
-            return array_values($value);
-        }
+		if ( is_scalar( $value ) ) {
+			return array( $value );
+		}
 
-        if (is_object($value)) {
-            return array_values(get_object_vars($value));
-        }
+		if ( is_array( $value ) ) {
+			return array_values( $value );
+		}
 
-        return null;
-    }
+		if ( is_object( $value ) ) {
+			return array_values( get_object_vars( $value ) );
+		}
 
-    /**
-     * @param $value
-     * @return object|null
-     */
-    public function toObject($value)
-    {
-        if (is_object($value) || is_array($value)) {
-            return (object) $value;
-        }
+		return null;
+	}
 
-        return null;
-    }
+	/**
+	 * @param $value
+	 * @return object|null
+	 */
+	public function toObject( $value ) {
+		if ( is_object( $value ) || is_array( $value ) ) {
+			return (object) $value;
+		}
 
-    /**
-     * @param $value
-     * @return bool
-     */
-    public function toBoolean($value): bool
-    {
-        if ($value === null) {
-            return false;
-        }
-        if (is_string($value)) {
-            return !($value === '');
-        }
-        if (is_object($value)) {
-            return count(get_object_vars($value)) > 0;
-        }
-        return boolval($value);
-    }
+		return null;
+	}
+
+	/**
+	 * @param $value
+	 * @return bool
+	 */
+	public function toBoolean( $value ): bool {
+		if ( $value === null ) {
+			return false;
+		}
+		if ( is_string( $value ) ) {
+			return ! ( $value === '' );
+		}
+		if ( is_object( $value ) ) {
+			return count( get_object_vars( $value ) ) > 0;
+		}
+		return boolval( $value );
+	}
 }

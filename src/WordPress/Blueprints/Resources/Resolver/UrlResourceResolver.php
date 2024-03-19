@@ -18,10 +18,10 @@ class UrlResourceResolver implements ResourceResolverInterface {
 	}
 
 	/**
-  * @param string $url
-  */
- public function parseUrl( $url ) {
-		if ( strncmp($url, 'http://', strlen('http://')) !== 0 && strncmp($url, 'https://', strlen('https://')) !== 0 ) {
+	 * @param string $url
+	 */
+	public function parseUrl( $url ) {
+		if ( strncmp( $url, 'http://', strlen( 'http://' ) ) !== 0 && strncmp( $url, 'https://', strlen( 'https://' ) ) !== 0 ) {
 			return null;
 		}
 
@@ -34,17 +34,17 @@ class UrlResourceResolver implements ResourceResolverInterface {
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
-  */
- public function supports( $resource ): bool {
+	 * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+	 */
+	public function supports( $resource ): bool {
 		return $resource instanceof UrlResource;
 	}
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
-  * @param \WordPress\Blueprints\Progress\Tracker $progress_tracker
-  */
- public function stream( $resource, $progress_tracker ) {
+	 * @param \WordPress\Blueprints\Model\DataClass\ResourceDefinitionInterface $resource
+	 * @param \WordPress\Blueprints\Progress\Tracker                            $progress_tracker
+	 */
+	public function stream( $resource, $progress_tracker ) {
 		if ( ! $this->supports( $resource ) ) {
 			throw new InvalidArgumentException( 'Resource ' . get_class( $resource ) . ' unsupported' );
 		}

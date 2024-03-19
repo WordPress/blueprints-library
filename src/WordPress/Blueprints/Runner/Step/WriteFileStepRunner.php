@@ -7,10 +7,10 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class WriteFileStepRunner extends BaseStepRunner {
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\WriteFileStep $input
-  * @param \WordPress\Blueprints\Progress\Tracker|null $progress
-  */
- public function run(
+	 * @param \WordPress\Blueprints\Model\DataClass\WriteFileStep $input
+	 * @param \WordPress\Blueprints\Progress\Tracker|null         $progress
+	 */
+	public function run(
 		$input,
 		$progress = null
 	) {
@@ -30,7 +30,6 @@ class WriteFileStepRunner extends BaseStepRunner {
 	}
 
 	public function getDefaultCaption( $input ) {
-		return "Writing file " . $input->path;
+		return 'Writing file ' . $input->path;
 	}
-
 }

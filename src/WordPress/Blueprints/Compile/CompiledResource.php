@@ -16,9 +16,8 @@ class CompiledResource {
 		ResourceDefinitionInterface $resource,
 		Tracker $progressTracker
 	) {
-		$this->declaration = $declaration;
-		$this->resource = $resource;
+		$this->declaration     = $declaration;
+		$this->resource        = $resource;
 		$this->progressTracker = $progressTracker;
 	}
-
 }

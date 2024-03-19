@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,67 +19,77 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class DependentSchemasKeyword implements Keyword
-{
-    use OfTrait;
-    use ErrorTrait;
+class DependentSchemasKeyword implements Keyword {
 
-    /**
-     * @var mixed[]
-     */
-    protected $value;
+	use OfTrait;
+	use ErrorTrait;
 
-    /**
-     * @param object $value
-     */
-    public function __construct($value)
-    {
-        $this->value = (array)$value;
-    }
+	/**
+	 * @var mixed[]
+	 */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $data = $context->currentData();
-        $object = $this->createArrayObject($context);
+	/**
+	 * @param object $value
+	 */
+	public function __construct( $value ) {
+		$this->value = (array) $value;
+	}
 
-        foreach ($this->value as $name => $value) {
-            if ($value === true || !property_exists($data, $name)) {
-                continue;
-            }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$data   = $context->currentData();
+		$object = $this->createArrayObject( $context );
 
-            if ($value === false) {
-                $this->addEvaluatedFromArrayObject($object, $context);
-                return $this->error($schema, $context, 'dependentSchemas', "'{$name}' property is not allowed", [
-                    'property' => $name,
-                ]);
-            }
+		foreach ( $this->value as $name => $value ) {
+			if ( $value === true || ! property_exists( $data, $name ) ) {
+				continue;
+			}
 
-            if (is_object($value) && !($value instanceof Schema)) {
-                $value = $this->value[$name] = $context->loader()->loadObjectSchema($value);
-            }
+			if ( $value === false ) {
+				$this->addEvaluatedFromArrayObject( $object, $context );
+				return $this->error(
+					$schema,
+					$context,
+					'dependentSchemas',
+					"'{$name}' property is not allowed",
+					array(
+						'property' => $name,
+					)
+				);
+			}
 
-            if ($error = $context->validateSchemaWithoutEvaluated($value, null, false, $object)) {
-                $this->addEvaluatedFromArrayObject($object, $context);
-                return $this->error($schema, $context, 'dependentSchemas',
-                    "The object must match dependency schema defined on property '{$name}'", [
-                        'property' => $name,
-                    ], $error);
-            }
-        }
+			if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+				$value = $this->value[ $name ] = $context->loader()->loadObjectSchema( $value );
+			}
 
-        $this->addEvaluatedFromArrayObject($object, $context);
+			if ( $error = $context->validateSchemaWithoutEvaluated( $value, null, false, $object ) ) {
+				$this->addEvaluatedFromArrayObject( $object, $context );
+				return $this->error(
+					$schema,
+					$context,
+					'dependentSchemas',
+					"The object must match dependency schema defined on property '{$name}'",
+					array(
+						'property' => $name,
+					),
+					$error
+				);
+			}
+		}
 
-        return null;
-    }
+		$this->addEvaluatedFromArrayObject( $object, $context );
+
+		return null;
+	}
 }

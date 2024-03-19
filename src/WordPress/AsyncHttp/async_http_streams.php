@@ -20,7 +20,7 @@ use InvalidArgumentException;
  * @see stream_http_open_nonblocking
  */
 function streams_http_open_nonblocking( $urls ) {
-	$streams = [];
+	$streams = array();
 	foreach ( $urls as $k => $url ) {
 		$streams[ $k ] = stream_http_open_nonblocking( $url );
 	}
@@ -44,9 +44,9 @@ function streams_http_open_nonblocking( $urls ) {
  * @throws Exception If unable to open the stream.
  */
 function stream_http_open_nonblocking( $url ) {
-	$parts = parse_url( $url );
+	$parts  = parse_url( $url );
 	$scheme = $parts['scheme'];
-	if ( ! in_array( $scheme, [ 'http', 'https' ] ) ) {
+	if ( ! in_array( $scheme, array( 'http', 'https' ) ) ) {
 		throw new InvalidArgumentException( 'Invalid scheme – only http:// and https:// URLs are supported' );
 	}
 
@@ -55,13 +55,13 @@ function stream_http_open_nonblocking( $url ) {
 
 	// Create stream context
 	$context = stream_context_create(
-		[
-			'socket' => [
+		array(
+			'socket' => array(
 				'isSsl'       => $scheme === 'https',
 				'originalUrl' => $url,
 				'socketUrl'   => 'tcp://' . $host . ':' . $port,
-			],
-		]
+			),
+		)
 	);
 
 	$stream = stream_socket_client(
@@ -92,24 +92,23 @@ function stream_http_open_nonblocking( $url ) {
  * @throws Exception If there is an error enabling crypto or if stream_select times out.
  */
 function streams_http_requests_send( $streams ) {
-	$read = $except = null;
+	$read              = $except = null;
 	$remaining_streams = $streams;
 	while ( count( $remaining_streams ) ) {
 		$write = $remaining_streams;
 		sleep( 2 );
+		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
 		$ready = @stream_select( $read, $write, $except, 5, 5000000 );
 		if ( $ready === false ) {
-			throw new Exception( "Error: " . error_get_last()['message'] );
+			throw new Exception( 'Error: ' . error_get_last()['message'] );
 		} elseif ( $ready <= 0 ) {
-			var_dump( $ready );
-			die();
-			throw new Exception( "stream_select timed out" );
+			throw new Exception( 'stream_select timed out' );
 		}
 
 		foreach ( $write as $k => $stream ) {
 			$enabled_crypto = stream_socket_enable_crypto( $stream, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT );
 			if ( false === $enabled_crypto ) {
-				throw new Exception( "Failed to enable crypto: " . error_get_last()['message'] );
+				throw new Exception( 'Failed to enable crypto: ' . error_get_last()['message'] );
 			} elseif ( 0 === $enabled_crypto ) {
 				// Wait for the handshake to complete
 			} else {
@@ -128,8 +127,8 @@ function streams_http_requests_send( $streams ) {
  * Waits for response bytes to be available in the given streams.
  *
  * @param array $streams The array of streams to wait for.
- * @param int $length The number of bytes to read from each stream.
- * @param int $timeout_microseconds The timeout in microseconds for the stream_select function.
+ * @param int   $length The number of bytes to read from each stream.
+ * @param int   $timeout_microseconds The timeout in microseconds for the stream_select function.
  *
  * @return array|false An array of chunks read from the streams, or false if no streams are available.
  * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
@@ -139,16 +138,17 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
 	if ( count( $read ) === 0 ) {
 		return false;
 	}
-	$write = [];
+	$write  = array();
 	$except = null;
+	// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
 	$ready = @stream_select( $read, $write, $except, 0, $timeout_microseconds );
 	if ( $ready === false ) {
-		throw new Exception( "Could not retrieve response bytes: " . error_get_last()['message'] );
+		throw new Exception( 'Could not retrieve response bytes: ' . error_get_last()['message'] );
 	} elseif ( $ready <= 0 ) {
-		throw new Exception( "stream_select timed out" );
+		throw new Exception( 'stream_select timed out' );
 	}
 
-	$chunks = [];
+	$chunks = array();
 	foreach ( $read as $k => $stream ) {
 		$chunks[ $k ] = fread( $stream, $length );
 	}
@@ -163,29 +163,28 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
  *
  * @return array An array containing the parsed status and headers.
  */
-
 function parse_http_headers( string $headers ) {
-	$lines = explode( "\r\n", $headers );
-	$status = array_shift( $lines );
-	$status = explode( ' ', $status );
-	$status = [
+	$lines   = explode( "\r\n", $headers );
+	$status  = array_shift( $lines );
+	$status  = explode( ' ', $status );
+	$status  = array(
 		'protocol' => $status[0],
 		'code'     => $status[1],
 		'message'  => $status[2],
-	];
-	$headers = [];
+	);
+	$headers = array();
 	foreach ( $lines as $line ) {
-		if ( strpos($line, ': ') === false ) {
+		if ( strpos( $line, ': ' ) === false ) {
 			continue;
 		}
-		$line = explode( ': ', $line );
+		$line                              = explode( ': ', $line );
 		$headers[ strtolower( $line[0] ) ] = $line[1];
 	}
 
-	return [
+	return array(
 		'status'  => $status,
 		'headers' => $headers,
-	];
+	);
 }
 
 /**
@@ -195,11 +194,10 @@ function parse_http_headers( string $headers ) {
  *
  * @return string The prepared HTTP request string.
  */
-
 function stream_http_prepare_request_bytes( $url ) {
-	$parts = parse_url( $url );
-	$host = $parts['host'];
-	$path = $parts['path'] . ( isset( $parts['query'] ) ? '?' . $parts['query'] : '' );
+	$parts   = parse_url( $url );
+	$host    = $parts['host'];
+	$path    = $parts['path'] . ( isset( $parts['query'] ) ? '?' . $parts['query'] : '' );
 	$request = <<<REQUEST
 GET $path HTTP/1.1
 Host: $host
@@ -222,7 +220,7 @@ REQUEST;
  * @return array An array of HTTP response headers for each stream.
  */
 function streams_http_response_await_headers( $streams ) {
-	$headers = [];
+	$headers = array();
 	foreach ( $streams as $k => $stream ) {
 		$headers[ $k ] = '';
 	}
@@ -234,7 +232,7 @@ function streams_http_response_await_headers( $streams ) {
 		}
 		foreach ( $bytes as $k => $byte ) {
 			$headers[ $k ] .= $byte;
-			if ( substr_compare($headers[ $k ], "\r\n\r\n", -strlen("\r\n\r\n")) === 0 ) {
+			if ( substr_compare( $headers[ $k ], "\r\n\r\n", - strlen( "\r\n\r\n" ) ) === 0 ) {
 				unset( $remaining_streams[ $k ] );
 			}
 		}
@@ -262,7 +260,7 @@ function stream_monitor_progress( $stream, $onProgress ) {
 			$stream,
 			function ( $data ) use ( $onProgress ) {
 				static $streamedBytes = 0;
-				$streamedBytes += strlen( $data );
+				$streamedBytes       += strlen( $data );
 				$onProgress( $streamedBytes );
 			}
 		)
@@ -278,23 +276,23 @@ function stream_monitor_progress( $stream, $onProgress ) {
  * @throws Exception If any of the requests fail with a non-successful HTTP code.
  */
 function streams_send_http_requests( array $requests ) {
-	$urls = [];
+	$urls = array();
 	foreach ( $requests as $k => $request ) {
 		$urls[ $k ] = $request->url;
 	}
-	$redirects = $urls;
-	$final_streams = [];
-	$response_headers = [];
+	$redirects        = $urls;
+	$final_streams    = array();
+	$response_headers = array();
 	do {
 		$streams = streams_http_open_nonblocking( $redirects );
 		streams_http_requests_send( $streams );
 
-		$redirects = [];
-		$headers = streams_http_response_await_headers( $streams );
+		$redirects = array();
+		$headers   = streams_http_response_await_headers( $streams );
 		foreach ( array_keys( $headers ) as $k ) {
 			$code = $headers[ $k ]['status']['code'];
 			if ( $code > 399 || $code < 200 ) {
-				throw new Exception( "Failed to download file " . $requests[ $k ]->url . ": Server responded with HTTP code " . $code );
+				throw new Exception( 'Failed to download file ' . $requests[ $k ]->url . ': Server responded with HTTP code ' . $code );
 			}
 			if ( isset( $headers[ $k ]['headers']['location'] ) ) {
 				$redirects[ $k ] = $headers[ $k ]['headers']['location'];
@@ -302,10 +300,10 @@ function streams_send_http_requests( array $requests ) {
 				continue;
 			}
 
-			$final_streams[ $k ] = $streams[ $k ];
+			$final_streams[ $k ]    = $streams[ $k ];
 			$response_headers[ $k ] = $headers[ $k ];
 		}
 	} while ( count( $redirects ) );
 
-	return [ $final_streams, $response_headers ];
+	return array( $final_streams, $response_headers );
 }

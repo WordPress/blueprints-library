@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,21 +20,20 @@ namespace Opis\JsonSchema\Filters;
 
 use Opis\JsonSchema\{ValidationContext, Filter, Schema};
 
-class SlotExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $slot = $args['slot'] ?? $context->currentData();
-        if (!is_string($slot)) {
-            return false;
-        }
+class SlotExistsFilter implements Filter {
 
-        return $context->slot($slot) !== null;
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$slot = $args['slot'] ?? $context->currentData();
+		if ( ! is_string( $slot ) ) {
+			return false;
+		}
+
+		return $context->slot( $slot ) !== null;
+	}
 }

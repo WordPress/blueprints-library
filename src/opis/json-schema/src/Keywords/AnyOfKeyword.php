@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,82 +19,80 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class AnyOfKeyword implements Keyword
-{
-    use OfTrait;
-    use ErrorTrait;
+class AnyOfKeyword implements Keyword {
 
-    /** @var bool[]|object[] */
-    protected $value;
-    /**
-     * @var bool
-     */
-    protected $alwaysValid;
+	use OfTrait;
+	use ErrorTrait;
 
-    /**
-     * @param bool[]|object[] $value
-     */
-    public function __construct(array $value, bool $alwaysValid = false)
-    {
-        $this->value = $value;
-        $this->alwaysValid = $alwaysValid;
-    }
+	/** @var bool[]|object[] */
+	protected $value;
+	/**
+	 * @var bool
+	 */
+	protected $alwaysValid;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $object = $this->createArrayObject($context);
-        if ($this->alwaysValid && !$object) {
-            return null;
-        }
+	/**
+	 * @param bool[]|object[] $value
+	 */
+	public function __construct( array $value, bool $alwaysValid = false ) {
+		$this->value       = $value;
+		$this->alwaysValid = $alwaysValid;
+	}
 
-        $errors = [];
-        $ok = false;
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$object = $this->createArrayObject( $context );
+		if ( $this->alwaysValid && ! $object ) {
+			return null;
+		}
 
-        foreach ($this->value as $index => $value) {
-            if ($value === true) {
-                $ok = true;
-                if ($object) {
-                    continue;
-                }
-                return null;
-            }
+		$errors = array();
+		$ok     = false;
 
-            if ($value === false) {
-                continue;
-            }
+		foreach ( $this->value as $index => $value ) {
+			if ( $value === true ) {
+				$ok = true;
+				if ( $object ) {
+					continue;
+				}
+				return null;
+			}
 
-            if (is_object($value) && !($value instanceof Schema)) {
-                $value = $this->value[$index] = $context->loader()->loadObjectSchema($value);
-            }
+			if ( $value === false ) {
+				continue;
+			}
 
-            if ($error = $context->validateSchemaWithoutEvaluated($value, null, false, $object)) {
-                $errors[] = $error;
-                continue;
-            }
+			if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+				$value = $this->value[ $index ] = $context->loader()->loadObjectSchema( $value );
+			}
 
-            if (!$object) {
-                return null;
-            }
-            $ok = true;
-        }
+			if ( $error = $context->validateSchemaWithoutEvaluated( $value, null, false, $object ) ) {
+				$errors[] = $error;
+				continue;
+			}
 
-        $this->addEvaluatedFromArrayObject($object, $context);
+			if ( ! $object ) {
+				return null;
+			}
+			$ok = true;
+		}
 
-        if ($ok) {
-            return null;
-        }
+		$this->addEvaluatedFromArrayObject( $object, $context );
 
-        return $this->error($schema, $context, 'anyOf', 'The data should match at least one schema', [], $errors);
-    }
+		if ( $ok ) {
+			return null;
+		}
+
+		return $this->error( $schema, $context, 'anyOf', 'The data should match at least one schema', array(), $errors );
+	}
 }

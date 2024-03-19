@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,29 +20,27 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\{ValidationContext, Schema};
 
-class UnresolvedContentEncodingException extends UnresolvedException
-{
-    /**
-     * @var string
-     */
-    protected $encoding;
+class UnresolvedContentEncodingException extends UnresolvedException {
 
-    /**
-     * @param string $encoding
-     * @param Schema $schema
-     * @param ValidationContext $context
-     */
-    public function __construct(string $encoding, Schema $schema, ValidationContext $context)
-    {
-        parent::__construct("Cannot resolve '{$encoding}' content encoding", $schema, $context);
-        $this->encoding = $encoding;
-    }
+	/**
+	 * @var string
+	 */
+	protected $encoding;
 
-    /**
-     * @return string
-     */
-    public function getContentEncoding(): string
-    {
-        return $this->encoding;
-    }
+	/**
+	 * @param string            $encoding
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 */
+	public function __construct( string $encoding, Schema $schema, ValidationContext $context ) {
+		parent::__construct( "Cannot resolve '{$encoding}' content encoding", $schema, $context );
+		$this->encoding = $encoding;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getContentEncoding(): string {
+		return $this->encoding;
+	}
 }

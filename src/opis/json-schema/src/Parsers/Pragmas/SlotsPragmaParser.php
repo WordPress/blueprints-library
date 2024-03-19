@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,47 +23,51 @@ use Opis\JsonSchema\Pragmas\SlotsPragma;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Parsers\{PragmaParser, SchemaParser};
 
-class SlotsPragmaParser extends PragmaParser
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$parser->option('allowSlots') || !$this->pragmaExists($info)) {
-            return null;
-        }
+class SlotsPragmaParser extends PragmaParser {
 
-        $value = $this->pragmaValue($info);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $parser->option( 'allowSlots' ) || ! $this->pragmaExists( $info ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->pragmaException('Pragma {pragma} must be an object', $info);
-        }
+		$value = $this->pragmaValue( $info );
 
-        $list = [];
+		if ( ! is_object( $value ) ) {
+			throw $this->pragmaException( 'Pragma {pragma} must be an object', $info );
+		}
 
-        foreach ($value as $name => $slot) {
-            if ($slot === null) {
-                continue;
-            }
+		$list = array();
 
-            if (is_bool($slot)) {
+		foreach ( $value as $name => $slot ) {
+			if ( $slot === null ) {
+				continue;
+			}
 
-                $list[$name] = $parser->parseSchema(new SchemaInfo(
-                    $slot, null, $info->base(), $info->root(),
-                    array_merge($info->path(), [$this->pragma, $name]),
-                    $info->draft() ?? $parser->defaultDraftVersion()
-                ));
-            } elseif (is_string($slot) || is_object($slot)) {
-                $list[$name] = $slot;
-            } else {
-                throw $this->pragmaException('Pragma {pragma} contains invalid value for slot ' . $name, $info);
-            }
-        }
+			if ( is_bool( $slot ) ) {
 
-        return $list ? new SlotsPragma($list) : null;
-    }
+				$list[ $name ] = $parser->parseSchema(
+					new SchemaInfo(
+						$slot,
+						null,
+						$info->base(),
+						$info->root(),
+						array_merge( $info->path(), array( $this->pragma, $name ) ),
+						$info->draft() ?? $parser->defaultDraftVersion()
+					)
+				);
+			} elseif ( is_string( $slot ) || is_object( $slot ) ) {
+				$list[ $name ] = $slot;
+			} else {
+				throw $this->pragmaException( 'Pragma {pragma} contains invalid value for slot ' . $name, $info );
+			}
+		}
+
+		return $list ? new SlotsPragma( $list ) : null;
+	}
 }

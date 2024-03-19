@@ -1,5 +1,6 @@
 <?php
-/* ===========================================================================
+/*
+===========================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,30 +23,29 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Pragmas\GlobalsPragma;
 use Opis\JsonSchema\Parsers\{PragmaParser, SchemaParser, VariablesTrait};
 
-class GlobalsPragmaParser extends PragmaParser
-{
-    use VariablesTrait;
+class GlobalsPragmaParser extends PragmaParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$parser->option('allowGlobals') || !$this->pragmaExists($info)) {
-            return null;
-        }
+	use VariablesTrait;
 
-        $value = $this->pragmaValue($info);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $parser->option( 'allowGlobals' ) || ! $this->pragmaExists( $info ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->pragmaException('Pragma {pragma} must be an object', $info);
-        }
+		$value = $this->pragmaValue( $info );
 
-        $value = get_object_vars($value);
+		if ( ! is_object( $value ) ) {
+			throw $this->pragmaException( 'Pragma {pragma} must be an object', $info );
+		}
 
-        return $value ? new GlobalsPragma($this->createVariables($parser, $value)) : null;
-    }
+		$value = get_object_vars( $value );
+
+		return $value ? new GlobalsPragma( $this->createVariables( $parser, $value ) ) : null;
+	}
 }

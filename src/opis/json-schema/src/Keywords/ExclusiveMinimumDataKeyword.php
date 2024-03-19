@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,41 +21,45 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ExclusiveMinimumDataKeyword extends ExclusiveMinimumKeyword
-{
+class ExclusiveMinimumDataKeyword extends ExclusiveMinimumKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /**
-     * @param JsonPointer $value
-     */
-    public function __construct(JsonPointer $value)
-    {
-        $this->value = $value;
-        parent::__construct(0);
-    }
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        /** @var float|int $number */
-        $number = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
+	/**
+	 * @param JsonPointer $value
+	 */
+	public function __construct( JsonPointer $value ) {
+		$this->value = $value;
+		parent::__construct( 0 );
+	}
 
-        if ($number === $this || !(is_float($number) || is_int($number))) {
-            return $this->error($schema, $context, 'exclusiveMinimum', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		/** @var float|int $number */
+		$number = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
 
-        $this->number = $number;
+		if ( $number === $this || ! ( is_float( $number ) || is_int( $number ) ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				'exclusiveMinimum',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        return parent::validate($context, $schema);
-    }
+		$this->number = $number;
+
+		return parent::validate( $context, $schema );
+	}
 }

@@ -63,6 +63,4 @@ class BlueprintValidator {
 
 		return $value;
 	}
-
 }
-

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,45 +23,43 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\AdditionalItemsKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class AdditionalItemsKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_ARRAY;
-    }
+class AdditionalItemsKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$parser->option('keepAdditionalItemsKeyword') && $info->draft() === '2020-12') {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_ARRAY;
+	}
 
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $parser->option( 'keepAdditionalItemsKeyword' ) && $info->draft() === '2020-12' ) {
+			return null;
+		}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+		$schema = $info->data();
 
-        if (!property_exists($schema, 'items') || !is_array($schema->items)) {
-            // Ignore additionalItems
-            return null;
-        }
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        $value = $this->keywordValue($schema);
+		if ( ! property_exists( $schema, 'items' ) || ! is_array( $schema->items ) ) {
+			// Ignore additionalItems
+			return null;
+		}
 
-        if (!is_bool($value) && !is_object($value)) {
-            throw $this->keywordException("{keyword} must be a json schema (object or boolean)", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        return new AdditionalItemsKeyword($value, count($schema->items));
-    }
+		if ( ! is_bool( $value ) && ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a json schema (object or boolean)', $info );
+		}
+
+		return new AdditionalItemsKeyword( $value, count( $schema->items ) );
+	}
 }

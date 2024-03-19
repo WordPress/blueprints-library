@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,7 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Throwable;
 
-interface SchemaException extends Throwable
-{
+interface SchemaException extends Throwable {
+
 
 }

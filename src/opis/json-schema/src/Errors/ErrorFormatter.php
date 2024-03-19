@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,414 +20,403 @@ namespace Opis\JsonSchema\Errors;
 
 use Opis\JsonSchema\JsonPointer;
 
-class ErrorFormatter
-{
-    /**
-     * @param ValidationError $error
-     * @param bool $multiple True if the same key can have multiple errors
-     * @param ?callable(ValidationError,?string=null):mixed $formatter
-     * @param ?callable(ValidationError):string $key_formatter
-     * @return array
-     */
-    public function format(
-        $error,
-        $multiple = true,
-        $formatter = null,
-        $key_formatter = null
-    ): array {
-        if (!$formatter) {
-            $formatter = [$this, 'formatErrorMessage'];
-        }
+class ErrorFormatter {
 
-        if (!$key_formatter) {
-            $key_formatter = [$this, 'formatErrorKey'];
-        }
+	/**
+	 * @param ValidationError                               $error
+	 * @param bool                                          $multiple True if the same key can have multiple errors
+	 * @param ?callable(ValidationError,?string=null):mixed $formatter
+	 * @param ?callable(ValidationError):string             $key_formatter
+	 * @return array
+	 */
+	public function format(
+		$error,
+		$multiple = true,
+		$formatter = null,
+		$key_formatter = null
+	): array {
+		if ( ! $formatter ) {
+			$formatter = array( $this, 'formatErrorMessage' );
+		}
 
-        $list = [];
+		if ( ! $key_formatter ) {
+			$key_formatter = array( $this, 'formatErrorKey' );
+		}
 
-        /**
-         * @var ValidationError $error
-         * @var string $message
-         */
+		$list = array();
 
-        foreach ($this->getErrors($error) as $error => $message) {
-            $key = $key_formatter($error);
+		/**
+		 * @var ValidationError $error
+		 * @var string $message
+		 */
 
-            if ($multiple) {
-                if (!isset($list[$key])) {
-                    $list[$key] = [];
-                }
-                $list[$key][] = $formatter($error, $message);
-            } else {
-                if (!isset($list[$key])) {
-                    $list[$key] = $formatter($error, $message);
-                }
-            }
-        }
+		foreach ( $this->getErrors( $error ) as $error => $message ) {
+			$key = $key_formatter( $error );
 
-        return $list;
-    }
+			if ( $multiple ) {
+				if ( ! isset( $list[ $key ] ) ) {
+					$list[ $key ] = array();
+				}
+				$list[ $key ][] = $formatter( $error, $message );
+			} elseif ( ! isset( $list[ $key ] ) ) {
+					$list[ $key ] = $formatter( $error, $message );
+			}
+		}
 
-    /**
-     * @param ValidationError|null $error
-     * @param string $mode One of: flag, basic, detailed or verbose
-     * @return array
-     */
-    public function formatOutput($error, $mode = "flag"): array
-    {
-        if ($error === null) {
-            return ['valid' => true];
-        }
+		return $list;
+	}
 
-        if ($mode === 'flag') {
-            return ['valid' => false];
-        }
+	/**
+	 * @param ValidationError|null $error
+	 * @param string               $mode One of: flag, basic, detailed or verbose
+	 * @return array
+	 */
+	public function formatOutput( $error, $mode = 'flag' ): array {
+		if ( $error === null ) {
+			return array( 'valid' => true );
+		}
 
-        if ($mode === 'basic') {
-            return [
-                'valid' => false,
-                'errors' => $this->formatFlat($error, [$this, 'formatOutputError']),
-            ];
-        }
+		if ( $mode === 'flag' ) {
+			return array( 'valid' => false );
+		}
 
-        if ($mode === 'detailed' || $mode === 'verbose') {
-            $isVerbose = $mode === 'verbose';
+		if ( $mode === 'basic' ) {
+			return array(
+				'valid'  => false,
+				'errors' => $this->formatFlat( $error, array( $this, 'formatOutputError' ) ),
+			);
+		}
 
-            return $this->getNestedErrors($error, function (ValidationError $error, $subErrors = null) use ($isVerbose) {
-                    $info = $this->formatOutputError($error);
+		if ( $mode === 'detailed' || $mode === 'verbose' ) {
+			$isVerbose = $mode === 'verbose';
 
-                    $info['valid'] = false;
+			return $this->getNestedErrors(
+				$error,
+				function ( ValidationError $error, $subErrors = null ) use ( $isVerbose ) {
+					$info = $this->formatOutputError( $error );
 
-                    if ($isVerbose) {
-                        $id = $error->schema()->info();
-                        $id = $id->root() ?? $id->id();
-                        if ($id) {
-                            $id = rtrim($id, '#');
-                        }
-                        $info['absoluteKeywordLocation'] = $id . $info['keywordLocation'];
-                    }
+					$info['valid'] = false;
 
-                    if ($subErrors) {
-                        $info['errors'] = $subErrors;
-                        if (!$isVerbose) {
-                            unset($info['error']);
-                        }
-                    }
+					if ( $isVerbose ) {
+						$id = $error->schema()->info();
+						$id = $id->root() ?? $id->id();
+						if ( $id ) {
+							$id = rtrim( $id, '#' );
+						}
+						$info['absoluteKeywordLocation'] = $id . $info['keywordLocation'];
+					}
 
-                    return $info;
-                }
-            );
-        }
+					if ( $subErrors ) {
+						$info['errors'] = $subErrors;
+						if ( ! $isVerbose ) {
+							unset( $info['error'] );
+						}
+					}
 
-        return ['valid' => false];
-    }
+					return $info;
+				}
+			);
+		}
 
-    /**
-     * @param ValidationError $error
-     * @param ?callable(ValidationError,?array):mixed $formatter
-     * @return mixed
-     */
-    public function formatNested($error, $formatter = null)
-    {
-        if (!$formatter) {
-            $formatter = function (ValidationError $error, $subErrors = null): array {
-                $ret = [
-                    'message' => $this->formatErrorMessage($error),
-                    'keyword' => $error->keyword(),
-                    'path' => $this->formatErrorKey($error),
-                ];
+		return array( 'valid' => false );
+	}
 
-                if ($subErrors) {
-                    $ret['errors'] = $subErrors;
-                }
+	/**
+	 * @param ValidationError                         $error
+	 * @param ?callable(ValidationError,?array):mixed $formatter
+	 * @return mixed
+	 */
+	public function formatNested( $error, $formatter = null ) {
+		if ( ! $formatter ) {
+			$formatter = function ( ValidationError $error, $subErrors = null ): array {
+				$ret = array(
+					'message' => $this->formatErrorMessage( $error ),
+					'keyword' => $error->keyword(),
+					'path'    => $this->formatErrorKey( $error ),
+				);
 
-                return $ret;
-            };
-        }
+				if ( $subErrors ) {
+					$ret['errors'] = $subErrors;
+				}
 
-        return $this->getNestedErrors($error, $formatter);
-    }
+				return $ret;
+			};
+		}
 
-    /**
-     * @param ValidationError $error
-     * @param ?callable(ValidationError):mixed $formatter
-     * @return array
-     */
-    public function formatFlat($error, $formatter = null): array
-    {
-        if (!$formatter) {
-            $formatter = [$this, 'formatErrorMessage'];
-        }
+		return $this->getNestedErrors( $error, $formatter );
+	}
 
-        $list = [];
+	/**
+	 * @param ValidationError                  $error
+	 * @param ?callable(ValidationError):mixed $formatter
+	 * @return array
+	 */
+	public function formatFlat( $error, $formatter = null ): array {
+		if ( ! $formatter ) {
+			$formatter = array( $this, 'formatErrorMessage' );
+		}
 
-        foreach ($this->getFlatErrors($error) as $error) {
-            $list[] = $formatter($error);
-        }
+		$list = array();
 
-        return $list;
-    }
+		foreach ( $this->getFlatErrors( $error ) as $error ) {
+			$list[] = $formatter( $error );
+		}
 
-    /**
-     * @param ValidationError $error
-     * @param ?callable(ValidationError):mixed $formatter
-     * @param ?callable(ValidationError):string $key_formatter
-     * @return array
-     */
-    public function formatKeyed(
-        $error,
-        $formatter = null,
-        $key_formatter = null
-    ): array {
-        if (!$formatter) {
-            $formatter = [$this, 'formatErrorMessage'];
-        }
+		return $list;
+	}
 
-        if (!$key_formatter) {
-            $key_formatter = [$this, 'formatErrorKey'];
-        }
+	/**
+	 * @param ValidationError                   $error
+	 * @param ?callable(ValidationError):mixed  $formatter
+	 * @param ?callable(ValidationError):string $key_formatter
+	 * @return array
+	 */
+	public function formatKeyed(
+		$error,
+		$formatter = null,
+		$key_formatter = null
+	): array {
+		if ( ! $formatter ) {
+			$formatter = array( $this, 'formatErrorMessage' );
+		}
 
-        $list = [];
+		if ( ! $key_formatter ) {
+			$key_formatter = array( $this, 'formatErrorKey' );
+		}
 
-        foreach ($this->getLeafErrors($error) as $error) {
-            $key = $key_formatter($error);
+		$list = array();
 
-            if (!isset($list[$key])) {
-                $list[$key] = [];
-            }
+		foreach ( $this->getLeafErrors( $error ) as $error ) {
+			$key = $key_formatter( $error );
 
-            $list[$key][] = $formatter($error);
-        }
+			if ( ! isset( $list[ $key ] ) ) {
+				$list[ $key ] = array();
+			}
 
-        return $list;
-    }
+			$list[ $key ][] = $formatter( $error );
+		}
 
-    /**
-     * @param ValidationError $error
-     * @param string|null $message The message to use, if null $error->message() is used
-     * @return string
-     */
-    public function formatErrorMessage($error, $message = null): string
-    {
-        $message = $message ?? $error->message();
-        $args = $this->getDefaultArgs($error) + $error->args();
+		return $list;
+	}
 
-        if (!$args) {
-            return $message;
-        }
+	/**
+	 * @param ValidationError $error
+	 * @param string|null     $message The message to use, if null $error->message() is used
+	 * @return string
+	 */
+	public function formatErrorMessage( $error, $message = null ): string {
+		$message = $message ?? $error->message();
+		$args    = $this->getDefaultArgs( $error ) + $error->args();
 
-        return preg_replace_callback(
-            '~{([^}]+)}~imu',
-            static function (array $m) use ($args) {
-                if (!isset($args[$m[1]])) {
-                    return $m[0];
-                }
+		if ( ! $args ) {
+			return $message;
+		}
 
-                $value = $args[$m[1]];
+		return preg_replace_callback(
+			'~{([^}]+)}~imu',
+			static function ( array $m ) use ( $args ) {
+				if ( ! isset( $args[ $m[1] ] ) ) {
+					return $m[0];
+				}
 
-                if (is_array($value)) {
-                    return implode(', ', $value);
-                }
+				$value = $args[ $m[1] ];
 
-                return (string) $value;
-            },
-            $message
-        );
-    }
+				if ( is_array( $value ) ) {
+					return implode( ', ', $value );
+				}
 
-    /**
-     * @param \Opis\JsonSchema\Errors\ValidationError $error
-     */
-    public function formatErrorKey($error): string
-    {
-        return JsonPointer::pathToString($error->data()->fullPath());
-    }
+				return (string) $value;
+			},
+			$message
+		);
+	}
 
-    /**
-     * @param \Opis\JsonSchema\Errors\ValidationError $error
-     */
-    protected function getDefaultArgs($error): array
-    {
-        $data = $error->data();
-        $info = $error->schema()->info();
+	/**
+	 * @param \Opis\JsonSchema\Errors\ValidationError $error
+	 */
+	public function formatErrorKey( $error ): string {
+		return JsonPointer::pathToString( $error->data()->fullPath() );
+	}
 
-        $path = $info->path();
-        $path[] = $error->keyword();
+	/**
+	 * @param \Opis\JsonSchema\Errors\ValidationError $error
+	 */
+	protected function getDefaultArgs( $error ): array {
+		$data = $error->data();
+		$info = $error->schema()->info();
 
-        return [
-            'data:type' => $data->type(),
-            'data:value' => $data->value(),
-            'data:path' => JsonPointer::pathToString($data->fullPath()),
+		$path   = $info->path();
+		$path[] = $error->keyword();
 
-            'schema:id' => $info->id(),
-            'schema:root' => $info->root(),
-            'schema:base' => $info->base(),
-            'schema:draft' => $info->draft(),
-            'schema:keyword' => $error->keyword(),
-            'schema:path' => JsonPointer::pathToString($path),
-        ];
-    }
+		return array(
+			'data:type'      => $data->type(),
+			'data:value'     => $data->value(),
+			'data:path'      => JsonPointer::pathToString( $data->fullPath() ),
 
-    /**
-     * @param \Opis\JsonSchema\Errors\ValidationError $error
-     */
-    protected function formatOutputError($error): array
-    {
-        $path = $error->schema()->info()->path();
+			'schema:id'      => $info->id(),
+			'schema:root'    => $info->root(),
+			'schema:base'    => $info->base(),
+			'schema:draft'   => $info->draft(),
+			'schema:keyword' => $error->keyword(),
+			'schema:path'    => JsonPointer::pathToString( $path ),
+		);
+	}
 
-        $path[] = $error->keyword();
+	/**
+	 * @param \Opis\JsonSchema\Errors\ValidationError $error
+	 */
+	protected function formatOutputError( $error ): array {
+		$path = $error->schema()->info()->path();
 
-        return [
-            'keywordLocation' => JsonPointer::pathToFragment($path),
-            'instanceLocation' => JsonPointer::pathToFragment($error->data()->fullPath()),
-            'error' => $this->formatErrorMessage($error),
-        ];
-    }
+		$path[] = $error->keyword();
 
-    /**
-     * @param ValidationError $error
-     * @param callable(ValidationError,?array):mixed $formatter
-     * @return mixed
-     */
-    protected function getNestedErrors($error, $formatter)
-    {
-        if ($subErrors = $error->subErrors()) {
-            foreach ($subErrors as &$subError) {
-                $subError = $this->getNestedErrors($subError, $formatter);
-                unset($subError);
-            }
-        }
+		return array(
+			'keywordLocation'  => JsonPointer::pathToFragment( $path ),
+			'instanceLocation' => JsonPointer::pathToFragment( $error->data()->fullPath() ),
+			'error'            => $this->formatErrorMessage( $error ),
+		);
+	}
 
-        return $formatter($error, $subErrors);
-    }
+	/**
+	 * @param ValidationError                        $error
+	 * @param callable(ValidationError,?array):mixed $formatter
+	 * @return mixed
+	 */
+	protected function getNestedErrors( $error, $formatter ) {
+		if ( $subErrors = $error->subErrors() ) {
+			foreach ( $subErrors as &$subError ) {
+				$subError = $this->getNestedErrors( $subError, $formatter );
+				unset( $subError );
+			}
+		}
 
-    /**
-     * @param ValidationError $error
-     * @return iterable|ValidationError[]
-     */
-    protected function getFlatErrors($error)
-    {
-        yield $error;
+		return $formatter( $error, $subErrors );
+	}
 
-        foreach ($error->subErrors() as $subError) {
-            yield from $this->getFlatErrors($subError);
-        }
-    }
+	/**
+	 * @param ValidationError $error
+	 * @return iterable|ValidationError[]
+	 */
+	protected function getFlatErrors( $error ) {
+		yield $error;
 
-    /**
-     * @param ValidationError $error
-     * @return iterable|ValidationError[]
-     */
-    protected function getLeafErrors($error)
-    {
-        if ($subErrors = $error->subErrors()) {
-            foreach ($subErrors as $subError) {
-                yield from $this->getLeafErrors($subError);
-            }
-        } else {
-            yield $error;
-        }
-    }
+		foreach ( $error->subErrors() as $subError ) {
+			yield from $this->getFlatErrors( $subError );
+		}
+	}
 
-    /**
-     * @param ValidationError $error
-     * @return iterable
-     */
-    protected function getErrors($error)
-    {
-        $data = $error->schema()->info()->data();
+	/**
+	 * @param ValidationError $error
+	 * @return iterable|ValidationError[]
+	 */
+	protected function getLeafErrors( $error ) {
+		if ( $subErrors = $error->subErrors() ) {
+			foreach ( $subErrors as $subError ) {
+				yield from $this->getLeafErrors( $subError );
+			}
+		} else {
+			yield $error;
+		}
+	}
 
-        $map = null;
-        $pMap = null;
+	/**
+	 * @param ValidationError $error
+	 * @return iterable
+	 */
+	protected function getErrors( $error ) {
+		$data = $error->schema()->info()->data();
 
-        if (is_object($data)) {
-            switch ($error->keyword()) {
-                case 'required':
-                    if (isset($data->{'$error'}->required) && is_object($data->{'$error'}->required)) {
-                        $e = $data->{'$error'}->required;
-                        $found = false;
-                        foreach ($error->args()['missing'] as $prop) {
-                            if (isset($e->{$prop})) {
-                                yield $error => $e->{$prop};
-                                $found = true;
-                            }
-                        }
-                        if ($found) {
-                            return;
-                        }
-                        if (isset($e->{'*'})) {
-                            yield $error => $e->{'*'};
-                            return;
-                        }
-                        unset($e, $found, $prop);
-                    }
-                    break;
-                case '$filters':
-                    if (($args = $error->args()) && isset($args['args']['$error'])) {
-                        yield $error => $args['args']['$error'];
-                        return;
-                    }
-                    unset($args);
-                    break;
-            }
+		$map  = null;
+		$pMap = null;
 
-            if (isset($data->{'$error'})) {
-                $map = $data->{'$error'};
+		if ( is_object( $data ) ) {
+			switch ( $error->keyword() ) {
+				case 'required':
+					if ( isset( $data->{'$error'}->required ) && is_object( $data->{'$error'}->required ) ) {
+						$e     = $data->{'$error'}->required;
+						$found = false;
+						foreach ( $error->args()['missing'] as $prop ) {
+							if ( isset( $e->{$prop} ) ) {
+								yield $error => $e->{$prop};
+								$found = true;
+							}
+						}
+						if ( $found ) {
+							return;
+						}
+						if ( isset( $e->{'*'} ) ) {
+							yield $error => $e->{'*'};
+							return;
+						}
+						unset( $e, $found, $prop );
+					}
+					break;
+				case '$filters':
+					if ( ( $args = $error->args() ) && isset( $args['args']['$error'] ) ) {
+						yield $error => $args['args']['$error'];
+						return;
+					}
+					unset( $args );
+					break;
+			}
 
-                if (is_string($map)) {
-                    // We have an global error
-                    yield $error => $map;
-                    return;
-                }
+			if ( isset( $data->{'$error'} ) ) {
+				$map = $data->{'$error'};
 
-                if (is_object($map)) {
-                    if (isset($map->{$error->keyword()})) {
-                        $pMap = $map->{'*'} ?? null;
-                        $map = $map->{$error->keyword()};
-                        if (is_string($map)) {
-                            yield $error => $map;
-                            return;
-                        }
-                    } elseif (isset($map->{'*'})) {
-                        yield $error => $map->{'*'};
-                        return;
-                    }
-                }
-            }
-        }
+				if ( is_string( $map ) ) {
+					// We have an global error
+					yield $error => $map;
+					return;
+				}
 
-        if (!is_object($map)) {
-            $map = null;
-        }
+				if ( is_object( $map ) ) {
+					if ( isset( $map->{$error->keyword()} ) ) {
+						$pMap = $map->{'*'} ?? null;
+						$map  = $map->{$error->keyword()};
+						if ( is_string( $map ) ) {
+							yield $error => $map;
+							return;
+						}
+					} elseif ( isset( $map->{'*'} ) ) {
+						yield $error => $map->{'*'};
+						return;
+					}
+				}
+			}
+		}
 
-        $subErrors = $error->subErrors();
+		if ( ! is_object( $map ) ) {
+			$map = null;
+		}
 
-        if (!$subErrors) {
-            yield $error => $pMap ?? $error->message();
-            return;
-        }
+		$subErrors = $error->subErrors();
 
-        if (!$map) {
-            foreach ($subErrors as $subError) {
-                yield from $this->getErrors($subError);
-            }
-            return;
-        }
+		if ( ! $subErrors ) {
+			yield $error => $pMap ?? $error->message();
+			return;
+		}
 
-        foreach ($subErrors as $subError) {
-            $path = $subError->data()->path();
-            if (count($path) !== 1) {
-                yield from $this->getErrors($subError);
-            } else {
-                $path = $path[0];
-                if (isset($map->{$path})) {
-                    yield $subError => $map->{$path};
-                } elseif (isset($map->{'*'})) {
-                    yield $subError => $map->{'*'};
-                } else {
-                    yield from $this->getErrors($subError);
-                }
-            }
-        }
-    }
+		if ( ! $map ) {
+			foreach ( $subErrors as $subError ) {
+				yield from $this->getErrors( $subError );
+			}
+			return;
+		}
+
+		foreach ( $subErrors as $subError ) {
+			$path = $subError->data()->path();
+			if ( count( $path ) !== 1 ) {
+				yield from $this->getErrors( $subError );
+			} else {
+				$path = $path[0];
+				if ( isset( $map->{$path} ) ) {
+					yield $subError => $map->{$path};
+				} elseif ( isset( $map->{'*'} ) ) {
+					yield $subError => $map->{'*'};
+				} else {
+					yield from $this->getErrors( $subError );
+				}
+			}
+		}
+	}
 }

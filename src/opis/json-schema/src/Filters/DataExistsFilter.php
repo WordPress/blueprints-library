@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,26 +20,25 @@ namespace Opis\JsonSchema\Filters;
 
 use Opis\JsonSchema\{ValidationContext, Filter, Schema, JsonPointer};
 
-class DataExistsFilter implements Filter
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     * @param mixed[] $args
-     */
-    public function validate($context, $schema, $args = []): bool
-    {
-        $ref = $args['ref'] ?? $context->currentData();
-        if (!is_string($ref)) {
-            return false;
-        }
+class DataExistsFilter implements Filter {
 
-        $ref = JsonPointer::parse($ref);
-        if ($ref === null) {
-            return false;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 * @param mixed[]                            $args
+	 */
+	public function validate( $context, $schema, $args = array() ): bool {
+		$ref = $args['ref'] ?? $context->currentData();
+		if ( ! is_string( $ref ) ) {
+			return false;
+		}
 
-        return $ref->data($context->rootData(), $context->currentDataPath(), $this) !== $this;
-    }
+		$ref = JsonPointer::parse( $ref );
+		if ( $ref === null ) {
+			return false;
+		}
+
+		return $ref->data( $context->rootData(), $context->currentDataPath(), $this ) !== $this;
+	}
 }

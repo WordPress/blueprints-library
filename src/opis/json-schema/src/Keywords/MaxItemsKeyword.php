@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,46 +19,49 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class MaxItemsKeyword implements Keyword
-{
-    use ErrorTrait;
+class MaxItemsKeyword implements Keyword {
 
-    /**
-     * @var int
-     */
-    protected $count;
+	use ErrorTrait;
 
-    /**
-     * @param int $count
-     */
-    public function __construct(int $count)
-    {
-        $this->count = $count;
-    }
+	/**
+	 * @var int
+	 */
+	protected $count;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $count = count($context->currentData());
+	/**
+	 * @param int $count
+	 */
+	public function __construct( int $count ) {
+		$this->count = $count;
+	}
 
-        if ($count <= $this->count) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$count = count( $context->currentData() );
 
-        return $this->error($schema, $context, "maxItems",
-            "Array should have at most {max} items, {count} found", [
-                'max' => $this->count,
-                'count' => $count,
-            ]);
-    }
+		if ( $count <= $this->count ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'maxItems',
+			'Array should have at most {max} items, {count} found',
+			array(
+				'max'   => $this->count,
+				'count' => $count,
+			)
+		);
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,73 +21,80 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class RequiredDataKeyword extends RequiredKeyword
-{
+class RequiredDataKeyword extends RequiredKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /** @var callable|null */
-    protected $filter;
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @param JsonPointer $value
-     * @param callable|null $filter
-     */
-    public function __construct(JsonPointer $value, $filter = null)
-    {
-        $this->value = $value;
-        $this->filter = $filter;
-        parent::__construct([]);
-    }
+	/** @var callable|null */
+	protected $filter;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $required = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
-        if ($required === $this || !is_array($required) || !$this->requiredPropsAreValid($required)) {
-            return $this->error($schema, $context, 'required', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @param JsonPointer   $value
+	 * @param callable|null $filter
+	 */
+	public function __construct( JsonPointer $value, $filter = null ) {
+		$this->value  = $value;
+		$this->filter = $filter;
+		parent::__construct( array() );
+	}
 
-        $required = array_unique($required);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$required = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
+		if ( $required === $this || ! is_array( $required ) || ! $this->requiredPropsAreValid( $required ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				'required',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
 
-        if ($this->filter) {
-            $required = array_filter($required, $this->filter === null ? function ($value, $key) : bool {
-                return !empty($value);
-            } : $this->filter, $this->filter === null ? ARRAY_FILTER_USE_BOTH : 0);
-        }
+		$required = array_unique( $required );
 
-        if (!$required) {
-            return null;
-        }
+		if ( $this->filter ) {
+			$required = array_filter(
+				$required,
+				$this->filter === null ? function ( $value, $key ): bool {
+					return ! empty( $value );
+				} : $this->filter,
+				$this->filter === null ? ARRAY_FILTER_USE_BOTH : 0
+			);
+		}
 
-        $this->required = $required;
-        $ret = parent::validate($context, $schema);
-        $this->required = null;
+		if ( ! $required ) {
+			return null;
+		}
 
-        return $ret;
-    }
+		$this->required = $required;
+		$ret            = parent::validate( $context, $schema );
+		$this->required = null;
 
-    /**
-     * @param array $props
-     * @return bool
-     */
-    protected function requiredPropsAreValid($props): bool
-    {
-        foreach ($props as $prop) {
-            if (!is_string($prop)) {
-                return false;
-            }
-        }
+		return $ret;
+	}
 
-        return true;
-    }
+	/**
+	 * @param array $props
+	 * @return bool
+	 */
+	protected function requiredPropsAreValid( $props ): bool {
+		foreach ( $props as $prop ) {
+			if ( ! is_string( $prop ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

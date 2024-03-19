@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,27 +18,25 @@
 
 namespace Opis\JsonSchema\Filters;
 
-final class CommonFilters
-{
-    public static function Regex(string $value, array $args): bool
-    {
-        if (!isset($args['pattern']) || !is_string($args['pattern'])) {
-            return false;
-        }
+final class CommonFilters {
 
-        return (bool)preg_match($args['pattern'], $value);
-    }
+	public static function Regex( string $value, array $args ): bool {
+		if ( ! isset( $args['pattern'] ) || ! is_string( $args['pattern'] ) ) {
+			return false;
+		}
 
-    public static function Equals($value, array $args): bool
-    {
-        if (!array_key_exists('value', $args)) {
-            return false;
-        }
+		return (bool) preg_match( $args['pattern'], $value );
+	}
 
-        if ($args['strict'] ?? false) {
-            return $value === $args['value'];
-        }
+	public static function Equals( $value, array $args ): bool {
+		if ( ! array_key_exists( 'value', $args ) ) {
+			return false;
+		}
 
-        return $value == $args['value'];
-    }
+		if ( $args['strict'] ?? false ) {
+			return $value === $args['value'];
+		}
+
+		return $value == $args['value'];
+	}
 }

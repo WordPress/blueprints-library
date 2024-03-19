@@ -26,7 +26,7 @@ class ProgressEvent extends Event {
 		float $progress,
 		string $caption
 	) {
-		$this->caption = $caption;
+		$this->caption  = $caption;
 		$this->progress = $progress;
 	}
 }

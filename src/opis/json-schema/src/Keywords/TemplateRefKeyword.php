@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,111 +23,109 @@ use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Exceptions\UnresolvedReferenceException;
 use Opis\JsonSchema\{JsonPointer, Schema, SchemaLoader, Uri, ValidationContext, Variables};
 
-class TemplateRefKeyword extends AbstractRefKeyword
-{
-    /**
-     * @var \Opis\Uri\UriTemplate
-     */
-    protected $template;
-    /**
-     * @var \Opis\JsonSchema\Variables|null
-     */
-    protected $vars;
-    /** @var Schema[]|null[] */
-    protected $cached = [];
-    /**
-     * @var bool
-     */
-    protected $allowRelativeJsonPointerInRef;
+class TemplateRefKeyword extends AbstractRefKeyword {
 
-    public function __construct(
-        UriTemplate $template,
-        $vars,
-        $mapper = null,
-        $globals = null,
-        $slots = null,
-        string $keyword = '$ref',
-        bool $allowRelativeJsonPointerInRef = true
-    ) {
-        parent::__construct($mapper, $globals, $slots, $keyword);
-        $this->template = $template;
-        $this->vars = $vars;
-        $this->allowRelativeJsonPointerInRef = $allowRelativeJsonPointerInRef;
-    }
+	/**
+	 * @var \Opis\Uri\UriTemplate
+	 */
+	protected $template;
+	/**
+	 * @var \Opis\JsonSchema\Variables|null
+	 */
+	protected $vars;
+	/** @var Schema[]|null[] */
+	protected $cached = array();
+	/**
+	 * @var bool
+	 */
+	protected $allowRelativeJsonPointerInRef;
 
-    /**
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    protected function doValidate($context, $schema)
-    {
-        if ($this->vars) {
-            $vars = $this->vars->resolve($context->rootData(), $context->currentDataPath());
-            if (!is_array($vars)) {
-                $vars = (array)$vars;
-            }
-            $vars += $context->globals();
-        } else {
-            $vars = $context->globals();
-        }
+	public function __construct(
+		UriTemplate $template,
+		$vars,
+		$mapper = null,
+		$globals = null,
+		$slots = null,
+		string $keyword = '$ref',
+		bool $allowRelativeJsonPointerInRef = true
+	) {
+		parent::__construct( $mapper, $globals, $slots, $keyword );
+		$this->template                      = $template;
+		$this->vars                          = $vars;
+		$this->allowRelativeJsonPointerInRef = $allowRelativeJsonPointerInRef;
+	}
 
-        $ref = $this->template->resolve($vars);
+	/**
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	protected function doValidate( $context, $schema ) {
+		if ( $this->vars ) {
+			$vars = $this->vars->resolve( $context->rootData(), $context->currentDataPath() );
+			if ( ! is_array( $vars ) ) {
+				$vars = (array) $vars;
+			}
+			$vars += $context->globals();
+		} else {
+			$vars = $context->globals();
+		}
 
-        $key = isset($ref[32]) ? md5($ref) : $ref;
+		$ref = $this->template->resolve( $vars );
 
-        if (!array_key_exists($key, $this->cached)) {
-            $this->cached[$key] = $this->resolveRef($ref, $context->loader(), $schema);
-        }
+		$key = isset( $ref[32] ) ? md5( $ref ) : $ref;
 
-        $resolved = $this->cached[$key];
-        unset($key);
+		if ( ! array_key_exists( $key, $this->cached ) ) {
+			$this->cached[ $key ] = $this->resolveRef( $ref, $context->loader(), $schema );
+		}
 
-        if (!$resolved) {
-            throw new UnresolvedReferenceException($ref, $schema, $context);
-        }
+		$resolved = $this->cached[ $key ];
+		unset( $key );
 
-        return $resolved->validate($this->createContext($context, $schema));
-    }
+		if ( ! $resolved ) {
+			throw new UnresolvedReferenceException( $ref, $schema, $context );
+		}
 
-    /**
-     * @param string $ref
-     * @param SchemaLoader $repo
-     * @param Schema $schema
-     * @return null|Schema
-     */
-    protected function resolveRef($ref, $repo, $schema)
-    {
-        if ($ref === '') {
-            return null;
-        }
+		return $resolved->validate( $this->createContext( $context, $schema ) );
+	}
 
-        $baseUri = $schema->info()->idBaseRoot();
+	/**
+	 * @param string       $ref
+	 * @param SchemaLoader $repo
+	 * @param Schema       $schema
+	 * @return null|Schema
+	 */
+	protected function resolveRef( $ref, $repo, $schema ) {
+		if ( $ref === '' ) {
+			return null;
+		}
 
-        if ($ref === '#') {
-            return $repo->loadSchemaById($baseUri);
-        }
+		$baseUri = $schema->info()->idBaseRoot();
 
-        // Check if is pointer
-        if ($ref[0] === '#') {
-            if ($pointer = JsonPointer::parse(substr($ref, 1))) {
-                if ($pointer->isAbsolute()) {
-                    return $this->resolvePointer($repo, $pointer, $baseUri);
-                }
-                unset($pointer);
-            }
-        } elseif ($this->allowRelativeJsonPointerInRef && ($pointer = JsonPointer::parse($ref))) {
-            if ($pointer->isRelative()) {
-                return $this->resolvePointer($repo, $pointer, $baseUri, $schema->info()->path());
-            }
-            unset($pointer);
-        }
+		if ( $ref === '#' ) {
+			return $repo->loadSchemaById( $baseUri );
+		}
 
-        $ref = Uri::merge($ref, $baseUri, true);
+		// Check if is pointer
+		if ( $ref[0] === '#' ) {
+			if ( $pointer = JsonPointer::parse( substr( $ref, 1 ) ) ) {
+				if ( $pointer->isAbsolute() ) {
+					return $this->resolvePointer( $repo, $pointer, $baseUri );
+				}
+				unset( $pointer );
+			}
+		} elseif ( $this->allowRelativeJsonPointerInRef && ( $pointer = JsonPointer::parse( $ref ) ) ) {
+			if ( $pointer->isRelative() ) {
+				return $this->resolvePointer( $repo, $pointer, $baseUri, $schema->info()->path() );
+			}
+			unset( $pointer );
+		}
 
-        if ($ref === null || !$ref->isAbsolute()) {
-            return null;
-        }
+		$ref = Uri::merge( $ref, $baseUri, true );
 
-        return $repo->loadSchemaById($ref);
-    }
+		if ( $ref === null || ! $ref->isAbsolute() ) {
+			return null;
+		}
+
+		return $repo->loadSchemaById( $ref );
+	}
 }

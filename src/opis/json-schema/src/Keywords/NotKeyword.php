@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,51 +19,49 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class NotKeyword implements Keyword
-{
-    use ErrorTrait;
+class NotKeyword implements Keyword {
 
-    /** @var bool|object|Schema */
-    protected $value;
+	use ErrorTrait;
 
-    /**
-     * @param bool|object $value
-     */
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool|object|Schema */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->value === false) {
-            return null;
-        }
-        if ($this->value === true) {
-            return $this->error($schema, $context, 'not', "The data is never valid");
-        }
+	/**
+	 * @param bool|object $value
+	 */
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->value === false ) {
+			return null;
+		}
+		if ( $this->value === true ) {
+			return $this->error( $schema, $context, 'not', 'The data is never valid' );
+		}
 
-        $error = $context->validateSchemaWithoutEvaluated($this->value, 1);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        if ($error) {
-            return null;
-        }
+		$error = $context->validateSchemaWithoutEvaluated( $this->value, 1 );
 
-        return $this->error($schema, $context, 'not', 'The data must not match schema');
-    }
+		if ( $error ) {
+			return null;
+		}
+
+		return $this->error( $schema, $context, 'not', 'The data must not match schema' );
+	}
 }

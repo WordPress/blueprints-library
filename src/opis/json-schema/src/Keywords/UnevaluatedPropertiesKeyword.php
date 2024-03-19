@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,60 +21,70 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\{Keyword, Schema, ValidationContext};
 
-class UnevaluatedPropertiesKeyword implements Keyword
-{
-    use OfTrait;
-    use IterableDataValidationTrait;
+class UnevaluatedPropertiesKeyword implements Keyword {
 
-    /** @var bool|object|Schema */
-    protected $value;
+	use OfTrait;
+	use IterableDataValidationTrait;
 
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool|object|Schema */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $unevaluated = $context->getUnevaluatedProperties();
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        if (!$unevaluated) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$unevaluated = $context->getUnevaluatedProperties();
 
-        if ($this->value === true) {
-            $context->addEvaluatedProperties($unevaluated);
-            return null;
-        }
+		if ( ! $unevaluated ) {
+			return null;
+		}
 
-        if ($this->value === false) {
-            return $this->error($schema, $context, 'unevaluatedProperties',
-                'Unevaluated object properties not allowed: {properties}', [
-                    'properties' => $unevaluated,
-                ]);
-        }
+		if ( $this->value === true ) {
+			$context->addEvaluatedProperties( $unevaluated );
+			return null;
+		}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+		if ( $this->value === false ) {
+			return $this->error(
+				$schema,
+				$context,
+				'unevaluatedProperties',
+				'Unevaluated object properties not allowed: {properties}',
+				array(
+					'properties' => $unevaluated,
+				)
+			);
+		}
 
-        $object = $this->createArrayObject($context);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        $error = $this->validateIterableData($schema, $this->value, $context, $unevaluated,
-            'unevaluatedProperties', 'All unevaluated object properties must match schema: {properties}', [
-                'properties' => $unevaluated,
-            ], $object);
+		$object = $this->createArrayObject( $context );
 
+		$error = $this->validateIterableData(
+			$schema,
+			$this->value,
+			$context,
+			$unevaluated,
+			'unevaluatedProperties',
+			'All unevaluated object properties must match schema: {properties}',
+			array(
+				'properties' => $unevaluated,
+			),
+			$object
+		);
 
-        if ($object && $object->count()) {
-            $context->addEvaluatedProperties($object->getArrayCopy());
-        }
+		if ( $object && $object->count() ) {
+			$context->addEvaluatedProperties( $object->getArrayCopy() );
+		}
 
-        return $error;
-    }
+		return $error;
+	}
 }

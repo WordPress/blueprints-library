@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,60 +23,58 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\TypeKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class TypeKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_BEFORE;
-    }
+class TypeKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_BEFORE;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $type = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (is_string($type)) {
-            $type = [$type];
-        } elseif (!is_array($type)) {
-            throw $this->keywordException('{keyword} can only be a string or an array of string', $info);
-        }
+		$type = $this->keywordValue( $schema );
 
-        foreach ($type as $t) {
-            if (!Helper::isValidJsonType($t)) {
-                throw $this->keywordException("{keyword} contains invalid json type: {$t}", $info);
-            }
-        }
+		if ( is_string( $type ) ) {
+			$type = array( $type );
+		} elseif ( ! is_array( $type ) ) {
+			throw $this->keywordException( '{keyword} can only be a string or an array of string', $info );
+		}
 
-        $type = array_unique($type);
+		foreach ( $type as $t ) {
+			if ( ! Helper::isValidJsonType( $t ) ) {
+				throw $this->keywordException( "{keyword} contains invalid json type: {$t}", $info );
+			}
+		}
 
-        if (!isset($shared->types)) {
-            $shared->types = $type;
-        } else {
-            $shared->types = array_unique(array_merge($shared->types, $type));
-        }
+		$type = array_unique( $type );
 
-        $count = count($type);
+		if ( ! isset( $shared->types ) ) {
+			$shared->types = $type;
+		} else {
+			$shared->types = array_unique( array_merge( $shared->types, $type ) );
+		}
 
-        if ($count === 0) {
-            throw $this->keywordException("{keyword} cannot be an empty array", $info);
-        } elseif ($count === 1) {
-            $type = reset($type);
-        }
+		$count = count( $type );
 
-        return new TypeKeyword($type);
-    }
+		if ( $count === 0 ) {
+			throw $this->keywordException( '{keyword} cannot be an empty array', $info );
+		} elseif ( $count === 1 ) {
+			$type = reset( $type );
+		}
+
+		return new TypeKeyword( $type );
+	}
 }

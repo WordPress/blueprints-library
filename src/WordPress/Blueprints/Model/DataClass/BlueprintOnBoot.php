@@ -2,10 +2,11 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class BlueprintOnBoot
-{
+class BlueprintOnBoot {
+
 	/**
 	 * The URL to navigate to after the blueprint has been run.
+	 *
 	 * @var string
 	 */
 	public $openUrl;
@@ -15,20 +16,18 @@ class BlueprintOnBoot
 
 
 	/**
-  * @param string $openUrl
-  */
- public function setOpenUrl($openUrl)
-	{
+	 * @param string $openUrl
+	 */
+	public function setOpenUrl( $openUrl ) {
 		$this->openUrl = $openUrl;
 		return $this;
 	}
 
 
 	/**
-  * @param bool $login
-  */
- public function setLogin($login)
-	{
+	 * @param bool $login
+	 */
+	public function setLogin( $login ) {
 		$this->login = $login;
 		return $this;
 	}

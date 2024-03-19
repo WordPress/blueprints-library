@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,42 +23,40 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\ContentSchemaKeyword;
 use Opis\JsonSchema\Parsers\{DraftOptionTrait, KeywordParser, SchemaParser};
 
-class ContentSchemaKeywordParser extends KeywordParser
-{
-    use DraftOptionTrait;
+class ContentSchemaKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_STRING;
-    }
+	use DraftOptionTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$this->optionAllowedForDraft('decodeContent', $info, $parser)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_STRING;
+	}
 
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $this->optionAllowedForDraft( 'decodeContent', $info, $parser ) ) {
+			return null;
+		}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->keywordException("{keyword} must be a valid json schema object", $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        return new ContentSchemaKeyword($value);
-    }
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be a valid json schema object', $info );
+		}
+
+		return new ContentSchemaKeyword( $value );
+	}
 }

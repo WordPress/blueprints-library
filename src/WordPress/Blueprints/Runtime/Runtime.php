@@ -16,7 +16,7 @@ class Runtime implements RuntimeInterface {
 		string $documentRoot
 	) {
 		$this->documentRoot = $documentRoot;
-		$this->fs = new Filesystem();
+		$this->fs           = new Filesystem();
 		if ( ! file_exists( $this->getDocumentRoot() ) ) {
 			$this->fs->mkdir( $this->getDocumentRoot() );
 		}
@@ -29,15 +29,15 @@ class Runtime implements RuntimeInterface {
 	// @TODO: should this class mediate network requests?
 
 	// @TODO: Move these filesystem operations to a separate class
-	//        Maybe ExecutionContext? Or a separate Filesystem class?
+	// Maybe ExecutionContext? Or a separate Filesystem class?
 	public function getDocumentRoot(): string {
 		return $this->documentRoot;
 	}
 
 	/**
-  * @param string $path
-  */
- public function resolvePath( $path ): string {
+	 * @param string $path
+	 */
+	public function resolvePath( $path ): string {
 		return Path::makeAbsolute( $path, $this->getDocumentRoot() );
 	}
 
@@ -50,7 +50,6 @@ class Runtime implements RuntimeInterface {
 		} finally {
 			$this->fs->remove( $path );
 		}
-
 	}
 
 	public function withTemporaryFile( $callback, $suffix = null ) {
@@ -67,32 +66,32 @@ class Runtime implements RuntimeInterface {
 		// `/tmp` may be on another filesystem and we couldn't move files across filesystems
 		// without a slow recursive copy.
 		return join_paths( $this->getDocumentRoot(), '/tmp' );
-//		return sys_get_temp_dir();
+		// return sys_get_temp_dir();
 	}
 
 	// @TODO: Move this to a separate class
- /**
-  * @param mixed[]|null $env
-  * @param float $timeout
-  */
- public function evalPhpInSubProcess(
+	/**
+	 * @param mixed[]|null $env
+	 * @param float        $timeout
+	 */
+	public function evalPhpInSubProcess(
 		$code,
 		$env = null,
 		$input = null,
 		$timeout = 60
 	) {
 		return $this->runShellCommand(
-			[
+			array(
 				'php',
 				'-r',
 				'?>' . $code,
-			],
+			),
 			null,
 			array_merge(
-				[
+				array(
 					'DOCROOT' => $this->getDocumentRoot(),
-				],
-				$env ?? []
+				),
+				$env ?? array()
 			),
 			$input,
 			$timeout
@@ -100,13 +99,13 @@ class Runtime implements RuntimeInterface {
 	}
 
 	// @TODO: Move this to a separate class
- /**
-  * @param mixed[] $command
-  * @param string|null $cwd
-  * @param mixed[]|null $env
-  * @param float $timeout
-  */
- public function runShellCommand(
+	/**
+	 * @param mixed[]      $command
+	 * @param string|null  $cwd
+	 * @param mixed[]|null $env
+	 * @param float        $timeout
+	 */
+	public function runShellCommand(
 		$command,
 		$cwd = null,
 		$env = null,
@@ -130,12 +129,12 @@ class Runtime implements RuntimeInterface {
 	}
 
 	/**
-  * @param mixed[] $command
-  * @param string|null $cwd
-  * @param mixed[]|null $env
-  * @param float $timeout
-  */
- public function startProcess(
+	 * @param mixed[]      $command
+	 * @param string|null  $cwd
+	 * @param mixed[]|null $env
+	 * @param float        $timeout
+	 */
+	public function startProcess(
 		$command,
 		$cwd = null,
 		$env = null,

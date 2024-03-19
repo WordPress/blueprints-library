@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,85 +19,96 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class AdditionalItemsKeyword implements Keyword
-{
-    use OfTrait;
-    use IterableDataValidationTrait;
+class AdditionalItemsKeyword implements Keyword {
 
-    /** @var bool|object|Schema */
-    protected $value;
+	use OfTrait;
+	use IterableDataValidationTrait;
 
-    /**
-     * @var int
-     */
-    protected $index;
+	/** @var bool|object|Schema */
+	protected $value;
 
-    /**
-     * @param bool|object $value
-     * @param int $startIndex
-     */
-    public function __construct($value, int $startIndex)
-    {
-        $this->value = $value;
-        $this->index = $startIndex;
-    }
+	/**
+	 * @var int
+	 */
+	protected $index;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if ($this->value === true) {
-            $context->markAllAsEvaluatedItems();
-            return null;
-        }
+	/**
+	 * @param bool|object $value
+	 * @param int         $startIndex
+	 */
+	public function __construct( $value, int $startIndex ) {
+		$this->value = $value;
+		$this->index = $startIndex;
+	}
 
-        $data = $context->currentData();
-        $count = count($data);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( $this->value === true ) {
+			$context->markAllAsEvaluatedItems();
+			return null;
+		}
 
-        if ($this->index >= $count) {
-            return null;
-        }
+		$data  = $context->currentData();
+		$count = count( $data );
 
-        if ($this->value === false) {
-            return $this->error($schema, $context, 'additionalItems', 'Array should not have additional items', [
-                'index' => $this->index,
-            ]);
-        }
+		if ( $this->index >= $count ) {
+			return null;
+		}
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+		if ( $this->value === false ) {
+			return $this->error(
+				$schema,
+				$context,
+				'additionalItems',
+				'Array should not have additional items',
+				array(
+					'index' => $this->index,
+				)
+			);
+		}
 
-        $object = $this->createArrayObject($context);
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        $error = $this->validateIterableData($schema, $this->value, $context, $this->indexes($this->index, $count),
-            'additionalItems', 'All additional array items must match schema', [], $object);
+		$object = $this->createArrayObject( $context );
 
-        if ($object && $object->count()) {
-            $context->addEvaluatedItems($object->getArrayCopy());
-        }
+		$error = $this->validateIterableData(
+			$schema,
+			$this->value,
+			$context,
+			$this->indexes( $this->index, $count ),
+			'additionalItems',
+			'All additional array items must match schema',
+			array(),
+			$object
+		);
 
-        return $error;
-    }
+		if ( $object && $object->count() ) {
+			$context->addEvaluatedItems( $object->getArrayCopy() );
+		}
 
-    /**
-     * @param int $start
-     * @param int $max
-     * @return iterable|int[]
-     */
-    protected function indexes($start, $max)
-    {
-        for ($i = $start; $i < $max; $i++) {
-            yield $i;
-        }
-    }
+		return $error;
+	}
+
+	/**
+	 * @param int $start
+	 * @param int $max
+	 * @return iterable|int[]
+	 */
+	protected function indexes( $start, $max ) {
+		for ( $i = $start; $i < $max; $i++ ) {
+			yield $i;
+		}
+	}
 }

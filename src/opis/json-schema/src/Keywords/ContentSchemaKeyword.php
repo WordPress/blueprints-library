@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,47 +21,51 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Keyword, Schema};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class ContentSchemaKeyword implements Keyword
-{
-    use ErrorTrait;
+class ContentSchemaKeyword implements Keyword {
 
-    /** @var bool|object */
-    protected $value;
+	use ErrorTrait;
 
-    /**
-     * @param object $value
-     */
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool|object */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $data = json_decode($context->getDecodedContent(), false);
+	/**
+	 * @param object $value
+	 */
+	public function __construct( $value ) {
+		$this->value = $value;
+	}
 
-        if ($error = json_last_error() !== JSON_ERROR_NONE) {
-            $message = json_last_error_msg();
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$data = json_decode( $context->getDecodedContent(), false );
 
-            return $this->error($schema, $context, 'contentSchema', "Invalid JSON content: {message}", [
-                'error' => $error,
-                'message' => $message,
-            ]);
-        }
+		if ( $error = json_last_error() !== JSON_ERROR_NONE ) {
+			$message = json_last_error_msg();
 
-        if (is_object($this->value) && !($this->value instanceof Schema)) {
-            $this->value = $context->loader()->loadObjectSchema($this->value);
-        }
+			return $this->error(
+				$schema,
+				$context,
+				'contentSchema',
+				'Invalid JSON content: {message}',
+				array(
+					'error'   => $error,
+					'message' => $message,
+				)
+			);
+		}
 
-        if ($error = $this->value->validate($context->newInstance($data, $schema))) {
-            return $this->error($schema, $context, 'contentSchema', "The JSON content must match schema", [], $error);
-        }
+		if ( is_object( $this->value ) && ! ( $this->value instanceof Schema ) ) {
+			$this->value = $context->loader()->loadObjectSchema( $this->value );
+		}
 
-        return null;
-    }
+		if ( $error = $this->value->validate( $context->newInstance( $data, $schema ) ) ) {
+			return $this->error( $schema, $context, 'contentSchema', 'The JSON content must match schema', array(), $error );
+		}
+
+		return null;
+	}
 }

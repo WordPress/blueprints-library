@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,43 +18,39 @@
 
 namespace Opis\JsonSchema\Formats;
 
-class MiscFormats
-{
-    const UUID_REGEX = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+class MiscFormats {
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function ipv4($value): bool
-    {
-        return filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false;
-    }
+	const UUID_REGEX = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function ipv6($value): bool
-    {
-        return filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
-    }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function ipv4( $value ): bool {
+		return filter_var( $value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) !== false;
+	}
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function email($value): bool
-    {
-        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
-    }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function ipv6( $value ): bool {
+		return filter_var( $value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) !== false;
+	}
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function uuid($value): bool
-    {
-        return (bool) preg_match(self::UUID_REGEX, $value);
-    }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function email( $value ): bool {
+		return filter_var( $value, FILTER_VALIDATE_EMAIL ) !== false;
+	}
+
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function uuid( $value ): bool {
+		return (bool) preg_match( self::UUID_REGEX, $value );
+	}
 }

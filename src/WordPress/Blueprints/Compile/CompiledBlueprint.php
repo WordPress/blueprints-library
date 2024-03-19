@@ -17,11 +17,9 @@ class CompiledBlueprint {
 	 * @param $stepsProgressStage
 	 */
 	public function __construct( $compiledSteps, $compiledResources, $progressTracker, $stepsProgressStage ) {
-		$this->compiledSteps = $compiledSteps;
-		$this->compiledResources = $compiledResources;
-		$this->progressTracker = $progressTracker;
+		$this->compiledSteps      = $compiledSteps;
+		$this->compiledResources  = $compiledResources;
+		$this->progressTracker    = $progressTracker;
 		$this->stepsProgressStage = $stepsProgressStage;
 	}
-
-
 }

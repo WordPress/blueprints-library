@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +18,12 @@
 
 namespace Opis\JsonSchema;
 
-interface ContentEncoding
-{
-    /**
-     * @param string $value
-     * @param string $type
-     * @return null|string
-     */
-    public function decode($value, $type);
+interface ContentEncoding {
+
+	/**
+	 * @param string $value
+	 * @param string $type
+	 * @return null|string
+	 */
+	public function decode( $value, $type );
 }

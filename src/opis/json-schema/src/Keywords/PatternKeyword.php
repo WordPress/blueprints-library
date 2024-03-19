@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,42 +21,46 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{Helper, ValidationContext, Keyword, Schema};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class PatternKeyword implements Keyword
-{
-    use ErrorTrait;
+class PatternKeyword implements Keyword {
 
-    /**
-     * @var string|null
-     */
-    protected $pattern;
+	use ErrorTrait;
 
-    /**
-     * @var string|null
-     */
-    protected $regex;
+	/**
+	 * @var string|null
+	 */
+	protected $pattern;
 
-    /**
-     * @param string $pattern
-     */
-    public function __construct(string $pattern)
-    {
-        $this->pattern = $pattern;
-        $this->regex = Helper::patternToRegex($pattern);
-    }
+	/**
+	 * @var string|null
+	 */
+	protected $regex;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        if (preg_match($this->regex, $context->currentData())) {
-            return null;
-        }
+	/**
+	 * @param string $pattern
+	 */
+	public function __construct( string $pattern ) {
+		$this->pattern = $pattern;
+		$this->regex   = Helper::patternToRegex( $pattern );
+	}
 
-        return $this->error($schema, $context, 'pattern', "The string should match pattern: {pattern}", [
-            'pattern' => $this->pattern,
-        ]);
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		if ( preg_match( $this->regex, $context->currentData() ) ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'pattern',
+			'The string should match pattern: {pattern}',
+			array(
+				'pattern' => $this->pattern,
+			)
+		);
+	}
 }

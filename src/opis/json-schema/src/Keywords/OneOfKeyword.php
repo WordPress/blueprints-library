@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,83 +19,100 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class OneOfKeyword implements Keyword
-{
-    use OfTrait;
-    use ErrorTrait;
+class OneOfKeyword implements Keyword {
 
-    /** @var bool[]|object[] */
-    protected $value;
+	use OfTrait;
+	use ErrorTrait;
 
-    /**
-     * @param bool[]|object[] $value
-     */
-    public function __construct(array $value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool[]|object[] */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $count = 0;
-        $matchedIndex = -1;
-        $object = $this->createArrayObject($context);
-        $errors = [];
+	/**
+	 * @param bool[]|object[] $value
+	 */
+	public function __construct( array $value ) {
+		$this->value = $value;
+	}
 
-        foreach ($this->value as $index => $value) {
-            if ($value === false) {
-                continue;
-            }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$count        = 0;
+		$matchedIndex = -1;
+		$object       = $this->createArrayObject( $context );
+		$errors       = array();
 
-            if ($value === true) {
-                if (++$count > 1) {
-                    $this->addEvaluatedFromArrayObject($object, $context);
-                    return $this->error($schema, $context, 'oneOf', 'The data should match exactly one schema', [
-                        'matched' => [$matchedIndex, $index],
-                    ]);
-                }
+		foreach ( $this->value as $index => $value ) {
+			if ( $value === false ) {
+				continue;
+			}
 
-                $matchedIndex = $index;
-                continue;
-            }
+			if ( $value === true ) {
+				if ( ++$count > 1 ) {
+					$this->addEvaluatedFromArrayObject( $object, $context );
+					return $this->error(
+						$schema,
+						$context,
+						'oneOf',
+						'The data should match exactly one schema',
+						array(
+							'matched' => array( $matchedIndex, $index ),
+						)
+					);
+				}
 
-            if (is_object($value) && !($value instanceof Schema)) {
-                $value = $this->value[$index] = $context->loader()->loadObjectSchema($value);
-            }
+				$matchedIndex = $index;
+				continue;
+			}
 
-            $error = $context->validateSchemaWithoutEvaluated($value, null, false, $object);
-            if ($error) {
-                $errors[] = $error;
-            } else {
-                if (++$count > 1) {
-                    $this->addEvaluatedFromArrayObject($object, $context);
-                    return $this->error($schema, $context, 'oneOf', 'The data should match exactly one schema', [
-                        'matched' => [$matchedIndex, $index],
-                    ]);
-                }
-                $matchedIndex = $index;
-            }
-        }
+			if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+				$value = $this->value[ $index ] = $context->loader()->loadObjectSchema( $value );
+			}
 
-        $this->addEvaluatedFromArrayObject($object, $context);
+			$error = $context->validateSchemaWithoutEvaluated( $value, null, false, $object );
+			if ( $error ) {
+				$errors[] = $error;
+			} else {
+				if ( ++$count > 1 ) {
+					$this->addEvaluatedFromArrayObject( $object, $context );
+					return $this->error(
+						$schema,
+						$context,
+						'oneOf',
+						'The data should match exactly one schema',
+						array(
+							'matched' => array( $matchedIndex, $index ),
+						)
+					);
+				}
+				$matchedIndex = $index;
+			}
+		}
 
-        if ($count === 1) {
-            return null;
-        }
+		$this->addEvaluatedFromArrayObject( $object, $context );
 
-        return $this->error($schema, $context, 'oneOf', 'The data should match exactly one schema', [
-            'matched' => [],
-        ], $errors);
-    }
+		if ( $count === 1 ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'oneOf',
+			'The data should match exactly one schema',
+			array(
+				'matched' => array(),
+			),
+			$errors
+		);
+	}
 }

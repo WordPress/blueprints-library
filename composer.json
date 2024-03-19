@@ -14,7 +14,8 @@
     "nette/php-generator": "*",
     "jane-php/json-schema": "*",
     "bamarni/composer-bin-plugin": "*",
-    "wp-coding-standards/wpcs": "3.0"
+    "wp-coding-standards/wpcs": "3.0",
+    "phpcompatibility/php-compatibility": "^9.3"
   },
   "config": {
     "optimize-autoloader": true,

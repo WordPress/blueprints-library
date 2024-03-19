@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,125 +20,114 @@ namespace Opis\JsonSchema\Resolvers;
 
 use Opis\JsonSchema\ContentEncoding;
 
-class ContentEncodingResolver
-{
-    /** @var callable[]|ContentEncoding[] */
-    protected $list;
+class ContentEncodingResolver {
 
-    /** @var callable|ContentEncoding|null */
-    protected $defaultEncoding = null;
+	/** @var callable[]|ContentEncoding[] */
+	protected $list;
 
-    /**
-     * @param callable[]|ContentEncoding[] $list
-     * @param callable|ContentEncoding|null $defaultEncoding
-     */
-    public function __construct(array $list = [], $defaultEncoding = null)
-    {
-        $list += [
-            'binary' => self::class . '::DecodeBinary',
-            'base64' => self::class . '::DecodeBase64',
-            'quoted-printable' => self::class . '::DecodeQuotedPrintable',
-        ];
+	/** @var callable|ContentEncoding|null */
+	protected $defaultEncoding = null;
 
-        $this->list = $list;
-        $this->defaultEncoding = $defaultEncoding;
-    }
+	/**
+	 * @param callable[]|ContentEncoding[]  $list
+	 * @param callable|ContentEncoding|null $defaultEncoding
+	 */
+	public function __construct( array $list = array(), $defaultEncoding = null ) {
+		$list += array(
+			'binary'           => self::class . '::DecodeBinary',
+			'base64'           => self::class . '::DecodeBase64',
+			'quoted-printable' => self::class . '::DecodeQuotedPrintable',
+		);
 
-    /**
-     * @param string $name
-     * @return callable|ContentEncoding|string|null
-     */
-    public function resolve($name)
-    {
-        return $this->list[$name] ?? $this->defaultEncoding;
-    }
+		$this->list            = $list;
+		$this->defaultEncoding = $defaultEncoding;
+	}
 
-    /**
-     * @param string $name
-     * @param ContentEncoding $encoding
-     * @return ContentEncodingResolver
-     */
-    public function register($name, $encoding): self
-    {
-        $this->list[$name] = $encoding;
+	/**
+	 * @param string $name
+	 * @return callable|ContentEncoding|string|null
+	 */
+	public function resolve( $name ) {
+		return $this->list[ $name ] ?? $this->defaultEncoding;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string          $name
+	 * @param ContentEncoding $encoding
+	 * @return ContentEncodingResolver
+	 */
+	public function register( $name, $encoding ): self {
+		$this->list[ $name ] = $encoding;
 
-    /**
-     * @param string $name
-     * @param callable $encoding
-     * @return ContentEncodingResolver
-     */
-    public function registerCallable($name, $encoding): self
-    {
-        $this->list[$name] = $encoding;
+		return $this;
+	}
 
-        return $this;
-    }
+	/**
+	 * @param string   $name
+	 * @param callable $encoding
+	 * @return ContentEncodingResolver
+	 */
+	public function registerCallable( $name, $encoding ): self {
+		$this->list[ $name ] = $encoding;
 
-    /**
-     * @param string $name
-     * @return bool
-     */
-    public function unregister($name): bool
-    {
-        if (isset($this->list[$name])) {
-            unset($this->list[$name]);
+		return $this;
+	}
 
-            return true;
-        }
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
+	public function unregister( $name ): bool {
+		if ( isset( $this->list[ $name ] ) ) {
+			unset( $this->list[ $name ] );
 
-        return false;
-    }
+			return true;
+		}
 
-    /**
-     * @param callable|ContentEncoding|null $handler
-     * @return $this
-     */
-    public function setDefaultHandler($handler): self
-    {
-        $this->defaultEncoding = $handler;
-        return $this;
-    }
+		return false;
+	}
 
-    public function __serialize(): array
-    {
-        return [
-            'list' => $this->list,
-            'defaultEncoding' => $this->defaultEncoding,
-        ];
-    }
+	/**
+	 * @param callable|ContentEncoding|null $handler
+	 * @return $this
+	 */
+	public function setDefaultHandler( $handler ): self {
+		$this->defaultEncoding = $handler;
+		return $this;
+	}
 
-    public function __unserialize(array $data)
-    {
-        $this->list = $data['list'];
-        $this->defaultEncoding = $data['defaultEncoding'] ?? null;
-    }
+	public function __serialize(): array {
+		return array(
+			'list'            => $this->list,
+			'defaultEncoding' => $this->defaultEncoding,
+		);
+	}
 
-    /**
-     * @param string $value
-     */
-    public static function DecodeBinary($value)
-    {
-        return $value;
-    }
+	public function __unserialize( array $data ) {
+		$this->list            = $data['list'];
+		$this->defaultEncoding = $data['defaultEncoding'] ?? null;
+	}
 
-    /**
-     * @param string $value
-     */
-    public static function DecodeBase64($value)
-    {
-        $value = base64_decode($value, true);
+	/**
+	 * @param string $value
+	 */
+	public static function DecodeBinary( $value ) {
+		return $value;
+	}
 
-        return is_string($value) ? $value : null;
-    }
+	/**
+	 * @param string $value
+	 */
+	public static function DecodeBase64( $value ) {
+		$value = base64_decode( $value, true );
 
-    /**
-     * @param string $value
-     */
-    public static function DecodeQuotedPrintable($value)
-    {
-        return quoted_printable_decode($value);
-    }
+		return is_string( $value ) ? $value : null;
+	}
+
+	/**
+	 * @param string $value
+	 */
+	public static function DecodeQuotedPrintable( $value ) {
+		return quoted_printable_decode( $value );
+	}
 }

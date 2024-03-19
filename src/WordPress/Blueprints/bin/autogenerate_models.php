@@ -25,19 +25,26 @@ if ( ! $targetDirectory ) {
 	throw new \RuntimeException( "Target directory $targetDirectory does not exist" );
 }
 
-$jane = Jane::build( [
-	'reference'  => '#',
-	'validation' => true,
-	'strict'     => false,
-] );
-$registry = new Registry();
+$jane         = Jane::build(
+	array(
+		'reference'  => '#',
+		'validation' => true,
+		'strict'     => false,
+	)
+);
+$registry     = new Registry();
 $schemaLoader = new SchemaLoader();
-$registry->addSchema( $schemaLoader->resolve( $schemaPath, [
-	'namespace'  => $targetNamespace,
-	'directory'  => $targetDirectory,
-	'root-class' => 'Blueprint',
-	'strict'     => false,
-] ) );
+$registry->addSchema(
+	$schemaLoader->resolve(
+		$schemaPath,
+		array(
+			'namespace'  => $targetNamespace,
+			'directory'  => $targetDirectory,
+			'root-class' => 'Blueprint',
+			'strict'     => false,
+		)
+	)
+);
 $context = $jane->createContext( $registry );
 $jane->generate( $registry );
 
@@ -45,30 +52,30 @@ if ( ! file_exists( $targetDirectory ) ) {
 	mkdir( $targetDirectory, 0777, true );
 }
 
-$schema = $context->getRegistry()->getSchemas()[0];
+$schema      = $context->getRegistry()->getSchemas()[0];
 $janeClasses = $schema->getClasses();
 
 // Every group of classes with a discriminator and oneOf should have
 // an interface that all the classes in the group implement.
-$netteInterfaces = [];
-$shouldImplement = [];
-$interfaceImplementors = [];
+$netteInterfaces       = array();
+$shouldImplement       = array();
+$interfaceImplementors = array();
 foreach ( $janeClasses as $ref => $class ) {
 	// If $ref ends with /([^/]+)/oneOf/\d, extract the first group
 	if ( 1 !== preg_match( '/\/([^\/]+)\/oneOf\/\d+$/', $ref, $matches ) ) {
 		continue;
 	}
 
-	$interfaceName = $matches[1] . 'Interface';
-	$shouldImplement[ $class->getName() ] = $interfaceName;
+	$interfaceName                             = $matches[1] . 'Interface';
+	$shouldImplement[ $class->getName() ]      = $interfaceName;
 	$interfaceImplementors[ $interfaceName ][] = $class->getName();
 
 	if ( array_key_exists( $interfaceName, $netteInterfaces ) ) {
 		continue;
 	}
 
-	$namespace = new PhpNamespace( $targetNamespace );
-	$interface = $namespace->addInterface( $interfaceName );
+	$namespace                                = new PhpNamespace( $targetNamespace );
+	$interface                                = $namespace->addInterface( $interfaceName );
 	$netteInterfaces[ $interface->getName() ] = $interface;
 }
 
@@ -78,9 +85,12 @@ foreach ( $janeClasses as $ref => $class ) {
  */
 $modelInfoClass = ( new PhpNamespace( $targetNamespace ) )->addClass( 'ModelInfo' );
 foreach ( $interfaceImplementors as $interfaceName => $implementors ) {
-	$implementorsClassExpressions = array_map( function ($implementor) {
-     return $implementor . '::class';
- }, $implementors );
+	$implementorsClassExpressions = array_map(
+		function ( $implementor ) {
+			return $implementor . '::class';
+		},
+		$implementors
+	);
 	$modelInfoClass->addMethod( 'get' . $interfaceName . 'Implementations' )
 		->setStatic( true )
 		->setReturnType( 'array' )
@@ -107,13 +117,16 @@ foreach ( $interfaceImplementors as $interfaceName => $implementors ) {
  *
  * For that, we'll need a map of replacements.
  */
-$unionReplacements = [];
+$unionReplacements = array();
 foreach ( $interfaceImplementors as $interfaceName => $implementors ) {
 	$unionReplacements[ implode( '|', $implementors ) ] = $interfaceName;
 
-	$arrayUnion = array_map( function ($implementor) {
-     return $implementor . '[]';
- }, $implementors );
+	$arrayUnion                                       = array_map(
+		function ( $implementor ) {
+			return $implementor . '[]';
+		},
+		$implementors
+	);
 	$unionReplacements[ implode( '|', $arrayUnion ) ] = $interfaceName . '[]';
 }
 
@@ -130,24 +143,24 @@ function fixTypeHint( string $typeHint, array $replacements ): string {
  * the PHP classes. However, the classes it generates are too opinionated.
  * Let's convert them to Nette classes and customize them to our needs.
  */
-$typeHintMap = [];
-$netteClasses = [];
+$typeHintMap  = array();
+$netteClasses = array();
 /** @var ClassType[] $netteClasses */
 foreach ( $janeClasses as $ref => $janeClass ) {
-	$namespace = new PhpNamespace( $targetNamespace );
-	$class = $namespace->addClass( $janeClass->getName() );
+	$namespace    = new PhpNamespace( $targetNamespace );
+	$class        = $namespace->addClass( $janeClass->getName() );
 	$hasInterface = isset( $shouldImplement[ $janeClass->getName() ] );
 	if ( $hasInterface ) {
 		$class->addImplement( $targetNamespace . '\\' . $shouldImplement[ $janeClass->getName() ] );
 	}
-	$typeHintMap[ $janeClass->getName() ] = [];
+	$typeHintMap[ $janeClass->getName() ] = array();
 	foreach ( $janeClass->getProperties() as $janeProperty ) {
 		// Add the property to the class.
-		$property = $class->addProperty( $janeProperty->getName() );
+		$property    = $class->addProperty( $janeProperty->getName() );
 		$description = $janeProperty->getDescription();
-		$typeHint = $janeProperty->getType()->getTypeHint( '' );
+		$typeHint    = $janeProperty->getType()->getTypeHint( '' );
 		$docTypeHint = $janeProperty->getType()->getDocTypeHint( '' );
-		if ( strpos($docTypeHint, $targetNamespace) !== false ) {
+		if ( strpos( $docTypeHint, $targetNamespace ) !== false ) {
 			// Jane prepends "\$namespace\Model\" to type hints, let's remove that.
 			$docTypeHint = str_replace( '\\' . $targetNamespace . '\\Model\\', '', $docTypeHint );
 			// Let's replace the lengthy union types with the interface types.
@@ -160,14 +173,14 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 			// fix that by moving the object types to the front.
 			$subTypes = explode( '|', $docTypeHint );
 			if ( count( $subTypes ) > 1 ) {
-				$phpPrimitiveTypes = [ 'string', 'int', 'float', 'bool', 'array', 'object' ];
-				$finalTypes = [];
+				$phpPrimitiveTypes = array( 'string', 'int', 'float', 'bool', 'array', 'object' );
+				$finalTypes        = array();
 				foreach ( $phpPrimitiveTypes as $phpPrimitiveType ) {
 					if ( in_array( $phpPrimitiveType, $subTypes ) ) {
 						$finalTypes[] = $phpPrimitiveType;
 					}
 				}
-				$finalTypes = array_merge( $finalTypes, array_diff( $subTypes, $phpPrimitiveTypes ) );
+				$finalTypes  = array_merge( $finalTypes, array_diff( $subTypes, $phpPrimitiveTypes ) );
 				$docTypeHint = implode( '|', $finalTypes );
 			}
 		}
@@ -183,13 +196,15 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 		// Add a setter
 		$setter = $class->addMethod( 'set' . ucfirst( $janeProperty->getName() ) );
 
-		$setterArg = $setter->addParameter( $janeProperty->getName() );
+		$setterArg   = $setter->addParameter( $janeProperty->getName() );
 		$argTypeHint = $janeProperty->getType()->getTypeHint( $targetNamespace ) . '';
 		if ( $argTypeHint ) {
-			if ( strpos($argTypeHint, '\\') !== false ) {
-				$argTypeHint = $targetNamespace . '\\' . str_replace( '\\' . $targetNamespace . '\\Model\\',
-						'',
-						$argTypeHint );
+			if ( strpos( $argTypeHint, '\\' ) !== false ) {
+				$argTypeHint = $targetNamespace . '\\' . str_replace(
+					'\\' . $targetNamespace . '\\Model\\',
+					'',
+					$argTypeHint
+				);
 			}
 			$setterArg->setType( $argTypeHint );
 		}
@@ -218,7 +233,7 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 				// value of all class properties.
 				$property->setValue( $schema->getDefault() );
 			} elseif ( $schema->getType() === 'array' ) {
-				$property->setValue( [] );
+				$property->setValue( array() );
 			}
 		}
 	}
@@ -228,7 +243,7 @@ foreach ( $janeClasses as $ref => $janeClass ) {
 /**
  * We're finished, yay! Let's write the generated classes to the disk.
  */
-$netteOutput = array_merge( $netteInterfaces, $netteClasses, [ $modelInfoClass ] );
+$netteOutput = array_merge( $netteInterfaces, $netteClasses, array( $modelInfoClass ) );
 foreach ( glob( $targetDirectory . '/*.php' ) as $file ) {
 	unlink( $file );
 }
@@ -238,4 +253,4 @@ foreach ( $netteOutput as $entity ) {
 	file_put_contents( $filename, "<?php\n\n" . $entity->getNamespace() );
 }
 
-echo "Generated " . count( $netteOutput ) . " classes in $targetDirectory\n";
+echo 'Generated ' . count( $netteOutput ) . " classes in $targetDirectory\n";

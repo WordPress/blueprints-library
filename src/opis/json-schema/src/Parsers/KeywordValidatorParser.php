@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,15 +21,15 @@ namespace Opis\JsonSchema\Parsers;
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\KeywordValidator;
 
-abstract class KeywordValidatorParser
-{
-    use KeywordParserTrait;
+abstract class KeywordValidatorParser {
 
-    /**
-     * @param SchemaInfo $info
-     * @param SchemaParser $parser
-     * @param object $shared
-     * @return KeywordValidator|null
-     */
-    abstract public function parse($info, $parser, $shared);
+	use KeywordParserTrait;
+
+	/**
+	 * @param SchemaInfo   $info
+	 * @param SchemaParser $parser
+	 * @param object       $shared
+	 * @return KeywordValidator|null
+	 */
+	abstract public function parse( $info, $parser, $shared );
 }

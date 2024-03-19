@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,50 +22,48 @@ use Opis\JsonSchema\{Helper, Keyword};
 use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\{PatternKeyword, PatternDataKeyword};
 use Opis\JsonSchema\Parsers\{KeywordParser, DataKeywordTrait,
-    SchemaParser};
+	SchemaParser};
 
-class PatternKeywordParser extends KeywordParser
-{
-    use DataKeywordTrait;
+class PatternKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_STRING;
-    }
+	use DataKeywordTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_STRING;
+	}
 
-        if (!$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if ($this->isDataKeywordAllowed($parser, $this->keyword)) {
-            if ($pointer = $this->getDataKeywordPointer($value)) {
-                return new PatternDataKeyword($pointer);
-            }
-        }
+		$value = $this->keywordValue( $schema );
 
-        if (!is_string($value)) {
-            throw $this->keywordException("{keyword} value must be a string", $info);
-        }
+		if ( $this->isDataKeywordAllowed( $parser, $this->keyword ) ) {
+			if ( $pointer = $this->getDataKeywordPointer( $value ) ) {
+				return new PatternDataKeyword( $pointer );
+			}
+		}
 
-        if (!Helper::isValidPattern($value)) {
-            throw $this->keywordException("{keyword} value must be a valid regex", $info);
-        }
+		if ( ! is_string( $value ) ) {
+			throw $this->keywordException( '{keyword} value must be a string', $info );
+		}
 
-        return new PatternKeyword($value);
-    }
+		if ( ! Helper::isValidPattern( $value ) ) {
+			throw $this->keywordException( '{keyword} value must be a valid regex', $info );
+		}
+
+		return new PatternKeyword( $value );
+	}
 }

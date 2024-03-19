@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,46 +19,49 @@
 namespace Opis\JsonSchema\Keywords;
 
 use Opis\JsonSchema\{
-    ValidationContext,
-    Keyword,
-    Schema
+	ValidationContext,
+	Keyword,
+	Schema
 };
 use Opis\JsonSchema\Errors\ValidationError;
 
-class MinPropertiesKeyword implements Keyword
-{
-    use ErrorTrait;
+class MinPropertiesKeyword implements Keyword {
 
-    /**
-     * @var int
-     */
-    protected $count;
+	use ErrorTrait;
 
-    /**
-     * @param int $count
-     */
-    public function __construct(int $count)
-    {
-        $this->count = $count;
-    }
+	/**
+	 * @var int
+	 */
+	protected $count;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $count = count($context->getObjectProperties());
+	/**
+	 * @param int $count
+	 */
+	public function __construct( int $count ) {
+		$this->count = $count;
+	}
 
-        if ($this->count <= $count) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$count = count( $context->getObjectProperties() );
 
-        return $this->error($schema, $context, 'minProperties',
-            "Object must have at least {min} properties, {count} found", [
-                'min' => $this->count,
-                'count' => $count,
-            ]);
-    }
+		if ( $this->count <= $count ) {
+			return null;
+		}
+
+		return $this->error(
+			$schema,
+			$context,
+			'minProperties',
+			'Object must have at least {min} properties, {count} found',
+			array(
+				'min'   => $this->count,
+				'count' => $count,
+			)
+		);
+	}
 }

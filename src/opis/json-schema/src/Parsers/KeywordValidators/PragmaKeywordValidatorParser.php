@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,39 +23,44 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\KeywordValidators\PragmaKeywordValidator;
 use Opis\JsonSchema\Parsers\{KeywordValidatorParser, SchemaParser};
 
-class PragmaKeywordValidatorParser extends KeywordValidatorParser
-{
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        if (!$parser->option('allowPragmas') || !$this->keywordExists($info)) {
-            return null;
-        }
+class PragmaKeywordValidatorParser extends KeywordValidatorParser {
 
-        $value = $this->keywordValue($info);
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		if ( ! $parser->option( 'allowPragmas' ) || ! $this->keywordExists( $info ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->keywordException('{keyword} must be an object', $info);
-        }
+		$value = $this->keywordValue( $info );
 
-        $list = [];
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} must be an object', $info );
+		}
 
-        $draft = $info->draft() ?? $parser->defaultDraftVersion();
+		$list = array();
 
-        $pragmaInfo = new SchemaInfo($value, null, $info->id() ?? $info->base(), $info->root(),
-            array_merge($info->path(), [$this->keyword]), $draft);
+		$draft = $info->draft() ?? $parser->defaultDraftVersion();
 
-        foreach ($parser->draft($draft)->pragmas() as $pragma) {
-            if ($handler = $pragma->parse($pragmaInfo, $parser, $shared)) {
-                $list[] = $handler;
-            }
-        }
+		$pragmaInfo = new SchemaInfo(
+			$value,
+			null,
+			$info->id() ?? $info->base(),
+			$info->root(),
+			array_merge( $info->path(), array( $this->keyword ) ),
+			$draft
+		);
 
-        return $list ? new PragmaKeywordValidator($list) : null;
-    }
+		foreach ( $parser->draft( $draft )->pragmas() as $pragma ) {
+			if ( $handler = $pragma->parse( $pragmaInfo, $parser, $shared ) ) {
+				$list[] = $handler;
+			}
+		}
+
+		return $list ? new PragmaKeywordValidator( $list ) : null;
+	}
 }

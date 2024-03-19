@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,101 +22,111 @@ use Traversable;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\{Helper, ValidationContext, Keyword, Schema};
 
-class PatternPropertiesKeyword implements Keyword
-{
-    use IterableDataValidationTrait;
+class PatternPropertiesKeyword implements Keyword {
 
-    /** @var bool[]|object[] */
-    protected $value;
+	use IterableDataValidationTrait;
 
-    /**
-     * @param bool[]|object[] $value
-     */
-    public function __construct(array $value)
-    {
-        $this->value = $value;
-    }
+	/** @var bool[]|object[] */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $props = $context->getObjectProperties();
+	/**
+	 * @param bool[]|object[] $value
+	 */
+	public function __construct( array $value ) {
+		$this->value = $value;
+	}
 
-        if (!$props) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$props = $context->getObjectProperties();
 
-        $checked = [];
+		if ( ! $props ) {
+			return null;
+		}
 
-        foreach ($this->value as $pattern => $value) {
-            if ($value === true) {
-                iterator_to_array($this->matchedProperties($pattern, $props, $checked));
-                continue;
-            }
+		$checked = array();
 
-            if ($value === false) {
-                $list = iterator_to_array($this->matchedProperties($pattern, $props, $checked));
+		foreach ( $this->value as $pattern => $value ) {
+			if ( $value === true ) {
+				iterator_to_array( $this->matchedProperties( $pattern, $props, $checked ) );
+				continue;
+			}
 
-                if ($list) {
-                    if ($context->trackUnevaluated()) {
-                        $context->addEvaluatedProperties(array_diff(array_keys($checked), $list));
-                    }
-                    return $this->error($schema, $context, 'patternProperties', "Object properties that match pattern '{pattern}' are not allowed", [
-                        'pattern' => $pattern,
-                        'forbidden' => $list,
-                    ]);
-                }
+			if ( $value === false ) {
+				$list = iterator_to_array( $this->matchedProperties( $pattern, $props, $checked ) );
 
-                unset($list);
-                continue;
-            }
+				if ( $list ) {
+					if ( $context->trackUnevaluated() ) {
+						$context->addEvaluatedProperties( array_diff( array_keys( $checked ), $list ) );
+					}
+					return $this->error(
+						$schema,
+						$context,
+						'patternProperties',
+						"Object properties that match pattern '{pattern}' are not allowed",
+						array(
+							'pattern'   => $pattern,
+							'forbidden' => $list,
+						)
+					);
+				}
 
-            if (is_object($value) && !($value instanceof Schema)) {
-                $value = $this->value[$pattern] = $context->loader()->loadObjectSchema($value);
-            }
+				unset( $list );
+				continue;
+			}
 
-            $subErrors = $this->iterateAndValidate($value, $context, $this->matchedProperties($pattern, $props, $checked));
+			if ( is_object( $value ) && ! ( $value instanceof Schema ) ) {
+				$value = $this->value[ $pattern ] = $context->loader()->loadObjectSchema( $value );
+			}
 
-            if (!$subErrors->isEmpty()) {
-                if ($context->trackUnevaluated()) {
-                    $context->addEvaluatedProperties(array_keys($checked));
-                }
-                return $this->error($schema, $context, 'patternProperties', "Object properties that match pattern '{pattern}' must also match pattern's schema", [
-                    'pattern' => $pattern,
-                ], $subErrors);
-            }
+			$subErrors = $this->iterateAndValidate( $value, $context, $this->matchedProperties( $pattern, $props, $checked ) );
 
-            unset($subErrors);
-        }
+			if ( ! $subErrors->isEmpty() ) {
+				if ( $context->trackUnevaluated() ) {
+					$context->addEvaluatedProperties( array_keys( $checked ) );
+				}
+				return $this->error(
+					$schema,
+					$context,
+					'patternProperties',
+					"Object properties that match pattern '{pattern}' must also match pattern's schema",
+					array(
+						'pattern' => $pattern,
+					),
+					$subErrors
+				);
+			}
 
-        if ($checked) {
-            $checked = array_keys($checked);
-            $context->addCheckedProperties($checked);
-            $context->addEvaluatedProperties($checked);
-        }
+			unset( $subErrors );
+		}
 
-        return null;
-    }
+		if ( $checked ) {
+			$checked = array_keys( $checked );
+			$context->addCheckedProperties( $checked );
+			$context->addEvaluatedProperties( $checked );
+		}
 
-    /**
-     * @param string $pattern
-     * @param array $props
-     * @param array $checked
-     * @return Traversable|string[]
-     */
-    protected function matchedProperties($pattern, $props, &$checked): Traversable
-    {
-        $pattern = Helper::patternToRegex($pattern);
+		return null;
+	}
 
-        foreach ($props as $prop) {
-            if (preg_match($pattern, (string)$prop)) {
-                $checked[$prop] = true;
-                yield $prop;
-            }
-        }
-    }
+	/**
+	 * @param string $pattern
+	 * @param array  $props
+	 * @param array  $checked
+	 * @return Traversable|string[]
+	 */
+	protected function matchedProperties( $pattern, $props, &$checked ): Traversable {
+		$pattern = Helper::patternToRegex( $pattern );
+
+		foreach ( $props as $prop ) {
+			if ( preg_match( $pattern, (string) $prop ) ) {
+				$checked[ $prop ] = true;
+				yield $prop;
+			}
+		}
+	}
 }

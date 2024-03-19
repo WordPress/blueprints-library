@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,45 +20,42 @@ namespace Opis\JsonSchema\Exceptions;
 
 use Opis\JsonSchema\{ValidationContext, Schema};
 
-class UnresolvedFilterException extends UnresolvedException
-{
+class UnresolvedFilterException extends UnresolvedException {
 
-    /**
-     * @var string
-     */
-    protected $filter;
 
-    /**
-     * @var string
-     */
-    protected $type;
+	/**
+	 * @var string
+	 */
+	protected $filter;
 
-    /**
-     * @param string $filter
-     * @param string $type
-     * @param Schema $schema
-     * @param ValidationContext $context
-     */
-    public function __construct(string $filter, string $type, Schema $schema, ValidationContext $context)
-    {
-        parent::__construct("Cannot resolve filter '{$filter}' for type '{$type}'", $schema, $context);
-        $this->filter = $filter;
-        $this->type = $type;
-    }
+	/**
+	 * @var string
+	 */
+	protected $type;
 
-    /**
-     * @return string
-     */
-    public function getFilter(): string
-    {
-        return $this->filter;
-    }
+	/**
+	 * @param string            $filter
+	 * @param string            $type
+	 * @param Schema            $schema
+	 * @param ValidationContext $context
+	 */
+	public function __construct( string $filter, string $type, Schema $schema, ValidationContext $context ) {
+		parent::__construct( "Cannot resolve filter '{$filter}' for type '{$type}'", $schema, $context );
+		$this->filter = $filter;
+		$this->type   = $type;
+	}
 
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
+	/**
+	 * @return string
+	 */
+	public function getFilter(): string {
+		return $this->filter;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getType(): string {
+		return $this->type;
+	}
 }

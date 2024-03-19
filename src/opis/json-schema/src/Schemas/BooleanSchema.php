@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,33 +22,31 @@ use Opis\JsonSchema\ValidationContext;
 use Opis\JsonSchema\Info\{DataInfo, SchemaInfo};
 use Opis\JsonSchema\Errors\ValidationError;
 
-final class BooleanSchema extends AbstractSchema
-{
+final class BooleanSchema extends AbstractSchema {
 
-    /**
-     * @var bool
-     */
-    private $data;
 
-    /**
-     * @param SchemaInfo $info
-     */
-    public function __construct(SchemaInfo $info)
-    {
-        parent::__construct($info);
-        $this->data = $info->data();
-    }
+	/**
+	 * @var bool
+	 */
+	private $data;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     */
-    public function validate($context)
-    {
-        if ($this->data) {
-            return null;
-        }
+	/**
+	 * @param SchemaInfo $info
+	 */
+	public function __construct( SchemaInfo $info ) {
+		parent::__construct( $info );
+		$this->data = $info->data();
+	}
 
-        return new ValidationError('', $this, DataInfo::fromContext($context), 'Data not allowed');
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 */
+	public function validate( $context ) {
+		if ( $this->data ) {
+			return null;
+		}
+
+		return new ValidationError( '', $this, DataInfo::fromContext( $context ), 'Data not allowed' );
+	}
 }

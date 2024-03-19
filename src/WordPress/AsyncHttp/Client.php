@@ -94,7 +94,7 @@ class Client {
 	protected $queue_needs_processing = false;
 
 	public function __construct() {
-		$this->requests = new Map();
+		$this->requests   = new Map();
 		$this->onProgress = function () {
 		};
 	}
@@ -163,13 +163,13 @@ class Client {
 	}
 
 	/**
-  * @param \WordPress\AsyncHttp\Request $request
-  */
- protected function enqueue_request( $request ) {
-		$stream = StreamWrapper::create_resource(
+	 * @param \WordPress\AsyncHttp\Request $request
+	 */
+	protected function enqueue_request( $request ) {
+		$stream                       = StreamWrapper::create_resource(
 			new StreamData( $request, $this )
 		);
-		$this->requests[ $request ] = new RequestInfo( $stream );
+		$this->requests[ $request ]   = new RequestInfo( $stream );
 		$this->queue_needs_processing = true;
 
 		return $stream;
@@ -182,18 +182,18 @@ class Client {
 		$this->queue_needs_processing = false;
 
 		$active_requests = count( $this->get_streamed_requests() );
-		$backfill = $this->concurrency - $active_requests;
+		$backfill        = $this->concurrency - $active_requests;
 		if ( $backfill <= 0 ) {
 			return;
 		}
 
-		$enqueued = array_slice( $this->get_enqueued_request(), 0, $backfill );
+		$enqueued                           = array_slice( $this->get_enqueued_request(), 0, $backfill );
 		list( $streams, $response_headers ) = streams_send_http_requests( $enqueued );
 
 		foreach ( $streams as $k => $stream ) {
-			$request = $enqueued[ $k ];
-			$total = $response_headers[ $k ]['headers']['content-length'];
-			$this->requests[ $request ]->state = RequestInfo::STATE_STREAMING;
+			$request                            = $enqueued[ $k ];
+			$total                              = $response_headers[ $k ]['headers']['content-length'];
+			$this->requests[ $request ]->state  = RequestInfo::STATE_STREAMING;
 			$this->requests[ $request ]->stream = stream_monitor_progress(
 				$stream,
 				function ( $downloaded ) use ( $request, $total ) {
@@ -205,7 +205,7 @@ class Client {
 	}
 
 	protected function get_enqueued_request() {
-		$enqueued_requests = [];
+		$enqueued_requests = array();
 		foreach ( $this->requests as $request => $info ) {
 			if ( $info->state === RequestInfo::STATE_ENQUEUED ) {
 				$enqueued_requests[] = $request;
@@ -216,7 +216,7 @@ class Client {
 	}
 
 	protected function get_streamed_requests() {
-		$active_requests = [];
+		$active_requests = array();
 		foreach ( $this->requests as $request => $info ) {
 			if ( $info->state !== RequestInfo::STATE_ENQUEUED ) {
 				$active_requests[] = $request;
@@ -245,12 +245,15 @@ class Client {
 		}
 
 		$request_info = $this->requests[ $request ];
-		$stream = $request_info->stream;
+		$stream       = $request_info->stream;
 
 		$active_requests = $this->get_streamed_requests();
-		$active_streams = array_map( function ( $request ) {
-			return $this->requests[ $request ]->stream;
-		}, $active_requests );
+		$active_streams  = array_map(
+			function ( $request ) {
+				return $this->requests[ $request ]->stream;
+			},
+			$active_requests
+		);
 
 		if ( ! count( $active_streams ) ) {
 			return false;
@@ -264,7 +267,7 @@ class Client {
 			}
 
 			if ( strlen( $request_info->buffer ) >= $length ) {
-				$buffered = substr( $request_info->buffer, 0, $length );
+				$buffered             = substr( $request_info->buffer, 0, $length );
 				$request_info->buffer = substr( $request_info->buffer, $length );
 
 				return $buffered;
@@ -274,9 +277,12 @@ class Client {
 				return $request_info->buffer;
 			}
 
-			$active_streams = array_filter( $active_streams, function ( $stream ) {
-				return ! feof( $stream );
-			} );
+			$active_streams = array_filter(
+				$active_streams,
+				function ( $stream ) {
+					return ! feof( $stream );
+				}
+			);
 			if ( ! count( $active_streams ) ) {
 				continue;
 			}

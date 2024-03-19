@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,116 +21,111 @@ namespace Opis\JsonSchema\Formats;
 use Throwable;
 use Opis\JsonSchema\Uri;
 
-class IriFormats
-{
-    const SKIP = [0x23, 0x26, 0x2F, 0x3A, 0x3D, 0x3F, 0x40, 0x5B, 0x5C, 0x5D];
+class IriFormats {
 
-    /** @var bool|null|callable */
-    private static $idn = false;
+	const SKIP = array( 0x23, 0x26, 0x2F, 0x3A, 0x3D, 0x3F, 0x40, 0x5B, 0x5C, 0x5D );
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function iri($value): bool
-    {
-        if ($value === '') {
-            return false;
-        }
+	/** @var bool|null|callable */
+	private static $idn = false;
 
-        try {
-            $components = Uri::parseComponents(Uri::encodeComponent($value, self::SKIP), true, true);
-        } catch (Throwable $e) {
-            return false;
-        }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function iri( $value ): bool {
+		if ( $value === '' ) {
+			return false;
+		}
 
-        return isset($components['scheme']) && $components['scheme'] !== '';
-    }
+		try {
+			$components = Uri::parseComponents( Uri::encodeComponent( $value, self::SKIP ), true, true );
+		} catch ( Throwable $e ) {
+			return false;
+		}
 
-    /**
-     * @param string $value
-     * @return bool
-     */
-    public static function iriReference($value): bool
-    {
-        if ($value === '') {
-            return true;
-        }
+		return isset( $components['scheme'] ) && $components['scheme'] !== '';
+	}
 
-        try {
-            return Uri::parseComponents(Uri::encodeComponent($value, self::SKIP), true, true) !== null;
-        } catch (Throwable $e) {
-            return false;
-        }
-    }
+	/**
+	 * @param string $value
+	 * @return bool
+	 */
+	public static function iriReference( $value ): bool {
+		if ( $value === '' ) {
+			return true;
+		}
 
-    /**
-     * @param string $value
-     * @param callable|null $idn
-     * @return bool
-     */
-    public static function idnHostname($value, $idn = null): bool
-    {
-        $idn = $idn ?? static::idn();
+		try {
+			return Uri::parseComponents( Uri::encodeComponent( $value, self::SKIP ), true, true ) !== null;
+		} catch ( Throwable $e ) {
+			return false;
+		}
+	}
 
-        if ($idn) {
-            $value = $idn($value);
-            if ($value === null) {
-                return false;
-            }
-        }
+	/**
+	 * @param string        $value
+	 * @param callable|null $idn
+	 * @return bool
+	 */
+	public static function idnHostname( $value, $idn = null ): bool {
+		$idn = $idn ?? static::idn();
 
-        return Uri::isValidHost($value);
-    }
+		if ( $idn ) {
+			$value = $idn( $value );
+			if ( $value === null ) {
+				return false;
+			}
+		}
 
-    /**
-     * @param string $value
-     * @param callable|null $idn
-     * @return bool
-     */
-    public static function idnEmail($value, $idn = null): bool
-    {
-        $idn = $idn ?? static::idn();
+		return Uri::isValidHost( $value );
+	}
 
-        if ($idn) {
-            if (!preg_match('/^(?<name>.+)@(?<domain>.+)$/u', $value, $m)) {
-                return false;
-            }
+	/**
+	 * @param string        $value
+	 * @param callable|null $idn
+	 * @return bool
+	 */
+	public static function idnEmail( $value, $idn = null ): bool {
+		$idn = $idn ?? static::idn();
 
-            $m['name'] = $idn($m['name']);
-            if ($m['name'] === null) {
-                return false;
-            }
+		if ( $idn ) {
+			if ( ! preg_match( '/^(?<name>.+)@(?<domain>.+)$/u', $value, $m ) ) {
+				return false;
+			}
 
-            $m['domain'] = $idn($m['domain']);
-            if ($m['domain'] === null) {
-                return false;
-            }
+			$m['name'] = $idn( $m['name'] );
+			if ( $m['name'] === null ) {
+				return false;
+			}
 
-            $value = $m['name'] . '@' . $m['domain'];
-        }
+			$m['domain'] = $idn( $m['domain'] );
+			if ( $m['domain'] === null ) {
+				return false;
+			}
 
-        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
-    }
+			$value = $m['name'] . '@' . $m['domain'];
+		}
 
-    /**
-     * @return callable|null
-     */
-    public static function idn()
-    {
-        if (static::$idn === false) {
-            if (function_exists('idn_to_ascii')) {
-                static::$idn = static function (string $value) {
-                    /** @noinspection PhpComposerExtensionStubsInspection */
-                    $value = idn_to_ascii($value, 0, INTL_IDNA_VARIANT_UTS46);
+		return filter_var( $value, FILTER_VALIDATE_EMAIL ) !== false;
+	}
 
-                    return is_string($value) ? $value : null;
-                };
-            } else {
-                static::$idn = null;
-            }
-        }
+	/**
+	 * @return callable|null
+	 */
+	public static function idn() {
+		if ( static::$idn === false ) {
+			if ( function_exists( 'idn_to_ascii' ) ) {
+				static::$idn = static function ( string $value ) {
+					/** @noinspection PhpComposerExtensionStubsInspection */
+					$value = idn_to_ascii( $value, 0, INTL_IDNA_VARIANT_UTS46 );
 
-        return static::$idn;
-    }
+					return is_string( $value ) ? $value : null;
+				};
+			} else {
+				static::$idn = null;
+			}
+		}
+
+		return static::$idn;
+	}
 }

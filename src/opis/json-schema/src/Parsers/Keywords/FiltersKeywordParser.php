@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,143 +23,139 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\FiltersKeyword;
 use Opis\JsonSchema\Resolvers\FilterResolver;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser,
-    ResolverTrait, VariablesTrait};
+	ResolverTrait, VariablesTrait};
 
-class FiltersKeywordParser extends KeywordParser
-{
-    use ResolverTrait;
-    use VariablesTrait;
+class FiltersKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_APPEND;
-    }
+	use ResolverTrait;
+	use VariablesTrait;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_APPEND;
+	}
 
-        if (!$parser->option('allowFilters')) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $resolver = $parser->getFilterResolver();
+		if ( ! $parser->option( 'allowFilters' ) ) {
+			return null;
+		}
 
-        if (!$resolver || !$this->keywordExists($schema)) {
-            return null;
-        }
+		$resolver = $parser->getFilterResolver();
 
-        $filters = $this->parseFilters($parser, $resolver, $this->keywordValue($schema), $info);
-        if (!$filters) {
-            return null;
-        }
+		if ( ! $resolver || ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        return new FiltersKeyword($filters);
-    }
+		$filters = $this->parseFilters( $parser, $resolver, $this->keywordValue( $schema ), $info );
+		if ( ! $filters ) {
+			return null;
+		}
 
-    /**
-     * @param SchemaParser $parser
-     * @param FilterResolver $filterResolver
-     * @param mixed $filters
-     * @param SchemaInfo $info
-     * @return array|null
-     */
-    protected function parseFilters(
-        $parser,
-        $filterResolver,
-        $filters,
-        $info
-    )
-    {
-        if (is_string($filters)) {
-            if ($filters = $this->parseFilter($parser, $filterResolver, $filters, $info)) {
-                return [$filters];
-            }
+		return new FiltersKeyword( $filters );
+	}
 
-            return null;
-        }
+	/**
+	 * @param SchemaParser   $parser
+	 * @param FilterResolver $filterResolver
+	 * @param mixed          $filters
+	 * @param SchemaInfo     $info
+	 * @return array|null
+	 */
+	protected function parseFilters(
+		$parser,
+		$filterResolver,
+		$filters,
+		$info
+	) {
+		if ( is_string( $filters ) ) {
+			if ( $filters = $this->parseFilter( $parser, $filterResolver, $filters, $info ) ) {
+				return array( $filters );
+			}
 
-        if (is_object($filters)) {
-            if ($filter = $this->parseFilter($parser, $filterResolver, $filters, $info)) {
-                return [$filter];
-            }
+			return null;
+		}
 
-            return null;
-        }
+		if ( is_object( $filters ) ) {
+			if ( $filter = $this->parseFilter( $parser, $filterResolver, $filters, $info ) ) {
+				return array( $filter );
+			}
 
-        if (is_array($filters)) {
-            if (!$filters) {
-                return null;
-            }
-            $list = [];
-            foreach ($filters as $filter) {
-                if ($filter = $this->parseFilter($parser, $filterResolver, $filter, $info)) {
-                    $list[] = $filter;
-                }
-            }
+			return null;
+		}
 
-            return $list ?: null;
-        }
+		if ( is_array( $filters ) ) {
+			if ( ! $filters ) {
+				return null;
+			}
+			$list = array();
+			foreach ( $filters as $filter ) {
+				if ( $filter = $this->parseFilter( $parser, $filterResolver, $filter, $info ) ) {
+					$list[] = $filter;
+				}
+			}
 
-        throw $this->keywordException('{keyword} can be a non-empty string, an object or an array of string and objects', $info);
-    }
+			return $list ?: null;
+		}
 
-    /**
-     * @param SchemaParser $parser
-     * @param FilterResolver $resolver
-     * @param $filter
-     * @param SchemaInfo $info
-     * @return object|null
-     */
-    protected function parseFilter(
-        $parser,
-        $resolver,
-        $filter,
-        $info
-    )
-    {
-        $vars = null;
-        if (is_object($filter)) {
-            if (!property_exists($filter, '$func') || !is_string($filter->{'$func'}) || $filter->{'$func'} === '') {
-                throw $this->keywordException('$func (for {keyword}) must be a non-empty string', $info);
-            }
+		throw $this->keywordException( '{keyword} can be a non-empty string, an object or an array of string and objects', $info );
+	}
 
-            $vars = get_object_vars($filter);
-            unset($vars['$func']);
+	/**
+	 * @param SchemaParser   $parser
+	 * @param FilterResolver $resolver
+	 * @param $filter
+	 * @param SchemaInfo     $info
+	 * @return object|null
+	 */
+	protected function parseFilter(
+		$parser,
+		$resolver,
+		$filter,
+		$info
+	) {
+		$vars = null;
+		if ( is_object( $filter ) ) {
+			if ( ! property_exists( $filter, '$func' ) || ! is_string( $filter->{'$func'} ) || $filter->{'$func'} === '' ) {
+				throw $this->keywordException( '$func (for {keyword}) must be a non-empty string', $info );
+			}
 
-            if (property_exists($filter, '$vars')) {
-                if (!is_object($filter->{'$vars'})) {
-                    throw $this->keywordException('$vars (for {keyword}) must be a string', $info);
-                }
-                unset($vars['$vars']);
-                $vars = get_object_vars($filter->{'$vars'}) + $vars;
-            }
+			$vars = get_object_vars( $filter );
+			unset( $vars['$func'] );
 
-            $filter = $filter->{'$func'};
-        } elseif (!is_string($filter) || $filter === '') {
-            throw $this->keywordException('{keyword} can be a non-empty string, an object or an array of string and objects', $info);
-        }
+			if ( property_exists( $filter, '$vars' ) ) {
+				if ( ! is_object( $filter->{'$vars'} ) ) {
+					throw $this->keywordException( '$vars (for {keyword}) must be a string', $info );
+				}
+				unset( $vars['$vars'] );
+				$vars = get_object_vars( $filter->{'$vars'} ) + $vars;
+			}
 
-        $list = $resolver->resolveAll($filter);
-        if (!$list) {
-            throw $this->keywordException("{keyword}: {$filter} doesn't exists", $info);
-        }
+			$filter = $filter->{'$func'};
+		} elseif ( ! is_string( $filter ) || $filter === '' ) {
+			throw $this->keywordException( '{keyword} can be a non-empty string, an object or an array of string and objects', $info );
+		}
 
-        $list = $this->resolveSubTypes($list);
+		$list = $resolver->resolveAll( $filter );
+		if ( ! $list ) {
+			throw $this->keywordException( "{keyword}: {$filter} doesn't exists", $info );
+		}
 
-        return (object)[
-            'name' => $filter,
-            'args' => $vars ? $this->createVariables($parser, $vars) : null,
-            'types' => $list,
-        ];
-    }
+		$list = $this->resolveSubTypes( $list );
+
+		return (object) array(
+			'name'  => $filter,
+			'args'  => $vars ? $this->createVariables( $parser, $vars ) : null,
+			'types' => $list,
+		);
+	}
 }

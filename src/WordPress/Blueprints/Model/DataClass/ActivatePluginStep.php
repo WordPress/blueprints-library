@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class ActivatePluginStep implements StepDefinitionInterface
-{
+class ActivatePluginStep implements StepDefinitionInterface {
+
 	const DISCRIMINATOR = 'activatePlugin';
 
 	/** @var Progress */
@@ -17,46 +17,43 @@ class ActivatePluginStep implements StepDefinitionInterface
 
 	/**
 	 * Plugin slug, like 'gutenberg' or 'hello-dolly'.
+	 *
 	 * @var string
 	 */
 	public $slug;
 
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-  */
- public function setProgress($progress)
-	{
+	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+	 */
+	public function setProgress( $progress ) {
 		$this->progress = $progress;
 		return $this;
 	}
 
 
 	/**
-  * @param bool $continueOnError
-  */
- public function setContinueOnError($continueOnError)
-	{
+	 * @param bool $continueOnError
+	 */
+	public function setContinueOnError( $continueOnError ) {
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
 	/**
-  * @param string $step
-  */
- public function setStep($step)
-	{
+	 * @param string $step
+	 */
+	public function setStep( $step ) {
 		$this->step = $step;
 		return $this;
 	}
 
 
 	/**
-  * @param string $slug
-  */
- public function setSlug($slug)
-	{
+	 * @param string $slug
+	 */
+	public function setSlug( $slug ) {
 		$this->slug = $slug;
 		return $this;
 	}

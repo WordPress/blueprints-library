@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,30 +20,28 @@ namespace Opis\JsonSchema\KeywordValidators;
 
 use Opis\JsonSchema\KeywordValidator;
 
-abstract class AbstractKeywordValidator implements KeywordValidator
-{
+abstract class AbstractKeywordValidator implements KeywordValidator {
 
-    /**
-     * @var \Opis\JsonSchema\KeywordValidator|null
-     */
-    protected $next;
 
-    /**
-     * @inheritDoc
-     */
-    public function next()
-    {
-        return $this->next;
-    }
+	/**
+	 * @var \Opis\JsonSchema\KeywordValidator|null
+	 */
+	protected $next;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\KeywordValidator|null $next
-     */
-    public function setNext($next): KeywordValidator
-    {
-        $this->next = $next;
+	/**
+	 * @inheritDoc
+	 */
+	public function next() {
+		return $this->next;
+	}
 
-        return $this;
-    }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\KeywordValidator|null $next
+	 */
+	public function setNext( $next ): KeywordValidator {
+		$this->next = $next;
+
+		return $this;
+	}
 }

@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,46 +23,44 @@ use Opis\JsonSchema\Info\SchemaInfo;
 use Opis\JsonSchema\Keywords\SlotsKeyword;
 use Opis\JsonSchema\Parsers\{KeywordParser, SchemaParser};
 
-class SlotsKeywordParser extends KeywordParser
-{
-    /**
-     * @inheritDoc
-     */
-    public function type(): string
-    {
-        return self::TYPE_APPEND;
-    }
+class SlotsKeywordParser extends KeywordParser {
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\Info\SchemaInfo $info
-     * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
-     * @param object $shared
-     */
-    public function parse($info, $parser, $shared)
-    {
-        $schema = $info->data();
+	/**
+	 * @inheritDoc
+	 */
+	public function type(): string {
+		return self::TYPE_APPEND;
+	}
 
-        if (!$parser->option('allowSlots') || !$this->keywordExists($schema)) {
-            return null;
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\Info\SchemaInfo      $info
+	 * @param \Opis\JsonSchema\Parsers\SchemaParser $parser
+	 * @param object                                $shared
+	 */
+	public function parse( $info, $parser, $shared ) {
+		$schema = $info->data();
 
-        $value = $this->keywordValue($schema);
+		if ( ! $parser->option( 'allowSlots' ) || ! $this->keywordExists( $schema ) ) {
+			return null;
+		}
 
-        if (!is_object($value)) {
-            throw $this->keywordException('{keyword} keyword value must be an object', $info);
-        }
+		$value = $this->keywordValue( $schema );
 
-        $slots = [];
-        foreach ($value as $name => $fallback) {
-            if (!is_string($name) || $name === '') {
-                continue;
-            }
-            if (is_bool($fallback) || is_string($fallback) || is_object($fallback)) {
-                $slots[$name] = $fallback;
-            }
-        }
+		if ( ! is_object( $value ) ) {
+			throw $this->keywordException( '{keyword} keyword value must be an object', $info );
+		}
 
-        return $slots ? new SlotsKeyword($slots) : null;
-    }
+		$slots = array();
+		foreach ( $value as $name => $fallback ) {
+			if ( ! is_string( $name ) || $name === '' ) {
+				continue;
+			}
+			if ( is_bool( $fallback ) || is_string( $fallback ) || is_object( $fallback ) ) {
+				$slots[ $name ] = $fallback;
+			}
+		}
+
+		return $slots ? new SlotsKeyword( $slots ) : null;
+	}
 }

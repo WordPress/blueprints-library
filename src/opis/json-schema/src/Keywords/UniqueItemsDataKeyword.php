@@ -1,5 +1,6 @@
 <?php
-/* ============================================================================
+/*
+============================================================================
  * Copyright 2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,37 +21,41 @@ namespace Opis\JsonSchema\Keywords;
 use Opis\JsonSchema\{ValidationContext, Schema, JsonPointer};
 use Opis\JsonSchema\Errors\ValidationError;
 
-class UniqueItemsDataKeyword extends UniqueItemsKeyword
-{
+class UniqueItemsDataKeyword extends UniqueItemsKeyword {
 
-    /**
-     * @var \Opis\JsonSchema\JsonPointer
-     */
-    protected $value;
 
-    /**
-     * @param JsonPointer $value
-     */
-    public function __construct(JsonPointer $value)
-    {
-        $this->value = $value;
-    }
+	/**
+	 * @var \Opis\JsonSchema\JsonPointer
+	 */
+	protected $value;
 
-    /**
-     * @inheritDoc
-     * @param \Opis\JsonSchema\ValidationContext $context
-     * @param \Opis\JsonSchema\Schema $schema
-     */
-    public function validate($context, $schema)
-    {
-        $value = $this->value->data($context->rootData(), $context->currentDataPath(), $this);
+	/**
+	 * @param JsonPointer $value
+	 */
+	public function __construct( JsonPointer $value ) {
+		$this->value = $value;
+	}
 
-        if ($value === $this || !is_bool($value)) {
-            return $this->error($schema, $context, 'uniqueItems', 'Invalid $data', [
-                'pointer' => (string)$this->value,
-            ]);
-        }
+	/**
+	 * @inheritDoc
+	 * @param \Opis\JsonSchema\ValidationContext $context
+	 * @param \Opis\JsonSchema\Schema            $schema
+	 */
+	public function validate( $context, $schema ) {
+		$value = $this->value->data( $context->rootData(), $context->currentDataPath(), $this );
 
-        return $value ? parent::validate($context, $schema) : null;
-    }
+		if ( $value === $this || ! is_bool( $value ) ) {
+			return $this->error(
+				$schema,
+				$context,
+				'uniqueItems',
+				'Invalid $data',
+				array(
+					'pointer' => (string) $this->value,
+				)
+			);
+		}
+
+		return $value ? parent::validate( $context, $schema ) : null;
+	}
 }

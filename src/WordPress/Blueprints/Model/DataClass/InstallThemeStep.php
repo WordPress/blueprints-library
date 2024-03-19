@@ -2,8 +2,8 @@
 
 namespace WordPress\Blueprints\Model\DataClass;
 
-class InstallThemeStep implements StepDefinitionInterface
-{
+class InstallThemeStep implements StepDefinitionInterface {
+
 	const DISCRIMINATOR = 'installTheme';
 
 	/** @var Progress */
@@ -14,6 +14,7 @@ class InstallThemeStep implements StepDefinitionInterface
 
 	/**
 	 * The step identifier.
+	 *
 	 * @var string
 	 */
 	public $step = 'installTheme';
@@ -23,53 +24,49 @@ class InstallThemeStep implements StepDefinitionInterface
 
 	/**
 	 * Whether to activate the theme after installing it.
+	 *
 	 * @var bool
 	 */
 	public $activate = true;
 
 
 	/**
-  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
-  */
- public function setProgress($progress)
-	{
+	 * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+	 */
+	public function setProgress( $progress ) {
 		$this->progress = $progress;
 		return $this;
 	}
 
 
 	/**
-  * @param bool $continueOnError
-  */
- public function setContinueOnError($continueOnError)
-	{
+	 * @param bool $continueOnError
+	 */
+	public function setContinueOnError( $continueOnError ) {
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
 	/**
-  * @param string $step
-  */
- public function setStep($step)
-	{
+	 * @param string $step
+	 */
+	public function setStep( $step ) {
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setThemeZipFile($themeZipFile)
-	{
+	public function setThemeZipFile( $themeZipFile ) {
 		$this->themeZipFile = $themeZipFile;
 		return $this;
 	}
 
 
 	/**
-  * @param bool $activate
-  */
- public function setActivate($activate)
-	{
+	 * @param bool $activate
+	 */
+	public function setActivate( $activate ) {
 		$this->activate = $activate;
 		return $this;
 	}
