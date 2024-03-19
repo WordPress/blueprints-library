@@ -9,7 +9,7 @@ install_web_deps:
 
 install_dev_deps:
 	make clean_deps
-	COMPOSER=composer-dev.json composer install
+	COMPOSER=composer-dev.json composer install --dev
 
 dist/blueprints.phar: install_web_deps
 	rm -rf vendor/pimple/pimple/ext/
