@@ -6,7 +6,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class BaseDataSource implements DataSourceInterface {
 
-	public EventDispatcher $events;
+	public $events;
 
 	public function __construct() {
 		$this->events = new EventDispatcher();

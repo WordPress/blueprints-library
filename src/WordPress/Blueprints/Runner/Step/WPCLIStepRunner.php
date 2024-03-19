@@ -8,7 +8,7 @@ class WPCLIStepRunner extends BaseStepRunner {
 	/**
 	 * @param WPCLIStep $input
 	 */
-	function run( WPCLIStep $input ) {
+	function run( $input ) {
 		$this->getRuntime()->runShellCommand( $input->command );
 	}
 }

@@ -19,14 +19,20 @@ class InlineResource implements ResourceDefinitionInterface
 	public $contents;
 
 
-	public function setResource(string $resource)
+	/**
+  * @param string $resource
+  */
+ public function setResource($resource)
 	{
 		$this->resource = $resource;
 		return $this;
 	}
 
 
-	public function setContents(string $contents)
+	/**
+  * @param string $contents
+  */
+ public function setContents($contents)
 	{
 		$this->contents = $contents;
 		return $this;

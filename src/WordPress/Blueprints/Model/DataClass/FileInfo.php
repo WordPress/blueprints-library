@@ -17,28 +17,40 @@ class FileInfo
 	public $data;
 
 
-	public function setKey(string $key)
+	/**
+  * @param string $key
+  */
+ public function setKey($key)
 	{
 		$this->key = $key;
 		return $this;
 	}
 
 
-	public function setName(string $name)
+	/**
+  * @param string $name
+  */
+ public function setName($name)
 	{
 		$this->name = $name;
 		return $this;
 	}
 
 
-	public function setType(string $type)
+	/**
+  * @param string $type
+  */
+ public function setType($type)
 	{
 		$this->type = $type;
 		return $this;
 	}
 
 
-	public function setData(FileInfoData $data)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\FileInfoData $data
+  */
+ public function setData($data)
 	{
 		$this->data = $data;
 		return $this;

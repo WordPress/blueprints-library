@@ -6,12 +6,18 @@ use Symfony\Component\Process\Process;
 
 interface RuntimeInterface {
 
-	public function startProcess(
-		array $command,
-		?string $cwd = null,
-		?array $env = null,
-		mixed $input = null,
-		?float $timeout = 60
+	/**
+  * @param mixed[] $command
+  * @param string|null $cwd
+  * @param mixed[]|null $env
+  * @param float $timeout
+  */
+ public function startProcess(
+		$command,
+		$cwd = null,
+		$env = null,
+		$input = null,
+		$timeout = 60
 	): Process;
 
 }

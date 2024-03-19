@@ -3,18 +3,54 @@
 namespace WordPress\Zip;
 
 class ZipFileEntry {
-	public bool $isDirectory;
-	public int $version;
-	public int $generalPurpose;
-	public int $compressionMethod;
-	public int $lastModifiedTime;
-	public int $lastModifiedDate;
-	public int $crc;
-	public int $compressedSize;
-	public int $uncompressedSize;
-	public string $path;
-	public string $extra;
-	public string $bytes;
+	/**
+  * @var bool
+  */
+ public $isDirectory;
+	/**
+  * @var int
+  */
+ public $version;
+	/**
+  * @var int
+  */
+ public $generalPurpose;
+	/**
+  * @var int
+  */
+ public $compressionMethod;
+	/**
+  * @var int
+  */
+ public $lastModifiedTime;
+	/**
+  * @var int
+  */
+ public $lastModifiedDate;
+	/**
+  * @var int
+  */
+ public $crc;
+	/**
+  * @var int
+  */
+ public $compressedSize;
+	/**
+  * @var int
+  */
+ public $uncompressedSize;
+	/**
+  * @var string
+  */
+ public $path;
+	/**
+  * @var string
+  */
+ public $extra;
+	/**
+  * @var string
+  */
+ public $bytes;
 
 	public function __construct(
 		int $version,

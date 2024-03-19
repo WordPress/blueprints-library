@@ -55,7 +55,10 @@ class BlueprintParser {
 		);
 	}
 
-	public function fromObject( \stdClass $data ) {
+	/**
+  * @param \stdClass $data
+  */
+ public function fromObject( $data ) {
 		$result = $this->validator->validate( $data );
 		if ( ! $result->isValid() ) {
 			print_r( ( new ErrorFormatter() )->format( $result->error() ) );
@@ -64,7 +67,10 @@ class BlueprintParser {
 		return $this->mapper->map( $data );
 	}
 
-	public function fromBlueprint( Blueprint $blueprint ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Blueprint $blueprint
+  */
+ public function fromBlueprint( $blueprint ) {
 		$result = $this->validator->validate( $blueprint );
 		if ( ! $result->isValid() ) {
 			print_r( ( new ErrorFormatter() )->format( $result->error() ) );

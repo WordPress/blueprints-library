@@ -11,9 +11,10 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class InstallThemeStepRunner extends InstallAssetStepRunner {
 	/**
-	 * @param InstallThemeStep $input
-	 */
-	function run( InstallThemeStep $input, Tracker $tracker ) {
+  * @param InstallThemeStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ function run( $input, $tracker ) {
 		// @TODO: inject this information into this step
 		$themeDir = 'theme' . rand( 0, 1000 );
 		$targetPath = $this->getRuntime()->resolvePath( 'wp-content/themes/' . $themeDir );
@@ -31,7 +32,7 @@ class InstallThemeStepRunner extends InstallAssetStepRunner {
 		}
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Installing theme " . $input->themeZipFile;
 	}
 

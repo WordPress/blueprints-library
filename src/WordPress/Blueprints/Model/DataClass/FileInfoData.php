@@ -20,35 +20,50 @@ class FileInfoData
 	public $length;
 
 
-	public function setBYTES_PER_ELEMENT(float $BYTES_PER_ELEMENT)
+	/**
+  * @param float $BYTES_PER_ELEMENT
+  */
+ public function setBYTES_PER_ELEMENT($BYTES_PER_ELEMENT)
 	{
 		$this->BYTES_PER_ELEMENT = $BYTES_PER_ELEMENT;
 		return $this;
 	}
 
 
-	public function setBuffer(FileInfoDataBuffer $buffer)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\FileInfoDataBuffer $buffer
+  */
+ public function setBuffer($buffer)
 	{
 		$this->buffer = $buffer;
 		return $this;
 	}
 
 
-	public function setByteLength(float $byteLength)
+	/**
+  * @param float $byteLength
+  */
+ public function setByteLength($byteLength)
 	{
 		$this->byteLength = $byteLength;
 		return $this;
 	}
 
 
-	public function setByteOffset(float $byteOffset)
+	/**
+  * @param float $byteOffset
+  */
+ public function setByteOffset($byteOffset)
 	{
 		$this->byteOffset = $byteOffset;
 		return $this;
 	}
 
 
-	public function setLength(float $length)
+	/**
+  * @param float $length
+  */
+ public function setLength($length)
 	{
 		$this->length = $length;
 		return $this;

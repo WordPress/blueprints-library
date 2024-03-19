@@ -11,14 +11,20 @@ class Progress
 	public $caption;
 
 
-	public function setWeight(float $weight)
+	/**
+  * @param float $weight
+  */
+ public function setWeight($weight)
 	{
 		$this->weight = $weight;
 		return $this;
 	}
 
 
-	public function setCaption(string $caption)
+	/**
+  * @param string $caption
+  */
+ public function setCaption($caption)
 	{
 		$this->caption = $caption;
 		return $this;

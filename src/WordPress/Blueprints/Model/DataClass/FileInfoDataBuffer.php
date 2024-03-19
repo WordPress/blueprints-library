@@ -8,7 +8,10 @@ class FileInfoDataBuffer
 	public $byteLength;
 
 
-	public function setByteLength(float $byteLength)
+	/**
+  * @param float $byteLength
+  */
+ public function setByteLength($byteLength)
 	{
 		$this->byteLength = $byteLength;
 		return $this;

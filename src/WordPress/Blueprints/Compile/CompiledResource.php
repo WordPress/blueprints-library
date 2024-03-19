@@ -7,11 +7,18 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class CompiledResource {
 
+	public $declaration;
+	public $resource;
+	public $progressTracker;
+
 	public function __construct(
-		public $declaration,
-		public ResourceDefinitionInterface $resource,
-		public Tracker $progressTracker,
+		$declaration,
+		ResourceDefinitionInterface $resource,
+		Tracker $progressTracker
 	) {
+		$this->declaration = $declaration;
+		$this->resource = $resource;
+		$this->progressTracker = $progressTracker;
 	}
 
 }

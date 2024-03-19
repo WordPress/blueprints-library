@@ -11,14 +11,20 @@ class WordPressInstallationOptions
 	public $adminPassword = 'admin';
 
 
-	public function setAdminUsername(string $adminUsername)
+	/**
+  * @param string $adminUsername
+  */
+ public function setAdminUsername($adminUsername)
 	{
 		$this->adminUsername = $adminUsername;
 		return $this;
 	}
 
 
-	public function setAdminPassword(string $adminPassword)
+	/**
+  * @param string $adminPassword
+  */
+ public function setAdminPassword($adminPassword)
 	{
 		$this->adminPassword = $adminPassword;
 		return $this;

@@ -16,21 +16,30 @@ class EnableMultisiteStep implements StepDefinitionInterface
 	public $step = 'enableMultisite';
 
 
-	public function setProgress(Progress $progress)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+  */
+ public function setProgress($progress)
 	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	public function setContinueOnError(bool $continueOnError)
+	/**
+  * @param bool $continueOnError
+  */
+ public function setContinueOnError($continueOnError)
 	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	public function setStep(string $step)
+	/**
+  * @param string $step
+  */
+ public function setStep($step)
 	{
 		$this->step = $step;
 		return $this;

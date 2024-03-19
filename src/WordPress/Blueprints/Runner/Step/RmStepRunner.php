@@ -12,7 +12,7 @@ class RmStepRunner extends BaseStepRunner
     /**
      * @param RmStep $input
      */
-    public function run(RmStep $input)
+    public function run($input)
     {
         $resolvedPath = $this->getRuntime()->resolvePath($input->path);
         $fileSystem = new Filesystem();

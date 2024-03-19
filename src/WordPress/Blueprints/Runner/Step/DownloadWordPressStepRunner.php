@@ -7,9 +7,13 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 
-	public function run(
-		DownloadWordPressStep $input,
-		Tracker $progress
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\DownloadWordPressStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $progress
+  */
+ public function run(
+		$input,
+		$progress
 	) {
 		$this->unzipAssetTo( $input->wordPressZip, $this->getRuntime()->getDocumentRoot() );
 
@@ -20,7 +24,7 @@ class DownloadWordPressStepRunner extends InstallAssetStepRunner {
 		}
 	}
 
-	public function getDefaultCaption( $input ): null|string {
+	public function getDefaultCaption( $input ) {
 		return "Extracting WordPress";
 	}
 

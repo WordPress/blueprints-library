@@ -22,28 +22,40 @@ class DefineWpConfigConstsStep implements StepDefinitionInterface
 	public $consts;
 
 
-	public function setProgress(Progress $progress)
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\Progress $progress
+  */
+ public function setProgress($progress)
 	{
 		$this->progress = $progress;
 		return $this;
 	}
 
 
-	public function setContinueOnError(bool $continueOnError)
+	/**
+  * @param bool $continueOnError
+  */
+ public function setContinueOnError($continueOnError)
 	{
 		$this->continueOnError = $continueOnError;
 		return $this;
 	}
 
 
-	public function setStep(string $step)
+	/**
+  * @param string $step
+  */
+ public function setStep($step)
 	{
 		$this->step = $step;
 		return $this;
 	}
 
 
-	public function setConsts(iterable $consts)
+	/**
+  * @param iterable $consts
+  */
+ public function setConsts($consts)
 	{
 		$this->consts = $consts;
 		return $this;

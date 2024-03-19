@@ -39,7 +39,10 @@ class Engine {
 		return $this->compiler->compile( $blueprint );
 	}
 
-	public function run( CompiledBlueprint $compiled_blueprint ) {
+	/**
+  * @param \WordPress\Blueprints\Compile\CompiledBlueprint $compiled_blueprint
+  */
+ public function run( $compiled_blueprint ) {
 		return $this->runner->run( $compiled_blueprint );
 	}
 }

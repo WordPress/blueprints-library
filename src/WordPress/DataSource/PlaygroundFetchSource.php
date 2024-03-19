@@ -12,7 +12,7 @@ class PlaygroundFetchSource extends BaseDataSource {
 	public function stream( $resourceIdentifier ) {
 		$url = $resourceIdentifier;
 		$proc_handle = proc_open(
-			[ 'fetch', $url, ],
+			is_array([ 'fetch', $url, ]) ? implode(' ', array_map('escapeshellarg', [ 'fetch', $url, ])) : [ 'fetch', $url, ],
 			[ 1 => [ 'pipe', 'w' ], 2 => [ 'pipe', 'w' ] ],
 			$pipes
 		);

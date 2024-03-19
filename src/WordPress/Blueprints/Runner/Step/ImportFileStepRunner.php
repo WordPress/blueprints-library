@@ -9,8 +9,12 @@ use WordPress\Blueprints\Progress\Tracker;
 
 class ImportFileStepRunner extends BaseStepRunner {
 
-	function run( ImportFileStep $input, Tracker $tracker ) {
-		$tracker?->setCaption( $input->progress->caption ?? "Importing starter content" );
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\ImportFileStep $input
+  * @param \WordPress\Blueprints\Progress\Tracker $tracker
+  */
+ function run( $input, $tracker ) {
+		($nullsafeVariable1 = $tracker) ? $nullsafeVariable1->setCaption($input->progress->caption ?? "Importing starter content") : null;
 
 		// @TODO: Install the wordpress-importer plugin if it's not already installed
 		//        wp plugin install wordpress-importer --activate

@@ -7,7 +7,7 @@ use IteratorAggregate;
 use Traversable;
 
 class Map implements ArrayAccess, IteratorAggregate {
-	private array $pairs = [];
+	private $pairs = [];
 
 	public function __construct() {
 	}
@@ -22,7 +22,8 @@ class Map implements ArrayAccess, IteratorAggregate {
 		return false;
 	}
 
-	public function offsetGet( $offset ): mixed {
+	#[\ReturnTypeWillChange]
+	public function offsetGet( $offset ) {
 		foreach ( $this->pairs as $pair ) {
 			if ( $pair[0] === $offset ) {
 				return $pair[1];
@@ -33,7 +34,7 @@ class Map implements ArrayAccess, IteratorAggregate {
 		throw new \Exception( "Stream for resource " . json_encode( $offset ) . " not found" );
 	}
 
-	public function offsetSet( $offset, $value ): void {
+	public function offsetSet( $offset, $value ) {
 		foreach ( $this->pairs as $k => $pair ) {
 			if ( $pair[0] === $offset ) {
 				$this->pairs[ $k ] = [ $offset, $value ];
@@ -44,7 +45,7 @@ class Map implements ArrayAccess, IteratorAggregate {
 		$this->pairs[] = [ $offset, $value ];
 	}
 
-	public function offsetUnset( $offset ): void {
+	public function offsetUnset( $offset ) {
 		foreach ( $this->pairs as $i => $pair ) {
 			if ( $pair[0] === $offset ) {
 				unset( $this->pairs[ $i ] );

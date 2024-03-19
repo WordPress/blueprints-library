@@ -47,13 +47,19 @@ class BlueprintBuilder {
 		return $this;
 	}
 
-	public function withSiteOptions( array $options ) {
+	/**
+  * @param mixed[] $options
+  */
+ public function withSiteOptions( $options ) {
 		$this->blueprint->setSiteOptions( $options );
 
 		return $this;
 	}
 
-	public function withWpConfigConstants( array $constants ) {
+	/**
+  * @param mixed[] $constants
+  */
+ public function withWpConfigConstants( $constants ) {
 		$this->blueprint->setConstants( $constants );
 
 		return $this;
@@ -177,7 +183,10 @@ class BlueprintBuilder {
 		return $this;
 	}
 
-	public function addStep( StepDefinitionInterface $builder ) {
+	/**
+  * @param \WordPress\Blueprints\Model\DataClass\StepDefinitionInterface $builder
+  */
+ public function addStep( $builder ) {
 		array_push( $this->blueprint->steps, $builder );
 
 		return $this;

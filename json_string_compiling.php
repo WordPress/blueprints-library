@@ -16,8 +16,6 @@ if ( getenv( 'USE_PHAR' ) ) {
 	require 'vendor/autoload.php';
 }
 
-$blueprint = '{"WordPressVersion":"https://wordpress.org/latest.zip","steps":[{"step":"mkdir","path":"dir"},{"step": "rm","path": "dir"},{"step":"mkdir","path":"dir2222222"}]}';
-
 $subscriber = new class() implements EventSubscriberInterface {
 	public static function getSubscribedEvents() {
 		return array(

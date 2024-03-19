@@ -8,11 +8,18 @@ use WordPress\Blueprints\Runner\Step\StepRunnerInterface;
 
 class CompiledStep {
 
+	public $step;
+	public $runner;
+	public $progressTracker;
+
 	public function __construct(
-		public StepDefinitionInterface $step,
-		public StepRunnerInterface $runner,
-		public Tracker $progressTracker,
+		StepDefinitionInterface $step,
+		StepRunnerInterface $runner,
+		Tracker $progressTracker
 	) {
+		$this->step = $step;
+		$this->runner = $runner;
+		$this->progressTracker = $progressTracker;
 	}
 
 }
