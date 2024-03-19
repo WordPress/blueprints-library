@@ -14,7 +14,8 @@
     "squizlabs/php_codesniffer": "3.9.0",
     "nette/php-generator": "v3.0.5",
     "bamarni/composer-bin-plugin": "v1.5.0",
-    "wp-coding-standards/wpcs": "3.0"
+    "wp-coding-standards/wpcs": "3.0",
+    "phpcompatibility/php-compatibility": "^9.3"
   },
   "config": {
     "optimize-autoloader": true,

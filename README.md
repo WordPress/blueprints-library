@@ -132,9 +132,10 @@ rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
 This project is compatible with PHP >= 7.0.
 
 Part of the process is automated with [rector](https://github.com/rectorphp/rector),
-which transpiles the features added in PHP 7.1 and later to PHP 7.0.
+which transpiles the features added in PHP 7.2 and later to PHP 7.1. Unfortunately,
+that's as far as Rector goes.
 
-There's also a manual part, to remove unsupported features using regexps.
+From there, manual transformations are required to bring the compatibility further down to PHP 7.0.
 
 ### Automated part
 

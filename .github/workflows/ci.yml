@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-    - trunk
+      - trunk
   pull_request:
 
 jobs:
@@ -25,15 +25,10 @@ jobs:
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Check PHP version compatibility
-        uses: pantheon-systems/phpcompatibility-action@v1
-        with:
-          skip-php-setup: true
-          test-versions: 7.4-
-          paths: ${{ github.workspace }}/src
+      - name: PHPCS checks
+        run: ./vendor/bin/phpcs ${{ github.workspace }}/src
 
   test-unit:
-    needs: [php-cs-check]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true

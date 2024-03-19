@@ -1,0 +1,9 @@
+<ruleset name="BlueprintStandard">
+    <description>PHP 7.0 compatibility.</description>
+
+    <config name="testVersion" value="7.0"/>
+
+    <rule ref="PHPCompatibility">
+        <exclude name="PHPCompatibility.Keywords.ForbiddenNamesAsDeclared"/>
+    </rule>
+</ruleset>
