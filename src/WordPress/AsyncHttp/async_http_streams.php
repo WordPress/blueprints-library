@@ -96,9 +96,8 @@ function streams_http_requests_send( $streams ) {
 	$remaining_streams = $streams;
 	while ( count( $remaining_streams ) ) {
 		$write = $remaining_streams;
-		sleep( 2 );
 		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
-		$ready = @stream_select( $read, $write, $except, 5, 5000000 );
+		$ready = @stream_select( $read, $write, $except, 0, 5000000 );
 		if ( $ready === false ) {
 			throw new Exception( 'Error: ' . error_get_last()['message'] );
 		} elseif ( $ready <= 0 ) {
@@ -133,7 +132,7 @@ function streams_http_requests_send( $streams ) {
  * @return array|false An array of chunks read from the streams, or false if no streams are available.
  * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
  */
-function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 5000000 ) {
+function streams_http_response_await_bytes( $streams, $length, $timeout_microseconds = 500000 ) {
 	$read = $streams;
 	if ( count( $read ) === 0 ) {
 		return false;

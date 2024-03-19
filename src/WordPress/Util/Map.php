@@ -34,6 +34,7 @@ class Map implements ArrayAccess, IteratorAggregate {
 		throw new \Exception( 'Stream for resource ' . json_encode( $offset ) . ' not found' );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
 		foreach ( $this->pairs as $k => $pair ) {
 			if ( $pair[0] === $offset ) {
@@ -45,6 +46,7 @@ class Map implements ArrayAccess, IteratorAggregate {
 		$this->pairs[] = array( $offset, $value );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
 		foreach ( $this->pairs as $i => $pair ) {
 			if ( $pair[0] === $offset ) {

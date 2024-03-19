@@ -260,7 +260,7 @@ class Client {
 		}
 
 		while ( true ) {
-			if ( ! $request_info->isFinished() && feof( $stream ) ) {
+			if ( ! $request_info->is_finished() && feof( $stream ) ) {
 				$request_info->state = RequestInfo::STATE_FINISHED;
 				fclose( $stream );
 				$this->queue_needs_processing = true;
@@ -271,7 +271,7 @@ class Client {
 				$request_info->buffer = substr( $request_info->buffer, $length );
 
 				return $buffered;
-			} elseif ( $request_info->isFinished() ) {
+			} elseif ( $request_info->is_finished() ) {
 				unset( $this->requests[ $request ] );
 
 				return $request_info->buffer;
