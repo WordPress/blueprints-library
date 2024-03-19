@@ -1,21 +1,20 @@
 {
   "prefer-stable": true,
   "require": {
-    "symfony/event-dispatcher": "v3.3.6",
-    "symfony/filesystem": "v3.3.6",
-    "symfony/process": "v3.3.6",
-    "pimple/pimple": "v3.2.3",
-    "psr/simple-cache": "1.0.1",
-    "ext-json": "*",
-    "symfony/console": "^3.3.6"
+    "symfony/event-dispatcher": "*",
+    "symfony/filesystem": "*",
+    "symfony/process": "*",
+    "pimple/pimple": "*",
+    "psr/simple-cache": "*",
+    "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "*",
-    "squizlabs/php_codesniffer": "3.9.0",
-    "nette/php-generator": "v3.0.5",
-    "bamarni/composer-bin-plugin": "v1.5.0",
-    "wp-coding-standards/wpcs": "3.0",
-    "phpcompatibility/php-compatibility": "^9.3"
+    "squizlabs/php_codesniffer": "*",
+    "nette/php-generator": "*",
+    "jane-php/json-schema": "*",
+    "bamarni/composer-bin-plugin": "*",
+    "wp-coding-standards/wpcs": "3.0"
   },
   "config": {
     "optimize-autoloader": true,
@@ -26,7 +25,7 @@
       "dealerdirect/phpcodesniffer-composer-installer": true
     },
     "platform": {
-      "php": "7.0"
+      "php": "7.4"
     }
   },
   "autoload": {
