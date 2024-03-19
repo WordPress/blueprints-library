@@ -23,7 +23,7 @@ jobs:
           coverage: xdebug
 
       - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: COMPOSER=composer-dev.json composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: PHPCS checks
         run: ./vendor/bin/phpcs ${{ github.workspace }}/src/WordPress
