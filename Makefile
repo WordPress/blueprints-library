@@ -12,8 +12,7 @@ install_dev_deps:
 	COMPOSER=composer-dev.json composer install --dev
 
 dist/blueprints.phar: install_web_deps
-	rm -rf vendor/pimple/pimple/ext/
-	find vendor \(\
+	find src \(\
 		-name '*.md' -o \
 		-name 'README.*' -o \
 		-name 'LICENSE' -o \
@@ -26,6 +25,7 @@ dist/blueprints.phar: install_web_deps
 		-exec rm -rf {} \+
 	box compile
 	cd dist && zip blueprints.zip blueprints.phar
+	git reset --hard
 
 bundle_web: dist/blueprints.phar
 
