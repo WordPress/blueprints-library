@@ -31,6 +31,8 @@ class BlueprintBuilder {
 
 	public function __construct() {
 		$this->blueprint = new Blueprint();
+		$this->blueprint->setConstants( new \ArrayObject() );
+		$this->blueprint->setSiteOptions( new \ArrayObject() );
 	}
 
 	public static function create() {
