@@ -76,7 +76,7 @@ class FileCache implements CacheInterface {
 		}
 	}
 
-	public function getMultiple( $keys, $default = null ): iterable {
+	public function getMultiple( $keys, $default = null ) {
 		$result = array();
 		foreach ( $keys as $key ) {
 			$result[ $key ] = $this->get( $key, $default );

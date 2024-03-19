@@ -127,6 +127,23 @@ To try the built .phar file, run:
 rm -rf new-wp/* && USE_PHAR=1 php blueprint_compiling.php
 ```
 
+## Coding Standards
+
+This project uses
+the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/) and
+PHPCS to enforce them. To check the code for compliance, run:
+
+```shell
+composer run-script phpcs
+```
+
+To automatically fix the code to comply with the standards, run:
+
+```shell
+composer run-script phpcbf
+composer run-script phpcs-fix
+```
+
 ## PHP 7.0 Compatibility
 
 This project is compatible with PHP >= 7.0.

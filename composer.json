@@ -15,7 +15,8 @@
     "jane-php/json-schema": "*",
     "bamarni/composer-bin-plugin": "*",
     "wp-coding-standards/wpcs": "3.0",
-    "phpcompatibility/php-compatibility": "^9.3"
+    "phpcompatibility/php-compatibility": "^9.3",
+    "friendsofphp/php-cs-fixer": "^3.52"
   },
   "config": {
     "optimize-autoloader": true,
@@ -53,6 +54,9 @@
     ]
   },
   "scripts": {
-    "phpcs": "phpcs --standard=WordPress"
+    "test": "phpunit",
+    "phpcs": "phpcs ./src/WordPress -s",
+    "phpcs-fixer": "php-cs-fixer fix ./src/WordPress",
+    "phpcbf": "phpcbf ./src/WordPress"
   }
 }
