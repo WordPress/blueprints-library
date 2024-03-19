@@ -1,0 +1,47 @@
+{
+  "prefer-stable": true,
+  "require": {
+    "symfony/event-dispatcher": "*",
+    "symfony/filesystem": "*",
+    "symfony/process": "*",
+    "pimple/pimple": "*",
+    "psr/simple-cache": "*",
+    "ext-json": "*"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "bamarni/composer-bin-plugin": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    },
+    "platform": {
+      "php": "7.0"
+    }
+  },
+  "autoload": {
+    "classmap": [
+      "src/"
+    ],
+    "psr-4": {
+      "WordPress\\": "src/WordPress",
+      "Symfony\\Component\\Process\\": "vendor/symfony/process",
+      "Opis\\JsonSchema\\": "src/opis/json-schema/src",
+      "Opis\\String\\": "src/opis/string/src",
+      "Opis\\Uri\\": "src/opis/uri/src"
+    },
+    "files": [
+      "src/WordPress/Blueprints/functions.php",
+      "src/WordPress/Zip/functions.php",
+      "src/WordPress/Streams/stream_str_replace.php",
+      "src/WordPress/AsyncHttp/async_http_streams.php",
+      "src/Symfony/Component/Filesystem/Path.php"
+    ]
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/"
+    ]
+  }
+}

@@ -195,6 +195,7 @@ class Tracker {
 
 	private function notifyProgress() {
 		$this->events->dispatch(
+			ProgressEvent::class,
 			new ProgressEvent(
 				$this->getProgress(),
 				$this->getCaption()
@@ -203,6 +204,6 @@ class Tracker {
 	}
 
 	private function notifyDone() {
-		$this->events->dispatch( new DoneEvent() );
+		$this->events->dispatch( DoneEvent::class, new DoneEvent() );
 	}
 }

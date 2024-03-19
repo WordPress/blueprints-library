@@ -24,6 +24,7 @@ class UrlSource extends BaseDataSource {
 		$client->set_progress_callback(
 			function ( Request $request, $downloaded, $total ) {
 				$this->events->dispatch(
+					DataSourceProgressEvent::class,
 					new DataSourceProgressEvent(
 						$request->url,
 						$downloaded,
@@ -43,6 +44,7 @@ class UrlSource extends BaseDataSource {
 			$cached    = $this->cache->get( $url );
 			$data_size = strlen( $cached );
 			$this->events->dispatch(
+				DataSourceProgressEven::class,
 				new DataSourceProgressEvent(
 					$url,
 					$data_size,

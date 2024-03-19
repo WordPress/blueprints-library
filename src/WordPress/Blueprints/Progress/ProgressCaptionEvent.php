@@ -2,7 +2,9 @@
 
 namespace WordPress\Blueprints\Progress;
 
-class ProgressCaptionEvent extends \Symfony\Contracts\EventDispatcher\Event {
+use Symfony\Component\EventDispatcher\Event;
+
+class ProgressCaptionEvent extends Event {
 	/**
 	 * @var string
 	 */

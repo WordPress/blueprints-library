@@ -12,9 +12,9 @@ use WordPress\Blueprints\Progress\ProgressEvent;
 use function WordPress\Blueprints\run_blueprint;
 
 if ( getenv( 'USE_PHAR' ) ) {
-	require __DIR__ . '/dist/blueprints.phar';
+	require __DIR__ . '/../dist/blueprints.phar';
 } else {
-	require 'vendor/autoload.php';
+	require __DIR__ . '/../vendor/autoload.php';
 }
 
 $blueprint = BlueprintBuilder::create()
