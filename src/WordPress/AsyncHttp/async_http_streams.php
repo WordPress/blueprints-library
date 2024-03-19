@@ -76,7 +76,13 @@ function stream_http_open_nonblocking( $url ) {
 		throw new Exception( 'stream_socket_client() was unable to open a stream to ' . $url );
 	}
 
-	stream_set_blocking( $stream, 0 );
+	if ( PHP_VERSION_ID >= 72000 ) {
+		// In PHP <= 7.1 and later, making the socket non-blocking before the
+		// SSL handshake makes the stream_socket_enable_crypto() call always return
+		// false. Therefore, we only make the socket non-blocking after the
+		// SSL handshake.
+		stream_set_blocking( $stream, 0 );
+	}
 
 	return $stream;
 }
@@ -105,6 +111,10 @@ function streams_http_requests_send( $streams ) {
 		}
 
 		foreach ( $write as $k => $stream ) {
+			if ( PHP_VERSION_ID <= 71999 ) {
+				// In PHP <= 7.1, stream_select doesn't preserve the keys of the array
+				$k = array_search( $stream, $streams, true );
+			}
 			$enabled_crypto = stream_socket_enable_crypto( $stream, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT );
 			if ( false === $enabled_crypto ) {
 				throw new Exception( 'Failed to enable crypto: ' . error_get_last()['message'] );
@@ -114,6 +124,14 @@ function streams_http_requests_send( $streams ) {
 				// SSL handshake complete, send the request headers
 				$context = stream_context_get_options( $stream );
 				$request = stream_http_prepare_request_bytes( $context['socket']['originalUrl'] );
+
+				if ( PHP_VERSION_ID <= 72000 ) {
+// In PHP <= 7.1 and later, making the socket non-blocking before the
+// SSL handshake makes the stream_socket_enable_crypto() call always return
+// false. Therefore, we only make the socket non-blocking after the
+// SSL handshake.
+					stream_set_blocking( $stream, 0 );
+				}
 				fwrite( $stream, $request );
 				unset( $remaining_streams[ $k ] );
 			}
@@ -126,8 +144,8 @@ function streams_http_requests_send( $streams ) {
  * Waits for response bytes to be available in the given streams.
  *
  * @param array $streams The array of streams to wait for.
- * @param int   $length The number of bytes to read from each stream.
- * @param int   $timeout_microseconds The timeout in microseconds for the stream_select function.
+ * @param int $length The number of bytes to read from each stream.
+ * @param int $timeout_microseconds The timeout in microseconds for the stream_select function.
  *
  * @return array|false An array of chunks read from the streams, or false if no streams are available.
  * @throws Exception If an error occurs during the stream_select operation or if the operation times out.
@@ -149,6 +167,10 @@ function streams_http_response_await_bytes( $streams, $length, $timeout_microsec
 
 	$chunks = array();
 	foreach ( $read as $k => $stream ) {
+		if ( PHP_VERSION_ID <= 71999 ) {
+			// In PHP <= 7.1, stream_select doesn't preserve the keys of the array
+			$k = array_search( $stream, $streams, true );
+		}
 		$chunks[ $k ] = fread( $stream, $length );
 	}
 
@@ -259,7 +281,7 @@ function stream_monitor_progress( $stream, $onProgress ) {
 			$stream,
 			function ( $data ) use ( $onProgress ) {
 				static $streamedBytes = 0;
-				$streamedBytes       += strlen( $data );
+				$streamedBytes += strlen( $data );
 				$onProgress( $streamedBytes );
 			}
 		)
