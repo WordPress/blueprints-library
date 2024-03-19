@@ -51,7 +51,7 @@ jobs:
           coverage: none
 
       - name: Install PHP dependencies
-        run: composer update --${{ matrix.dependency_version }} --no-interaction --prefer-dist --optimize-autoloader
+        run: COMPOSER=${{ github.workspace }}/composer-dev.json composer update --${{ matrix.dependency_version }} --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run tests
         run: ./vendor/bin/phpunit --testdox
