@@ -126,10 +126,10 @@ function streams_http_requests_send( $streams ) {
 				$request = stream_http_prepare_request_bytes( $context['socket']['originalUrl'] );
 
 				if ( PHP_VERSION_ID <= 72000 ) {
-					// In PHP <= 7.1 and later, making the socket non-blocking before the
-					// SSL handshake makes the stream_socket_enable_crypto() call always return
-					// false. Therefore, we only make the socket non-blocking after the
-					// SSL handshake.
+// In PHP <= 7.1 and later, making the socket non-blocking before the
+// SSL handshake makes the stream_socket_enable_crypto() call always return
+// false. Therefore, we only make the socket non-blocking after the
+// SSL handshake.
 					stream_set_blocking( $stream, 0 );
 				}
 				fwrite( $stream, $request );
@@ -246,29 +246,16 @@ function streams_http_response_await_headers( $streams ) {
 		$headers[ $k ] = '';
 	}
 	$remaining_streams = $streams;
-	$i                 = 0;
 	while ( true ) {
-		$keys  = implode( ",", array_keys( $remaining_streams ) );
 		$bytes = streams_http_response_await_bytes( $remaining_streams, 1 );
 		if ( false === $bytes ) {
 			break;
-		}
-		$keys2 = implode( ",", array_keys( $bytes ) );
-		if ( false === strpos( $keys, $keys2 ) ) {
-			var_dump( $keys, $keys2 );
-			throw new Exception( 'The keys of the remaining streams changed' );
 		}
 		foreach ( $bytes as $k => $byte ) {
 			$headers[ $k ] .= $byte;
 			if ( substr_compare( $headers[ $k ], "\r\n\r\n", - strlen( "\r\n\r\n" ) ) === 0 ) {
 				unset( $remaining_streams[ $k ] );
 			}
-		}
-		if ( ++ $i > 1000 ) {
-			print_r( $headers );
-			print_r( $remaining_streams );
-
-			throw new Exception( 'Too many iterations' );
 		}
 	}
 
