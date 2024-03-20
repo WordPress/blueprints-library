@@ -1,41 +1,38 @@
 <?php
 
-namespace Blueprints;
+namespace unit\blueprint;
 
 use ArrayObject;
-use WordPress\Blueprints\BlueprintMapper;
-use PHPUnit\Framework\TestCase;
-use WordPress\Blueprints\Model\BlueprintBuilder;
-use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\RmStep;
+use WordPress\Blueprints\BlueprintMapper;
+use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\JsonMapper\JsonMapperException;
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class BlueprintMapperTest extends TestCase {
 
 	/**
 	 * @var BlueprintMapper
 	 */
-	private $blueprint_mapper;
+	private $blueprint_mapper = null;
 
-	/**
-	 * @before
-	 */
-	public function before() {
-		$this->blueprint_mapper = new BlueprintMapper();
-	}
+//	protected function setUp() {
+//		parent::setUp();
+//		$this->blueprint_mapper = new BlueprintMapper(new JsonMapper());
+//	}
 
 	public function testMapsEmptyBlueprint() {
 		$raw_blueprint = '{}';
 
-		$parsed_json = json_decode( $raw_blueprint, false );
+		$parsed_json = json_decode($raw_blueprint, false);
 
-		$result = $this->blueprint_mapper->map( $parsed_json );
+		$result = $this->blueprint_mapper->map($parsed_json);
 
 		$expected = new Blueprint();
 
-		$this->assertEquals( $expected, $result );
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMapsWordPressVersion() {
@@ -44,14 +41,14 @@ class BlueprintMapperTest extends TestCase {
 				"WordPressVersion":"https://wordpress.org/latest.zip"
 			}';
 
-		$parsed_json = json_decode( $raw_blueprint, false );
+		$parsed_json = json_decode($raw_blueprint, false);
 
-		$result = $this->blueprint_mapper->map( $parsed_json );
+		$result = $this->blueprint_mapper->map($parsed_json);
 
-		$expected                   = new Blueprint();
+		$expected = new Blueprint();
 		$expected->WordPressVersion = 'https://wordpress.org/latest.zip';
 
-		$this->assertEquals( $expected, $result );
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMapsMultiplePlugins() {
@@ -62,21 +59,21 @@ class BlueprintMapperTest extends TestCase {
 						"https://downloads.wordpress.org/plugin/wordpress-importer.zip",
 						"https://downloads.wordpress.org/plugin/hello-dolly.zip",
 						"https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip"
-                    ]
+					]
 			}';
 
-		$parsed_json = json_decode( $raw_blueprint, false );
+		$parsed_json = json_decode($raw_blueprint, false);
 
-		$result = $this->blueprint_mapper->map( $parsed_json );
+		$result = $this->blueprint_mapper->map($parsed_json);
 
-		$expected          = new Blueprint();
-		$expected->plugins = array(
+		$expected = new Blueprint();
+		$expected->plugins = [
 			'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
 			'https://downloads.wordpress.org/plugin/hello-dolly.zip',
 			'https://downloads.wordpress.org/plugin/gutenberg.17.7.0.zip',
-		);
+		];
 
-		$this->assertEquals( $expected, $result );
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMapsPluginsWithDifferentDataTypes() {
@@ -85,20 +82,20 @@ class BlueprintMapperTest extends TestCase {
 				"plugins": [
 					"https://downloads.wordpress.org/plugin/wordpress-importer.zip",
 					{ "resource": "url", "url": "https://mysite.com" }
-        		]
+				]
 			}';
 
-		$parsed_json = json_decode( $raw_blueprint, false );
+		$parsed_json = json_decode($raw_blueprint, false);
 
-		$result = $this->blueprint_mapper->map( $parsed_json );
+		$result = $this->blueprint_mapper->map($parsed_json);
 
-		$expected          = new Blueprint();
-		$expected->plugins = array(
+		$expected = new Blueprint();
+		$expected->plugins = [
 			'https://downloads.wordpress.org/plugin/wordpress-importer.zip',
-			( new UrlResource() )->setUrl( 'https://mysite.com' ),
-		);
+			(new UrlResource())->setUrl('https://mysite.com'),
+		];
 
-		$this->assertEquals( $expected, $result );
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testFailsWhenPluginsWithInvalidDataTypes() {

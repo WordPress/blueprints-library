@@ -1,7 +1,11 @@
 {
   "prefer-stable": true,
   "require": {
-    "ext-json": "*"
+    "ext-json": "*",
+    "php": ">=7.0"
+  },
+  "require-dev":{
+    "yoast/phpunit-polyfills": "^2.0"
   },
   "config": {
     "optimize-autoloader": true,
@@ -10,9 +14,6 @@
       "php-http/discovery": true,
       "bamarni/composer-bin-plugin": true,
       "dealerdirect/phpcodesniffer-composer-installer": true
-    },
-    "platform": {
-      "php": "7.0"
     }
   },
   "autoload": {
@@ -36,11 +37,6 @@
       "src/WordPress/Zip/functions.php",
       "src/WordPress/Streams/stream_str_replace.php",
       "src/WordPress/AsyncHttp/async_http_streams.php"
-    ]
-  },
-  "autoload-dev": {
-    "classmap": [
-      "tests/"
     ]
   }
 }

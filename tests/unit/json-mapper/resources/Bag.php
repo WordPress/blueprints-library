@@ -1,8 +1,8 @@
 <?php
 
-namespace JsonMapper\resources;
 
 // phpcs:disable
+
 class Bag {
 	/**
 	 * @var string;

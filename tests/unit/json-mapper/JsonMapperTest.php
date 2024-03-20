@@ -1,14 +1,8 @@
 <?php
 
-namespace JsonMapper;
 
-use ArrayObject;
-use JsonMapper\resources\Bag;
-use JsonMapper\resources\Item;
-use JsonMapper\resources\TestResourceClassComplexMapping;
-use JsonMapper\resources\TestResourceClassSetValue;
-use WordPress\JsonMapper\JsonMapper;
 use PHPUnit\Framework\TestCase;
+use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
 
 class JsonMapperTest extends TestCase {

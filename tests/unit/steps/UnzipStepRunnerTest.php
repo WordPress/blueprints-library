@@ -1,15 +1,15 @@
 <?php
 
-namespace Blueprints\Runner\Step;
+namespace unit\Steps;
 
 use PHPUnit\Framework\MockObject\Stub;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
 use WordPress\Blueprints\Progress\Tracker;
 use WordPress\Blueprints\Resources\ResourceManager;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
-use PHPUnit\Framework\TestCase;
 use WordPress\Blueprints\Runtime\Runtime;
 
 class UnzipStepRunnerTest extends TestCase {
@@ -17,27 +17,27 @@ class UnzipStepRunnerTest extends TestCase {
 	/**
 	 * @var string $document_root
 	 */
-	private string $document_root;
+	private $document_root;
 
 	/**
 	 * @var Runtime $runtime
 	 */
-	private Runtime $runtime;
+	private $runtime;
 
 	/**
 	 * @var UnzipStepRunner $step
 	 */
-	private UnzipStepRunner $step;
+	private $step;
 
 	/**
 	 * @var Filesystem
 	 */
-	private Filesystem $file_system;
+	private $file_system;
 
 	/**
 	 * @var Stub
 	 */
-	private Stub $resource_manager;
+	private $resource_manager;
 
 	/**
 	 * @before
@@ -62,7 +62,7 @@ class UnzipStepRunnerTest extends TestCase {
 		$this->file_system->remove( $this->document_root );
 	}
 
-	public function testUnzipFileWhenUsingAbsolutePath(): void {
+	public function testUnzipFileWhenUsingAbsolutePath() {
 		$zip = __DIR__ . '/test_zip.zip';
 		$this->resource_manager->method( 'getStream' )
 			->willReturn( fopen( $zip, 'rb' ) );
@@ -77,7 +77,7 @@ class UnzipStepRunnerTest extends TestCase {
 		$this->assertFileEquals( __DIR__ . '/test_zip.txt', $extracted_file_path );
 	}
 
-	public function testUnzipFileWhenUsingRelativePath(): void {
+	public function testUnzipFileWhenUsingRelativePath() {
 		$zip = __DIR__ . '/test_zip.zip';
 		$this->resource_manager->method( 'getStream' )
 			->willReturn( fopen( $zip, 'rb' ) );

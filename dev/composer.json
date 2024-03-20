@@ -1,0 +1,18 @@
+{
+  "prefer-stable": true,
+  "require": {
+    "ext-json": "*",
+    "php": ">=7.0",
+    "yoast/phpunit-polyfills": "2.0.0"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "autoload": {
+      "classmap": [
+        "./../src/",
+        "./../tests/"
+      ]
+    }
+  }
+}
