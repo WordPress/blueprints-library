@@ -1,9 +1,9 @@
 <?php
 
-namespace unit\Steps;
+namespace unit\steps;
 
 use PHPUnit\Framework\MockObject\Stub;
-use PHPUnit\Framework\TestCase;
+use PHPUnitTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\Model\DataClass\UnzipStep;
@@ -12,7 +12,7 @@ use WordPress\Blueprints\Resources\ResourceManager;
 use WordPress\Blueprints\Runner\Step\UnzipStepRunner;
 use WordPress\Blueprints\Runtime\Runtime;
 
-class UnzipStepRunnerTest extends TestCase {
+class UnzipStepRunnerTest extends PHPUnitTestCase {
 
 	/**
 	 * @var string $document_root
@@ -63,7 +63,7 @@ class UnzipStepRunnerTest extends TestCase {
 	}
 
 	public function testUnzipFileWhenUsingAbsolutePath() {
-		$zip = __DIR__ . '/test_zip.zip';
+		$zip = __DIR__ . '/resources/test_zip.zip';
 		$this->resource_manager->method( 'getStream' )
 			->willReturn( fopen( $zip, 'rb' ) );
 
@@ -74,11 +74,11 @@ class UnzipStepRunnerTest extends TestCase {
 
 		$this->step->run( $input, new Tracker() );
 
-		$this->assertFileEquals( __DIR__ . '/test_zip.txt', $extracted_file_path );
+		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
 	}
 
 	public function testUnzipFileWhenUsingRelativePath() {
-		$zip = __DIR__ . '/test_zip.zip';
+		$zip = __DIR__ . '/resources/test_zip.zip';
 		$this->resource_manager->method( 'getStream' )
 			->willReturn( fopen( $zip, 'rb' ) );
 
@@ -89,6 +89,6 @@ class UnzipStepRunnerTest extends TestCase {
 		$this->step->run( $input, new Tracker() );
 
 		$extracted_file_path = $this->runtime->resolvePath( 'dir/test_zip.txt' );
-		$this->assertFileEquals( __DIR__ . '/test_zip.txt', $extracted_file_path );
+		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
 	}
 }

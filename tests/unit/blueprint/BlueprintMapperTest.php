@@ -3,25 +3,27 @@
 namespace unit\blueprint;
 
 use ArrayObject;
+use PHPUnitTestCase;
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\BlueprintMapper;
 use WordPress\Blueprints\Model\DataClass\Blueprint;
 use WordPress\Blueprints\Model\DataClass\UrlResource;
 use WordPress\JsonMapper\JsonMapperException;
-use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
-class BlueprintMapperTest extends TestCase {
+class BlueprintMapperTest extends PHPUnitTestCase {
 
 	/**
 	 * @var BlueprintMapper
 	 */
-	private $blueprint_mapper = null;
+	private $blueprint_mapper;
 
-//	protected function setUp() {
-//		parent::setUp();
-//		$this->blueprint_mapper = new BlueprintMapper(new JsonMapper());
-//	}
+	/**
+	 * @before
+	 */
+	public function before() {
+		$this->blueprint_mapper = new BlueprintMapper();
+	}
 
 	public function testMapsEmptyBlueprint() {
 		$raw_blueprint = '{}';

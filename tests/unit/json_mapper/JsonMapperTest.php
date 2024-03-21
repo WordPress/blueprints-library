@@ -1,11 +1,17 @@
 <?php
 
+namespace unit\json_mapper;
 
-use PHPUnit\Framework\TestCase;
+use ArrayObject;
+use Bag;
+use Item;
+use PHPUnitTestCase;
+use TestResourceClassComplexMapping;
+use TestResourceClassSetValue;
 use WordPress\JsonMapper\JsonMapper;
 use WordPress\JsonMapper\JsonMapperException;
 
-class JsonMapperTest extends TestCase {
+class JsonMapperTest extends PHPUnitTestCase {
 
 	/**
 	 * @var JsonMapper
@@ -104,7 +110,7 @@ class JsonMapperTest extends TestCase {
 		$parsed_json = json_decode( $raw_json );
 
 		$this->expectException( JsonMapperException::class );
-		$this->expectExceptionMessage( "Property: 'JsonMapper\\resources\TestResourceClassSetValue::setterlessPrivateProperty' is non-public and no setter method was found." );
+		$this->expectExceptionMessage( "Property: 'TestResourceClassSetValue::setterlessPrivateProperty' is non-public and no setter method was found." );
 		$this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
 	}
 
@@ -114,7 +120,7 @@ class JsonMapperTest extends TestCase {
 		$parsed_json = json_decode( $raw_json );
 
 		$this->expectException( JsonMapperException::class );
-		$this->expectExceptionMessage( "Property: 'JsonMapper\\resources\TestResourceClassSetValue::setterlessProtectedProperty' is non-public and no setter method was found." );
+		$this->expectExceptionMessage( "Property: 'TestResourceClassSetValue::setterlessProtectedProperty' is non-public and no setter method was found." );
 		$this->json_mapper->hydrate( $parsed_json, TestResourceClassSetValue::class );
 	}
 

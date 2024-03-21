@@ -42,7 +42,6 @@ jobs:
         with:
           ignore-cache: "yes"
           composer-options: "--ignore-platform-reqs --optimize-autoloader"
-          working-directory: "dev"
 
       - name: Run PHPUnit tests
         run: phpunit tests --testdox
