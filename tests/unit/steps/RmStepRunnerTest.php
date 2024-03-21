@@ -1,8 +1,8 @@
 <?php
 
-namespace unit\Steps;
+namespace unit\steps;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnitTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\BlueprintException;
@@ -10,7 +10,7 @@ use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Runner\Step\RmStepRunner;
 use WordPress\Blueprints\Runtime\Runtime;
 
-class RmStepRunnerTest extends TestCase
+class RmStepRunnerTest extends PHPUnitTestCase
 {
     /**
      * @var string
