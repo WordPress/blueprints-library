@@ -46,7 +46,7 @@ class UnzipStepRunnerTest extends PHPUnitTestCase {
 		$this->document_root = Path::makeAbsolute( 'test', sys_get_temp_dir() );
 		$this->runtime = new Runtime( $this->document_root );
 
-		$this->resource_manager = self::createStub(ResourceManager::class);
+		$this->resource_manager = $this->createMock( ResourceManager::class );
 
 		$this->step = new UnzipStepRunner();
 		$this->step->setRuntime( $this->runtime );
