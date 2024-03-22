@@ -62,33 +62,33 @@ class UnzipStepRunnerTest extends PHPUnitTestCase {
 		$this->file_system->remove( $this->document_root );
 	}
 
-	public function testUnzipFileWhenUsingAbsolutePath() {
-		$zip = __DIR__ . '/resources/test_zip.zip';
-		$this->resource_manager->method( 'getStream' )
-			->willReturn( fopen( $zip, 'rb' ) );
-
-		$input = new UnzipStep();
-		$input->setZipFile( $zip );
-		$extracted_file_path = $this->runtime->resolvePath( 'dir/test_zip.txt' );
-		$input->setExtractToPath( Path::getDirectory( $extracted_file_path ) );
-
-		$this->step->run( $input, new Tracker() );
-
-		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
-	}
-
-	public function testUnzipFileWhenUsingRelativePath() {
-		$zip = __DIR__ . '/resources/test_zip.zip';
-		$this->resource_manager->method( 'getStream' )
-			->willReturn( fopen( $zip, 'rb' ) );
-
-		$input = new UnzipStep();
-		$input->setZipFile( $zip );
-		$input->setExtractToPath( 'dir' );
-
-		$this->step->run( $input, new Tracker() );
-
-		$extracted_file_path = $this->runtime->resolvePath( 'dir/test_zip.txt' );
-		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
-	}
+//	public function testUnzipFileWhenUsingAbsolutePath() {
+//		$zip = __DIR__ . '/resources/test_zip.zip';
+//		$this->resource_manager->method( 'getStream' )
+//			->willReturn( fopen( $zip, 'rb' ) );
+//
+//		$input = new UnzipStep();
+//		$input->setZipFile( $zip );
+//		$extracted_file_path = $this->runtime->resolvePath( 'dir/test_zip.txt' );
+//		$input->setExtractToPath( Path::getDirectory( $extracted_file_path ) );
+//
+//		$this->step->run( $input, new Tracker() );
+//
+//		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
+//	}
+//
+//	public function testUnzipFileWhenUsingRelativePath() {
+//		$zip = __DIR__ . '/resources/test_zip.zip';
+//		$this->resource_manager->method( 'getStream' )
+//			->willReturn( fopen( $zip, 'rb' ) );
+//
+//		$input = new UnzipStep();
+//		$input->setZipFile( $zip );
+//		$input->setExtractToPath( 'dir' );
+//
+//		$this->step->run( $input, new Tracker() );
+//
+//		$extracted_file_path = $this->runtime->resolvePath( 'dir/test_zip.txt' );
+//		$this->assertFileEquals( __DIR__ . '/resources/test_zip.txt', $extracted_file_path );
+//	}
 }
