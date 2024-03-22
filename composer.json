@@ -1,8 +1,7 @@
 {
   "prefer-stable": true,
   "require": {
-    "ext-json": "*",
-    "php": ">=7.0"
+    "ext-json": "*"
   },
   "require-dev": {
     "yoast/phpunit-polyfills": "2.0.0"
@@ -20,9 +19,9 @@
       "Pimple\\": "src/pimple/pimple/src/Pimple",
       "Psr\\Container\\": "src/psr/container",
       "Psr\\SimpleCache\\": "src/psr/simple-cache",
-      "Symfony\\Component\\Process\\": "src/Symfony/process",
-      "Symfony\\Component\\EventDispatcher\\": "src/Symfony/event-dispatcher",
-      "Symfony\\Component\\filesystem\\": "src/Symfony/filesystem",
+      "Symfony\\Component\\Process\\": "src/symfony/process",
+      "Symfony\\Component\\EventDispatcher\\": "src/symfony/event-dispatcher",
+      "Symfony\\Component\\filesystem\\": "src/symfony/filesystem",
       "Opis\\JsonSchema\\": "src/opis/json-schema/src",
       "Opis\\String\\": "src/opis/string/src",
       "Opis\\Uri\\": "src/opis/uri/src"
@@ -38,5 +37,8 @@
     "classmap": [
       "tests/"
     ]
+  },
+  "scripts": {
+    "test": [ "Composer\\Config::disableProcessTimeout", "@php ./vendor/phpunit/phpunit/phpunit --testdox" ]
   }
 }

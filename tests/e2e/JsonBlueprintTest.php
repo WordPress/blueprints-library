@@ -3,10 +3,6 @@
 namespace e2e;
 
 use E2ETestCase;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
@@ -29,39 +25,27 @@ class JsonBlueprintTest extends E2ETestCase {
 	/**
 	 * @before
 	 */
-	public function before() {
-		$this->document_root = Path::makeAbsolute( 'test', sys_get_temp_dir() );
+	public function before()
+	{
+		$this->document_root = Path::makeAbsolute('test', sys_get_temp_dir());
 
-		$this->subscriber = new class() implements EventSubscriberInterface {
+		$this->subscriber = new class implements EventSubscriberInterface {
 			public static function getSubscribedEvents() {
-				return array(
+				return [
 					ProgressEvent::class => 'onProgress',
-					DoneEvent::class     => 'onDone',
-				);
+					DoneEvent::class => 'onDone',
+				];
 			}
 
 			protected $progress_bar;
 
-			public function __construct() {
-				ProgressBar::setFormatDefinition( 'custom', ' [%bar%] %current%/%max% -- %message%' );
-
-				$this->progress_bar = ( new SymfonyStyle(
-					new StringInput( '' ),
-					new ConsoleOutput()
-				) )->createProgressBar( 100 );
-				$this->progress_bar->setFormat( 'custom' );
-				$this->progress_bar->setMessage( 'Start' );
-				$this->progress_bar->start();
-			}
+			public function __construct() {}
 
 			public function onProgress( ProgressEvent $event ) {
-				$this->progress_bar->setMessage( $event->caption );
-				$this->progress_bar->setProgress( (int) $event->progress );
+				echo $event->caption . " – " . $event->progress . "%\n";
 			}
 
-			public function onDone( DoneEvent $event ) {
-				$this->progress_bar->finish();
-			}
+			public function onDone( DoneEvent $event ) {}
 		};
 	}
 
