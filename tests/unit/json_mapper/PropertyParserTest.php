@@ -1,16 +1,13 @@
 <?php
 
-namespace JsonMapper;
+namespace unit\json_mapper;
 
+use PHPUnitTestCase;
 use ReflectionClass;
-use stdClass;
-use WordPress\JsonMapper\PropertyParser;
-use PHPUnit\Framework\TestCase;
 use WordPress\JsonMapper\Property;
+use WordPress\JsonMapper\PropertyParser;
 
-// phpcs:disable Squiz.Commenting
-// phpcs:disable Generic.Commenting
-class PropertyParserTest extends TestCase {
+class PropertyParserTest extends PHPUnitTestCase {
 
 	public function testParsesPropertiesWithScalarTypes() {
 		$class = new class() {

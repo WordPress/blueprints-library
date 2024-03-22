@@ -1,36 +1,36 @@
 <?php
 
-namespace Blueprints\Runner\Step;
+namespace unit\steps;
 
+use PHPUnitTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Runner\Step\RmStepRunner;
-use PHPUnit\Framework\TestCase;
 use WordPress\Blueprints\Runtime\Runtime;
 
-class RmStepRunnerTest extends TestCase
+class RmStepRunnerTest extends PHPUnitTestCase
 {
     /**
      * @var string
      */
-    private string $documentRoot;
+    private $documentRoot;
 
     /**
      * @var Runtime
      */
-    private Runtime $runtime;
+    private $runtime;
 
     /**
      * @var RmStepRunner
      */
-    private RmStepRunner $step;
+    private $step;
 
     /**
      * @var Filesystem
      */
-    private Filesystem $fileSystem;
+    private $fileSystem;
 
     /**
      * @before
@@ -54,7 +54,7 @@ class RmStepRunnerTest extends TestCase
         $this->fileSystem->remove($this->documentRoot);
     }
 
-    public function testRemoveDirectoryWhenUsingAbsolutePath(): void
+    public function testRemoveDirectoryWhenUsingAbsolutePath()
     {
         $absolutePath = $this->runtime->resolvePath("dir");
         $this->fileSystem->mkdir($absolutePath);
@@ -67,7 +67,7 @@ class RmStepRunnerTest extends TestCase
         $this->assertDirectoryDoesNotExist($absolutePath);
     }
 
-    public function testRemoveDirectoryWhenUsingRelativePath(): void
+    public function testRemoveDirectoryWhenUsingRelativePath()
     {
         $relativePath = "dir";
         $absolutePath = $this->runtime->resolvePath($relativePath);
@@ -81,7 +81,7 @@ class RmStepRunnerTest extends TestCase
         $this->assertDirectoryDoesNotExist($absolutePath);
     }
 
-    public function testRemoveDirectoryWithSubdirectory(): void
+    public function testRemoveDirectoryWithSubdirectory()
     {
         $relativePath = "dir/subdir";
         $absolutePath = $this->runtime->resolvePath($relativePath);
@@ -95,7 +95,7 @@ class RmStepRunnerTest extends TestCase
         $this->assertDirectoryDoesNotExist($absolutePath);
     }
 
-    public function testRemoveDirectoryWithFile(): void
+    public function testRemoveDirectoryWithFile()
     {
         $relativePath = "dir/file.txt";
         $absolutePath = $this->runtime->resolvePath($relativePath);
@@ -109,7 +109,7 @@ class RmStepRunnerTest extends TestCase
         $this->assertDirectoryDoesNotExist(dirname($absolutePath));
     }
 
-    public function testRemoveFile(): void
+    public function testRemoveFile()
     {
         $relativePath = "file.txt";
         $absolutePath = $this->runtime->resolvePath($relativePath);
@@ -123,7 +123,7 @@ class RmStepRunnerTest extends TestCase
         $this->assertDirectoryDoesNotExist($absolutePath);
     }
 
-    public function testThrowExceptionWhenRemovingNonexistentDirectoryAndUsingRelativePath(): void
+    public function testThrowExceptionWhenRemovingNonexistentDirectoryAndUsingRelativePath()
     {
         $relativePath = "dir";
         $absolutePath = $this->runtime->resolvePath($relativePath);
@@ -136,7 +136,7 @@ class RmStepRunnerTest extends TestCase
         $this->step->run($input);
     }
 
-    public function testThrowExceptionWhenRemovingNonexistentDirectoryAndUsingAbsolutePath(): void
+    public function testThrowExceptionWhenRemovingNonexistentDirectoryAndUsingAbsolutePath()
     {
         $absolutePath = "/dir";
 
@@ -148,7 +148,7 @@ class RmStepRunnerTest extends TestCase
         $this->step->run($input);
     }
 
-    public function testThrowExceptionWhenRemovingNonexistentFileAndUsingAbsolutePath(): void
+    public function testThrowExceptionWhenRemovingNonexistentFileAndUsingAbsolutePath()
     {
         $relativePath = "/file.txt";
 
@@ -160,7 +160,7 @@ class RmStepRunnerTest extends TestCase
         $this->step->run($input);
     }
 
-    public function testThrowExceptionWhenRemovingNonexistentFileAndUsingRelativePath(): void
+    public function testThrowExceptionWhenRemovingNonexistentFileAndUsingRelativePath()
     {
         $relativePath = "file.txt";
         $absolutePath = $this->runtime->resolvePath($relativePath);

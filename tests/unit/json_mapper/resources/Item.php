@@ -1,6 +1,5 @@
 <?php
 
-namespace JsonMapper\resources;
 
 // phpcs:disable
 class Item {
