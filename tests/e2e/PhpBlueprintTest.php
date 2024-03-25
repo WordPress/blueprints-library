@@ -2,21 +2,21 @@
 
 namespace e2e;
 
+use e2e\resources\TestResourceClassSimpleSubscriber;
 use E2ETestCase;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use WordPress\Blueprints\Compile\StepSuccess;
 use WordPress\Blueprints\ContainerBuilder;
 use WordPress\Blueprints\Model\BlueprintBuilder;
+use WordPress\Blueprints\Model\DataClass\DefineWpConfigConstsStep;
+use WordPress\Blueprints\Model\DataClass\DownloadWordPressStep;
+use WordPress\Blueprints\Model\DataClass\InstallSqliteIntegrationStep;
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\RmStep;
-use WordPress\Blueprints\Progress\DoneEvent;
-use WordPress\Blueprints\Progress\ProgressEvent;
+use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
+use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
+use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use function WordPress\Blueprints\run_blueprint;
 
 class PhpBlueprintTest extends E2ETestCase {
@@ -36,24 +36,7 @@ class PhpBlueprintTest extends E2ETestCase {
 	public function before() {
 		$this->document_root = Path::makeAbsolute( 'test', sys_get_temp_dir() );
 
-		$this->subscriber = new class implements EventSubscriberInterface {
-			public static function getSubscribedEvents() {
-				return [
-					ProgressEvent::class => 'onProgress',
-					DoneEvent::class => 'onDone',
-				];
-			}
-
-			protected $progress_bar;
-
-			public function __construct() {}
-
-			public function onProgress( ProgressEvent $event ) {
-				echo $event->caption . " – " . $event->progress . "%\n";
-			}
-
-			public function onDone( DoneEvent $event ) {}
-		};
+		$this->subscriber = new TestResourceClassSimpleSubscriber();
 	}
 
 	/**
@@ -77,7 +60,14 @@ class PhpBlueprintTest extends E2ETestCase {
 			)
 		);
 
-		$expected = array();
+		$expected = array(
+			0 => new StepSuccess( new DownloadWordPressStep(), null ),
+			1 => new StepSuccess( new InstallSqliteIntegrationStep(), null ),
+			2 => new StepSuccess( new WriteFileStep(), null ),
+			3 => new StepSuccess( new RunWordPressInstallerStep(), null ),
+			4 => new StepSuccess( new DefineWpConfigConstsStep(), null ),
+			5 => new StepSuccess( new SetSiteOptionsStep(), null ),
+		);
 
 		// @TODO fix expected
 		$this->assertEquals( $expected, $results );
@@ -99,14 +89,12 @@ class PhpBlueprintTest extends E2ETestCase {
 			)
 		);
 
-		$expected = array();
-			array(
-				0 => new StepSuccess( new MkdirStep(), true ),
-				1 => new StepSuccess( new RmStep(), true ),
-				2 => new StepSuccess( new MkdirStep(), true ),
-			);
+		$expected = array(
+			0 => new StepSuccess( new MkdirStep(), null ),
+			1 => new StepSuccess( new RmStep(), null ),
+			2 => new StepSuccess( new MkdirStep(), null )
+		);
 
-			// @TODO fix expected
-			$this->assertEquals( $expected, $results );
+		$this->assertEquals( $expected, $results );
 	}
 }
