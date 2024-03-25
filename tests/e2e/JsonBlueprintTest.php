@@ -17,6 +17,8 @@ use WordPress\Blueprints\Model\DataClass\MkdirStep;
 use WordPress\Blueprints\Model\DataClass\RmStep;
 use WordPress\Blueprints\Model\DataClass\RunWordPressInstallerStep;
 use WordPress\Blueprints\Model\DataClass\SetSiteOptionsStep;
+use WordPress\Blueprints\Model\DataClass\UrlResource;
+use WordPress\Blueprints\Model\DataClass\WordPressInstallationOptions;
 use WordPress\Blueprints\Model\DataClass\WriteFileStep;
 use function WordPress\Blueprints\run_blueprint;
 
@@ -34,8 +36,7 @@ class JsonBlueprintTest extends E2ETestCase {
 	/**
 	 * @before
 	 */
-	public function before()
-	{
+	public function before() {
 		$this->document_root = Path::makeAbsolute('test', sys_get_temp_dir());
 
 		$this->subscriber = new TestResourceClassSimpleSubscriber();
@@ -54,22 +55,43 @@ class JsonBlueprintTest extends E2ETestCase {
 			$blueprint,
 			array(
 				'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
-				'documentRoot'       => $this->document_root . '/new-wp',
+				'documentRoot'       => $this->document_root,
 				'progressSubscriber' => $this->subscriber,
 			)
 		);
 
-		// fails at downloadWordPress
+		$word_press_zip = ( new UrlResource() )
+			->setResource( 'url' )
+			->setUrl('https://wordpress.org/latest.zip');
+		$download_word_press_step = ( new DownloadWordPressStep() )
+			->setWordPressZip( $word_press_zip );
+
+		$sqlite_plugin_zip = ( new UrlResource() )
+			->setResource('url' )
+			->setUrl( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.zip' );
+		$install_sqlite_integration_step = ( new InstallSqliteIntegrationStep() )
+			->setSqlitePluginZip( $sqlite_plugin_zip );
+
+		$wp_cli = ( new UrlResource() )
+			->setResource('url' )
+			->setUrl('https://playground.wordpress.net/wp-cli.phar' );
+		$write_file_step = ( new WriteFileStep() )
+			->setPath( 'wp-cli.phar' )
+			->setData( $wp_cli );
+
+		$run_word_press_installer_step = ( new RunWordPressInstallerStep() )
+			->setOptions( new WordPressInstallationOptions() );
 
 		$expected = array(
-			0 => new StepSuccess( new DownloadWordPressStep(), null ),
-			1 => new StepSuccess( new InstallSqliteIntegrationStep(), null ),
-			2 => new StepSuccess( new WriteFileStep(), null ),
-			3 => new StepSuccess( new RunWordPressInstallerStep(), null )
+			0 => new StepSuccess( $download_word_press_step, null ),
+			1 => new StepSuccess( $install_sqlite_integration_step, null ),
+			2 => new StepSuccess( $write_file_step, null ),
+			3 => new StepSuccess( $run_word_press_installer_step, 'Success: WordPress installed successfully.' )
 		);
 
-		// @TODO fix expected
-		$this->assertEquals( $expected, $results );
+		//@TODO Assert WP files exist
+
+		self::assertEquals( $expected, $results );
 	}
 
 	public function testRunningJsonBlueprintWithSteps() {
@@ -79,22 +101,19 @@ class JsonBlueprintTest extends E2ETestCase {
 			$blueprint,
 			array(
 				'environment'        => ContainerBuilder::ENVIRONMENT_NATIVE,
-				'documentRoot'       => $this->document_root . '/new-wp',
+				'documentRoot'       => $this->document_root,
 				'progressSubscriber' => $this->subscriber,
 			)
 		);
 
-		// fails at defineWpConfigConsts
-
 		$expected = array(
-			0 => new StepSuccess( new DefineWpConfigConstsStep(), null ),
-			1 => new StepSuccess( new SetSiteOptionsStep(), null ),
-			2 => new StepSuccess( new MkdirStep(), null ),
-			3 => new StepSuccess( new RmStep(), null ),
-			4 => new StepSuccess( new MkdirStep(), null ),
+			0 => new StepSuccess( ( new MkdirStep() )->setPath( 'dir1' ), null ),
+			1 => new StepSuccess( ( new RmStep() )->setPath( 'dir1' ), null ),
+			2 => new StepSuccess( ( new MkdirStep() )->setPath( 'dir2' ), null ),
 		);
 
-		// @TODO fix expected
-		$this->assertEquals( $expected, $results );
+		self::assertDirectoryDoesNotExist( Path::makeAbsolute( 'dir1', $this->document_root ) );
+		self::assertDirectoryExists( Path::makeAbsolute( 'dir2', $this->document_root ) );
+		self::assertEquals( $expected, $results );
 	}
 }

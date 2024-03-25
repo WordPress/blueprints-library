@@ -11,7 +11,7 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 	 * @param \WordPress\Blueprints\Progress\Tracker                          $tracker
 	 */
 	function run( $input, $tracker ) {
-		return $this->getRuntime()->runShellCommand(
+		$result = $this->getRuntime()->runShellCommand(
 			array(
 				'php',
 				'wp-cli.phar',
@@ -26,6 +26,7 @@ class RunWordPressInstallerStepRunner extends BaseStepRunner {
 			),
 			$this->getRuntime()->getDocumentRoot()
 		);
+		return trim( $result );
 	}
 
 	public function getDefaultCaption( $input ) {
