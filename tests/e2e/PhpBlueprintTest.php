@@ -92,6 +92,10 @@ class PhpBlueprintTest extends E2ETestCase {
 			3 => new StepSuccess( $run_word_press_installer_step, 'Success: WordPress installed successfully.' )
 		);
 
+//	 -        'result' => 'Success: WordPress installed successfully.'
+//   +        'result' => '#!/usr/bin/env php\n
+//   +        Success: WordPress installed successfully.'
+
 		//@TODO Assert WP files exist
 
 		self::assertEquals( $expected, $results );
