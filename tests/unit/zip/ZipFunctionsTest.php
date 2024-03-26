@@ -9,7 +9,7 @@ use ZipArchive;
 use function WordPress\Zip\zip_extract_to;
 
 class ZipFunctionsTest extends PHPUnitTestCase {
-	public function testImmuneToZipSlip() {
+	public function testIsImmuneToZipSlipVulnerability() {
 		$filesystem = new Filesystem();
 
 		$filename = __DIR__ . 'tmp/zip-slip-test.zip';

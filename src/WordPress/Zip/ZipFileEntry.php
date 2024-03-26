@@ -76,7 +76,7 @@ class ZipFileEntry {
 		$this->compressionMethod = $compressionMethod;
 		$this->generalPurpose    = $generalPurpose;
 		$this->version           = $version;
-		$this->isDirectory       = $this->path[- 1] === '/';
+		$this->isDirectory       = substr( $this->path, -1 ) === '/';
 	}
 
 	public function isFileEntry() {
