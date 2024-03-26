@@ -2,7 +2,8 @@
   "prefer-stable": true,
   "require": {
     "ext-json": "*",
-    "php": ">=7.0"
+    "php": ">=7.0",
+    "ext-zip": "*"
   },
   "require-dev": {
     "yoast/phpunit-polyfills": "2.0.0"

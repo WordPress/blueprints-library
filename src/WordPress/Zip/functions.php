@@ -14,6 +14,10 @@ function zip_extract_to( $fp, $to_path ) {
 			continue;
 		}
 
+		if ( false !== strpos( $entry->path ,'..') ) {
+			continue;
+		}
+
 		$path   = Path::canonicalize( $to_path . '/' . $entry->path );
 		$parent = Path::getDirectory( $path );
 		if ( ! is_dir( $parent ) ) {
