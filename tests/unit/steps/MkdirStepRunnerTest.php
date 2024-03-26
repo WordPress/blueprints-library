@@ -101,11 +101,10 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
     public function testThrowExceptionWhenCreatingDirectoryWhenDirectoryAlreadyExists() {
         $path = 'dir';
         $resolved_path = $this->runtime->resolvePath( $path );
+		$this->filesystem->mkdir( $resolved_path );
 
-        $step = new MkdirStep();
-        $step->setPath( $path );
-
-		$this->step_runner->run( $step );
+		$step = new MkdirStep();
+		$step->setPath( $path );
 
 		self::expectException( BlueprintException::class );
 		self::expectExceptionMessage( "Failed to create \"$resolved_path\": the directory exists." );
