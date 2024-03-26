@@ -24,7 +24,7 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
 	/**
 	 * @var MkdirStepRunner
 	 */
-	private $step;
+	private $step_runner;
 
 	/**
 	 * @var Filesystem
@@ -38,8 +38,8 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
 		$this->document_root = Path::makeAbsolute( "test", sys_get_temp_dir() );
 		$this->runtime = new Runtime( $this->document_root );
 
-		$this->step = new MkdirStepRunner();
-		$this->step->setRuntime( $this->runtime );
+		$this->step_runner = new MkdirStepRunner();
+		$this->step_runner->setRuntime( $this->runtime );
 
 		$this->filesystem = new Filesystem();
 	}
@@ -53,10 +53,10 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
 
     public function testCreateDirectoryWhenUsingRelativePath() {
         $path = 'dir';
-        $input = new MkdirStep();
-		$input->setPath( $path );
+        $step = new MkdirStep();
+		$step->setPath( $path );
 
-        $this->step->run( $input );
+        $this->step_runner->run( $step );
 		$resolved_path = $this->runtime->resolvePath( $path );
 
 		self::assertDirectoryExists( $resolved_path );
@@ -66,20 +66,20 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
         $relative_path = 'dir';
         $resolved_path = $this->runtime->resolvePath( $relative_path );
 
-        $input = new MkdirStep();
-        $input->setPath( $resolved_path );
+        $step = new MkdirStep();
+        $step->setPath( $resolved_path );
 
-        $this->step->run( $input );
+        $this->step_runner->run( $step );
         
         self::assertDirectoryExists( $resolved_path );
     }
 
     public function testCreateDirectoryRecursively() {
         $path = 'dir/subdir';
-        $input = new MkdirStep();
-        $input->setPath( $path );
+        $step = new MkdirStep();
+        $step->setPath( $path );
 
-        $this->step->run( $input );
+        $this->step_runner->run( $step );
 
         $resolved_path = $this->runtime->resolvePath( $path );
         self::assertDirectoryExists( $resolved_path );
@@ -87,10 +87,10 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
 
 	public function testCreateDirectoryWithProperMode() {
 		$path = 'dir';
-		$input = new MkdirStep();
-		$input->setPath( $path );
+		$step = new MkdirStep();
+		$step->setPath( $path );
 
-		$this->step->run( $input );
+		$this->step_runner->run( $step );
 
 		$resolved_path = $this->runtime->resolvePath( $path );
 		self::assertDirectoryExists( $resolved_path );
@@ -102,13 +102,13 @@ class MkdirStepRunnerTest extends PHPUnitTestCase {
         $path = 'dir';
         $resolved_path = $this->runtime->resolvePath( $path );
 
-        $input = new MkdirStep();
-        $input->setPath( $path );
+        $step = new MkdirStep();
+        $step->setPath( $path );
 
-		$this->step->run( $input );
+		$this->step_runner->run( $step );
 
 		self::expectException( BlueprintException::class );
 		self::expectExceptionMessage( "Failed to create \"$resolved_path\": the directory exists." );
-        $this->step->run( $input );
+        $this->step_runner->run( $step );
     }
 }
