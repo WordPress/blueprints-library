@@ -229,8 +229,7 @@ Connection: close
 REQUEST;
 
 	// @TODO: Add support for Accept-Encoding: gzip
-
-	return str_replace( "\n", "\r\n", $request ) . "\r\n\r\n";
+	return $request . "\r\n\r\n";
 }
 
 /**
@@ -262,7 +261,6 @@ function streams_http_response_await_headers( $streams ) {
 	foreach ( $headers as $k => $header ) {
 		$headers[ $k ] = parse_http_headers( $header );
 	}
-
 	return $headers;
 }
 

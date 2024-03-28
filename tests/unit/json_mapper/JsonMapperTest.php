@@ -26,19 +26,20 @@ class JsonMapperTest extends PHPUnitTestCase {
 	}
 
 	public function testCustomFactory() {
-		$mapper = new JsonMapper( array(
+		$custom_factories = array(
 			Item::class => function ( $json ) {
 				$item = new Item();
 				$item->name = $json->name;
 
 				return $item;
 			},
-		) );
-
-		$result = $mapper->hydrate(
-			json_decode( '{"name":"test","items":[{"name":"test"}]}' ),
-			Bag::class
 		);
+
+		$mapper = new JsonMapper($custom_factories);
+
+		$raw_json = '{"name":"test","items":[{"name":"test"}]}';
+
+		$result = $mapper->hydrate( json_decode( $raw_json ), Bag::class );
 
 		$expected = new Bag();
 		$expected->name = 'test';

@@ -2,19 +2,24 @@
 
 namespace WordPress\Blueprints\Runner\Step;
 
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
+use WordPress\Blueprints\BlueprintException;
 use WordPress\Blueprints\Model\DataClass\MkdirStep;
 
 
 class MkdirStepRunner extends BaseStepRunner {
 
 	/**
-	 * @param \WordPress\Blueprints\Model\DataClass\MkdirStep $input
+	 * @param MkdirStep $input
 	 */
-	function run( $input ) {
-		// @TODO: Treat $input->path as relative path to the document root (unless it's absolute)
-		$success = mkdir( $input->path );
-		if ( ! $success ) {
-			throw new \Exception( "Failed to create directory at {$input->path}" );
+	function run( MkdirStep $input ) {
+		$resolvedPath = $this->getRuntime()->resolvePath( $input->path );
+		$fileSystem   = new Filesystem();
+		try {
+			$fileSystem->mkdir( $resolvedPath );
+		} catch ( IOException $exception ) {
+			throw new BlueprintException( "Failed to create a directory at \"$resolvedPath\"", 0, $exception );
 		}
 	}
 }

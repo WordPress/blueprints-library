@@ -72,7 +72,7 @@ class BlueprintCompiler {
 			$additional_steps[] = ( new RunWordPressInstallerStep() )
 				->setOptions( new WordPressInstallationOptions() );
 		}
-		if ( $blueprint->constants ) {
+		if ( $blueprint->constants && $blueprint->constants->count() > 0 ) {
 			$step               = new DefineWpConfigConstsStep();
 			$step->consts       = $blueprint->constants;
 			$additional_steps[] = $step;
@@ -84,7 +84,7 @@ class BlueprintCompiler {
 				$additional_steps[]  = $step;
 			}
 		}
-		if ( $blueprint->siteOptions ) {
+		if ( $blueprint->siteOptions && $blueprint->siteOptions->count() > 0) {
 			$step = new SetSiteOptionsStep();
 			$step->setOptions( $blueprint->siteOptions );
 			$additional_steps[] = $step;

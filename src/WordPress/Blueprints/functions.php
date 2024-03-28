@@ -18,11 +18,10 @@ function run_blueprint( $json, $options = array() ) {
 		$environment,
 		new Runtime( $documentRoot )
 	);
-
+	/** @var $engine Engine */
 	$engine            = $c['blueprint.engine'];
 	$compiledBlueprint = $engine->parseAndCompile( $json );
 
-	/** @var $engine Engine */
 	if ( $progressSubscriber ) {
 		if ( $progressType === 'steps' ) {
 			$compiledBlueprint->stepsProgressStage->events->addSubscriber( $progressSubscriber );

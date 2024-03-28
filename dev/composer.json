@@ -17,9 +17,9 @@
         "Pimple\\": "../src/pimple/pimple/src/Pimple",
         "Psr\\Container\\": "../src/psr/container",
         "Psr\\SimpleCache\\": "../src/psr/simple-cache",
-        "Symfony\\Component\\Process\\": "../src/Symfony/process",
-        "Symfony\\Component\\EventDispatcher\\": "../src/Symfony/event-dispatcher",
-        "Symfony\\Component\\Filesystem\\": "../src/Symfony/filesystem",
+        "Symfony\\Component\\Process\\": "../src/symfony/process",
+        "Symfony\\Component\\EventDispatcher\\": "../src/symfony/event-dispatcher",
+        "Symfony\\Component\\Filesystem\\": "../src/symfony/filesystem",
         "Opis\\JsonSchema\\": "../src/opis/json-schema/src",
         "Opis\\String\\": "../src/opis/string/src",
         "Opis\\Uri\\": "../src/opis/uri/src"
