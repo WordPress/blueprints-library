@@ -12,16 +12,12 @@ class RmStepRunner extends BaseStepRunner {
 	/**
 	 * @param RmStep $input
 	 */
-	public function run( $input ) {
-		$resolvedPath = $this->getRuntime()->resolvePath( $input->path );
-		$fileSystem   = new Filesystem();
-		if ( false === $fileSystem->exists( $resolvedPath ) ) {
-			throw new BlueprintException( "Failed to remove \"$resolvedPath\": the directory or file does not exist." );
+	public function run( RmStep $input ) {
+		$resolved_path = $this->getRuntime()->resolvePath( $input->path );
+		$filesystem   = new Filesystem();
+		if ( false === $filesystem->exists( $resolved_path ) ) {
+			throw new BlueprintException( "Failed to remove \"$resolved_path\": the directory or file does not exist." );
 		}
-		try {
-			$fileSystem->remove( $resolvedPath );
-		} catch ( IOException $exception ) {
-			throw new BlueprintException( "Failed to remove the directory or file at \"$resolvedPath\"", 0, $exception );
-		}
+		$filesystem->remove( $resolved_path );
 	}
 }
