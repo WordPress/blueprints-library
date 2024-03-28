@@ -59,7 +59,7 @@ class ZipCentralDirectoryEntry {
 		$this->versionNeeded      = $versionNeeded;
 		$this->versionCreated     = $versionCreated;
 		$this->firstByteAt        = $firstByteAt;
-		$this->isDirectory        = $this->path[- 1] === '/';
+		$this->isDirectory        = substr( $this->path, -1 ) === '/';
 	}
 
 	public function isFileEntry() {
