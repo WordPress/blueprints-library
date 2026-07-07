@@ -624,6 +624,14 @@ class CSSProcessor {
 	/**
 	 * Gets the current token type flag.
 	 *
+	 * Some token types have an additional flag:
+	 * - Hash tokens have a flag that is either be "id" or "unrestricted". The
+	 *   following example uses an "id" hash token as the `#ident` ID selector and
+	 *   an "unrestricted" hash token as the `#0f0` hex color:
+	 *       #ident {
+	 *         color: #0f0;
+	 *       }
+	 *
 	 * @return string|null
 	 * @phpstan-return 'id'|'unrestricted'|null
 	 */
