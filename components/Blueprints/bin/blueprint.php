@@ -542,8 +542,9 @@ function cliArgsToRunnerConfiguration( array $positional_args, array $options ):
 		}
 	}
 
+	// Non-TTY runs use stdout as a JSONL protocol, so diagnostics must go to stderr.
 	$config->set_logger(
-		new CLILogger( 'php://stdout', CLILogger::VERBOSITY_INFO )
+		new CLILogger( 'php://stderr', CLILogger::VERBOSITY_INFO )
 	);
 
 	return $config;
