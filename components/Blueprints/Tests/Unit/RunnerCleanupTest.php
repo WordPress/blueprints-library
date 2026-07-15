@@ -4,9 +4,9 @@ namespace WordPress\Blueprints\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use WordPress\Blueprints\DataReference\InlineFile;
-use WordPress\Blueprints\Logger\NoopLogger;
 use WordPress\Blueprints\Runner;
 use WordPress\Blueprints\RunnerConfiguration;
+use WordPress\Filesystem\FilesystemException;
 
 use function WordPress\Filesystem\wp_join_unix_paths;
 use function WordPress\Filesystem\wp_unix_sys_get_temp_dir;
@@ -21,34 +21,30 @@ class RunnerCleanupTest extends TestCase {
 	 * @after
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['wp_filter']['blueprint.target_resolved'] );
-
 		foreach ( array_reverse( $this->paths_to_remove ) as $path ) {
 			$this->remove_directory( $path );
 		}
 	}
 
 	public function test_removes_temporary_workspace_after_successful_run() {
-		$logger = new RecordingLogger();
-		$runner = $this->create_runner_for_existing_site( $logger );
+		$runner = $this->create_runner_for_existing_site();
 
 		$runner->run();
 
 		$this->assertFalse( is_dir( $runner->runtime->get_temp_root() ) );
-		$this->assertSame( array(), $logger->warnings );
 	}
 
-	public function test_logs_cleanup_failure_without_failing_successful_run() {
+	public function test_does_not_suppress_cleanup_failure() {
 		if ( PHP_OS_FAMILY !== 'Windows' && function_exists( 'posix_geteuid' ) && 0 === posix_geteuid() ) {
 			$this->markTestSkipped( 'This test needs filesystem permissions to reject a temporary workspace cleanup.' );
 		}
 
-		$logger           = new RecordingLogger();
-		$runner           = $this->create_runner_for_existing_site( $logger );
-		$temp_root        = null;
-		$unremovable_dir  = null;
-		$unremovable_file = null;
-		$open_handle      = null;
+		$runner                         = $this->create_runner_for_existing_site();
+		$previous_target_resolved_hooks = $GLOBALS['wp_filter']['blueprint.target_resolved'] ?? null;
+		$temp_root                      = null;
+		$unremovable_dir                = null;
+		$unremovable_file               = null;
+		$open_handle                    = null;
 
 		add_action(
 			'blueprint.target_resolved',
@@ -69,7 +65,15 @@ class RunnerCleanupTest extends TestCase {
 
 		try {
 			$runner->run();
+			$this->fail( 'Expected temporary workspace cleanup to fail.' );
+		} catch ( FilesystemException $exception ) {
+			$this->assertStringContainsString( $temp_root, $exception->getMessage() );
 		} finally {
+			if ( null === $previous_target_resolved_hooks ) {
+				unset( $GLOBALS['wp_filter']['blueprint.target_resolved'] );
+			} else {
+				$GLOBALS['wp_filter']['blueprint.target_resolved'] = $previous_target_resolved_hooks;
+			}
 			if ( $open_handle ) {
 				fclose( $open_handle );
 			}
@@ -80,13 +84,9 @@ class RunnerCleanupTest extends TestCase {
 				$this->remove_directory( $temp_root );
 			}
 		}
-
-		$this->assertCount( 1, $logger->warnings );
-		$this->assertStringContainsString( 'Failed to remove temporary Blueprint workspace ', $logger->warnings[0] );
-		$this->assertStringContainsString( $temp_root, $logger->warnings[0] );
 	}
 
-	private function create_runner_for_existing_site( RecordingLogger $logger ) {
+	private function create_runner_for_existing_site() {
 		$site_root = wp_join_unix_paths( wp_unix_sys_get_temp_dir(), 'blueprint_cleanup_test_' . uniqid() );
 		$this->paths_to_remove[] = $site_root;
 
@@ -110,7 +110,6 @@ STUBPHP
 			->set_target_site_root( $site_root )
 			->set_target_site_url( 'http://example.com' )
 			->set_database_engine( 'sqlite' )
-			->set_logger( $logger )
 			->set_wp_cli_reference(
 				new InlineFile(
 					array(
@@ -143,16 +142,5 @@ STUBPHP
 			}
 		}
 		@rmdir( $dir );
-	}
-}
-
-class RecordingLogger extends NoopLogger {
-	/**
-	 * @var string[]
-	 */
-	public $warnings = array();
-
-	public function warning( $message, array $context = array() ): void {
-		$this->warnings[] = $message;
 	}
 }

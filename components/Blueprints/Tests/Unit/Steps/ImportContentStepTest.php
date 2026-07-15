@@ -12,20 +12,7 @@ use WordPress\ByteStream\MemoryPipe;
 class ImportContentStepTest extends TestCase {
 	public function test_wxr_import_appends_call_inside_existing_php_script() {
 		$runtime = new CapturingImportRuntime();
-		$source  = new InlineFile(
-			array(
-				'filename' => 'content.xml',
-				'content'  => '<rss />',
-			)
-		);
-		$step    = new ImportContentStep(
-			array(
-				array(
-					'type'   => 'wxr',
-					'source' => $source,
-				),
-			)
-		);
+		$step    = $this->create_wxr_import_step();
 
 		$step->run( $runtime, new Tracker() );
 
@@ -36,6 +23,33 @@ class ImportContentStepTest extends TestCase {
 		$this->assertStringNotContainsString( '<?php', $appended_code );
 		$this->assertStringNotContainsString( '?>', $appended_code );
 	}
+
+	public function test_wxr_import_closes_output_stream() {
+		$runtime = new CapturingImportRuntime();
+		$step    = $this->create_wxr_import_step();
+
+		$step->run( $runtime, new Tracker() );
+
+		$this->assertTrue( $runtime->output_stream->reading_closed );
+	}
+
+	private function create_wxr_import_step() {
+		$source = new InlineFile(
+			array(
+				'filename' => 'content.xml',
+				'content'  => '<rss />',
+			)
+		);
+
+		return new ImportContentStep(
+			array(
+				array(
+					'type'   => 'wxr',
+					'source' => $source,
+				),
+			)
+		);
+	}
 }
 
 class CapturingImportRuntime extends Runtime {
@@ -43,8 +57,13 @@ class CapturingImportRuntime extends Runtime {
 	 * @var string
 	 */
 	public $captured_code;
+	/**
+	 * @var TrackingMemoryPipe
+	 */
+	public $output_stream;
 
 	public function __construct() {
+		$this->output_stream = new TrackingMemoryPipe( '{"type":"completion"}' . "\n" );
 	}
 
 	public function create_php_sub_process(
@@ -55,7 +74,7 @@ class CapturingImportRuntime extends Runtime {
 	) {
 		$this->captured_code = $code;
 
-		return new SuccessfulImportProcess();
+		return new SuccessfulImportProcess( $this->output_stream );
 	}
 
 	public function get_execution_context_root(): ?string {
@@ -64,11 +83,17 @@ class CapturingImportRuntime extends Runtime {
 }
 
 class SuccessfulImportProcess {
+	private $output_stream;
+
+	public function __construct( MemoryPipe $output_stream ) {
+		$this->output_stream = $output_stream;
+	}
+
 	public function start() {
 	}
 
 	public function getOutputStream( $pipe ) {
-		return new MemoryPipe( '{"type":"completion"}' . "\n" );
+		return $this->output_stream;
 	}
 
 	public function getExitCode() {
@@ -76,5 +101,14 @@ class SuccessfulImportProcess {
 	}
 
 	public function stop() {
+	}
+}
+
+class TrackingMemoryPipe extends MemoryPipe {
+	public $reading_closed = false;
+
+	public function close_reading(): void {
+		$this->reading_closed = true;
+		parent::close_reading();
 	}
 }

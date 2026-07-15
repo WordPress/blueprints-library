@@ -216,6 +216,21 @@ class CSSProcessor {
 	private $token_type = null;
 
 	/**
+	 * The type flag for the current token, if any.
+	 *
+	 * Hash tokens carry an "id" or "unrestricted" flag. Per CSS Syntax Level 3,
+	 * <number-token> and <dimension-token> have a type flag indicating whether
+	 * the number was written as an integer or a number (with decimal point or
+	 * exponent). <percentage-token> does not have a type flag.
+	 *
+	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
+	 *
+	 * @var string|null
+	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
+	 */
+	private $token_type_flag = null;
+
+	/**
 	 * The byte offset at which the current token starts.
 	 *
 	 * Example:
@@ -266,15 +281,15 @@ class CSSProcessor {
 	private $token_value_length = null;
 
 	/**
-	 * The string value of the current token.
+	 * A cache for the decoded and normalized token value.
 	 *
-	 * For numbers, this is a float.
-	 * For identifiers/functions/strings/URLs with escapes, this is a decoded string.
-	 * Otherwise, it's null and the value is computed from token indices.
+	 * - `false` indicates the has not been computed.
+	 * - `null` is used for token types without an associated value will have `null`: whitespace, bad-url, comment, punctuation, etc.
+	 * - `string` is used for token types with an associated value: ident, string, function, url, etc.
 	 *
-	 * @var string|float|null
+	 * @var string|null|false
 	 */
-	private $token_value = null;
+	private $token_value = false;
 
 	/**
 	 * The unit of the current token, e.g. "px", "em", "deg", etc.
@@ -414,9 +429,9 @@ class CSSProcessor {
 					// Create a <hash-token>.
 					++$this->at;
 
-					// We skip this check as we don't track the type flag:
-					// > If the next 3 input code points would start an ident sequence,
-					// > set the <hash-token>'s type flag to "id".
+					$this->token_type_flag = $this->check_if_3_code_points_start_an_ident_sequence( $this->at )
+						? 'id'
+						: 'unrestricted';
 
 					// Consume an ident sequence, and set the <hash-token>'s value to the returned string.
 					$this->consume_ident_sequence();
@@ -615,6 +630,29 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Gets the current token type flag.
+	 *
+	 * Some token types have an additional flag:
+	 * - Hash tokens have a flag that is either "id" or "unrestricted". The
+	 *   following example uses an "id" hash token as the `#ident` ID selector and
+	 *   an "unrestricted" hash token as the `#0f0` hex color:
+	 *       #ident {
+	 *         color: #0f0;
+	 *       }
+	 * - Number and dimension tokens have an "integer" flag when the number was
+	 *   written without a decimal point or exponent (e.g. "42", "+7"), and a
+	 *   "number" flag otherwise. Percentage tokens do not have a type flag.
+	 *
+	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
+	 *
+	 * @return string|null
+	 * @phpstan-return 'id'|'unrestricted'|'integer'|'number'|null
+	 */
+	public function get_token_type_flag(): ?string {
+		return $this->token_type_flag;
+	}
+
+	/**
 	 * Gets the normalized token text from the CSS source.
 	 *
 	 * Returns the token with CSS normalization and escape decoding applied:
@@ -672,8 +710,8 @@ class CSSProcessor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#tokenization
 	 * @return string|null
 	 */
-	public function get_token_value() {
-		if ( null === $this->token_value ) {
+	public function get_token_value(): ?string {
+		if ( false === $this->token_value ) {
 			if ( null === $this->token_starts_at || null === $this->token_length ) {
 				return null;
 			}
@@ -986,9 +1024,10 @@ class CSSProcessor {
 	 */
 	private function after_token(): void {
 		$this->token_type            = null;
+		$this->token_type_flag       = null;
 		$this->token_starts_at       = null;
 		$this->token_length          = null;
-		$this->token_value           = null;
+		$this->token_value           = false;
 		$this->token_unit            = null;
 		$this->token_value_starts_at = null;
 		$this->token_value_length    = null;
@@ -1109,8 +1148,6 @@ class CSSProcessor {
 	 * Numbers can be integers or decimals, with optional sign and exponent.
 	 * They can be followed by % (percentage) or an identifier (dimension).
 	 *
-	 * @TODO: Keep track of the "type" flag ("integer" or "number").
-	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-numeric-token
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
@@ -1118,6 +1155,8 @@ class CSSProcessor {
 	 */
 	private function consume_numeric(): bool {
 		// Consume a number and let number be the result.
+		// The type flag defaults to "integer".
+		$number_type = 'integer';
 
 		// If the next input code point is U+002B PLUS SIGN (+) or U+002D HYPHEN-MINUS (-),
 		// consume it and append it to repr.
@@ -1140,6 +1179,8 @@ class CSSProcessor {
 		) {
 			// Consume them.
 			++$this->at;
+			// Set type to "number".
+			$number_type = 'number';
 			// While the next input code point is a digit, consume it and append it to repr.
 			$digits = strspn( $this->css, '0123456789', $this->at );
 			if ( $digits > 0 ) {
@@ -1170,6 +1211,8 @@ class CSSProcessor {
 				}
 
 				if ( $has_exp ) {
+					// Set type to "number".
+					$number_type = 'number';
 					// While the next input code point is a digit, consume it and append it to repr.
 					$digits = strspn( $this->css, '0123456789', $this->at );
 					if ( $digits > 0 ) {
@@ -1194,14 +1237,16 @@ class CSSProcessor {
 			// Consume an ident sequence. Set the <dimension-token>'s unit to the returned value.
 			$unit_starts_at = $this->at;
 			$this->consume_ident_sequence();
-			$this->token_unit   = $this->decode_range( $unit_starts_at, $this->at - $unit_starts_at );
-			$this->token_type   = self::TOKEN_DIMENSION;
-			$this->token_length = $this->at - $this->token_starts_at;
+			$this->token_unit      = $this->decode_range( $unit_starts_at, $this->at - $unit_starts_at );
+			$this->token_type      = self::TOKEN_DIMENSION;
+			$this->token_type_flag = $number_type;
+			$this->token_length    = $this->at - $this->token_starts_at;
 			return true;
 		}
 
 		// Otherwise, if the next input code point is U+0025 PERCENTAGE SIGN (%), consume it.
 		// Create a <percentage-token> with the same value as number, and return it.
+		// Note: percentage tokens do not have a type flag per spec.
 		if ( $this->at < $this->length && '%' === $this->css[ $this->at ] ) {
 			++$this->at;
 			$this->token_type   = self::TOKEN_PERCENTAGE;
@@ -1210,8 +1255,9 @@ class CSSProcessor {
 		}
 
 		// Otherwise, create a <number-token> with the same value and type flag as number, and return it.
-		$this->token_type   = self::TOKEN_NUMBER;
-		$this->token_length = $this->at - $this->token_starts_at;
+		$this->token_type      = self::TOKEN_NUMBER;
+		$this->token_type_flag = $number_type;
+		$this->token_length    = $this->at - $this->token_starts_at;
 		return true;
 	}
 
@@ -1583,13 +1629,11 @@ class CSSProcessor {
 		$end     = $start + $length;
 
 		while ( $at < $end ) {
-			// Find next special character.
-			$normal_len = strcspn( $this->css, $special_chars, $at );
+			// Find next special character within the token boundary.
+			$normal_len = strcspn( $this->css, $special_chars, $at, $end - $at );
 			if ( $normal_len > 0 ) {
-				// Clamp to not exceed the end boundary.
-				$normal_len = min( $normal_len, $end - $at );
-				$decoded   .= substr( $this->css, $at, $normal_len );
-				$at        += $normal_len;
+				$decoded .= wp_scrub_utf8( substr( $this->css, $at, $normal_len ) );
+				$at      += $normal_len;
 			}
 
 			if ( $at >= $end ) {
@@ -1700,11 +1744,9 @@ class CSSProcessor {
 			return "\u{FFFD}";
 		}
 
-		// Hex digits.
-		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at );
+		// Hex digits (CSS spec allows at most 6).
+		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at, 6 );
 		if ( $hex_len > 0 ) {
-			// Consume up to 6 hex digits.
-			$hex_len = min( $hex_len, 6 );
 			$hex     = substr( $this->css, $at, $hex_len );
 			$at     += $hex_len;
 
@@ -1738,21 +1780,14 @@ class CSSProcessor {
 		$new_at         = $at;
 		$invalid_length = 0;
 		if ( 1 !== _wp_scan_utf8( $this->css, $new_at, $invalid_length, null, 1 ) ) {
-			/**
-			 * Trouble ahead!
-			 * Bytes at $at are not a valid UTF-8 sequence.
-			 *
-			 * We'll move forward by $invalid_length bytes and continue processing.
-			 * Later on, during the string decoding, we'll replace the invalid bytes with U+FFFD
-			 * via maximal subpart”replacement.
-			 */
-			$matched_bytes = $invalid_length;
-		} else {
-			$matched_bytes = $new_at - $at;
+			// Bytes at $at are not a valid UTF-8 sequence. Consume the maximal
+			// invalid subpart and return U+FFFD per the CSS spec.
+			$bytes_consumed = $invalid_length;
+			return "\u{FFFD}";
 		}
 
-		$bytes_consumed = $matched_bytes;
-		return substr( $this->css, $at, $matched_bytes );
+		$bytes_consumed = $new_at - $at;
+		return substr( $this->css, $at, $bytes_consumed );
 	}
 
 	/**

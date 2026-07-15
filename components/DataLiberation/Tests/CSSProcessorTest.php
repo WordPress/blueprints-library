@@ -57,6 +57,9 @@ class CSSProcessorTest extends TestCase {
 			if ( null !== $processor->get_token_unit() ) {
 				$token['unit'] = $processor->get_token_unit();
 			}
+			if ( CSSProcessor::TOKEN_NUMBER === $type || CSSProcessor::TOKEN_DIMENSION === $type ) {
+				$token['numberType'] = $processor->get_token_type_flag();
+			}
 
 			if ( null !== $keys ) {
 				$token = array_intersect_key( $token, array_flip( $keys ) );
@@ -66,6 +69,110 @@ class CSSProcessorTest extends TestCase {
 		}
 
 		return $tokens;
+	}
+
+	/**
+	 * Tests that hash tokens expose the proper type flag.
+	 *
+	 * @dataProvider data_hash_tokens_expose_type_flags
+	 */
+	public function test_hash_tokens_expose_type_flags( string $css, array $expected_tokens ): void {
+		$processor = CSSProcessor::create( $css );
+
+		foreach ( $expected_tokens as $expected_token ) {
+			$this->assertTrue( $processor->next_token() );
+			$this->assertSame( $expected_token['type'], $processor->get_token_type() );
+			$this->assertSame( $expected_token['raw'], $processor->get_unnormalized_token() );
+			$this->assertSame( $expected_token['type_flag'], $processor->get_token_type_flag() );
+		}
+
+		$this->assertFalse( $processor->next_token() );
+		$this->assertNull( $processor->get_token_type_flag() );
+	}
+
+	public static function data_hash_tokens_expose_type_flags(): array {
+		return array(
+			'id hash'                            => array(
+				'#id',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#id',
+						'type_flag' => 'id',
+					),
+				),
+			),
+			'unrestricted hash starting digit'   => array(
+				'#1id',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#1id',
+						'type_flag' => 'unrestricted',
+					),
+				),
+			),
+			'id hash starting hyphen ident'      => array(
+				'#-id',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#-id',
+						'type_flag' => 'id',
+					),
+				),
+			),
+			'unrestricted hash starting hyphen'  => array(
+				'#-1id',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#-1id',
+						'type_flag' => 'unrestricted',
+					),
+				),
+			),
+			'id hash starting escape'            => array(
+				'#\\@special',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#\\@special',
+						'type_flag' => 'id',
+					),
+				),
+			),
+			'hash delimiter has no type flag'    => array(
+				'#',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_DELIM,
+						'raw'       => '#',
+						'type_flag' => null,
+					),
+				),
+			),
+			'following token clears type flag'   => array(
+				'#id .',
+				array(
+					array(
+						'type'      => CSSProcessor::TOKEN_HASH,
+						'raw'       => '#id',
+						'type_flag' => 'id',
+					),
+					array(
+						'type'      => CSSProcessor::TOKEN_WHITESPACE,
+						'raw'       => ' ',
+						'type_flag' => null,
+					),
+					array(
+						'type'      => CSSProcessor::TOKEN_DELIM,
+						'raw'       => '.',
+						'type_flag' => null,
+					),
+				),
+			),
+		);
 	}
 
 	/**
@@ -145,6 +252,68 @@ class CSSProcessorTest extends TestCase {
 
 		$processor = CSSProcessor::create( $css );
 		$actual_tokens = $this->collect_tokens( $processor, ['type', 'raw', 'normalized', 'value'] );
+		$this->assertSame( $expected, $actual_tokens );
+	}
+
+	/**
+	 * In the slow path of decode_string_or_url() (triggered by a backslash escape), normal
+	 * text segments must still have invalid UTF-8 bytes replaced with U+FFFD, just
+	 * as the fast path does via wp_scrub_utf8().
+	 */
+	public function test_invalid_utf8_in_normal_segment_combined_with_escape(): void {
+		// The ident token contains an invalid UTF-8 byte (0xF1) in the "normal"
+		// segment before a CSS hex escape (\41 = U+0041 = 'A'). The backslash
+		// triggers the slow path, which previously skipped wp_scrub_utf8() on the
+		// normal segment.
+		$css = ".test\xF1\\41name";
+
+		$expected = array(
+			array(
+				'type'  => CSSProcessor::TOKEN_DELIM,
+				'raw'   => '.',
+				'value' => '.',
+			),
+			array(
+				'type'  => CSSProcessor::TOKEN_IDENT,
+				// raw contains the original bytes.
+				'raw'   => "test\xF1\\41name",
+				// value must have 0xF1 replaced with U+FFFD and \41 decoded to 'A'.
+				'value' => "test\u{FFFD}Aname",
+			),
+		);
+
+		$processor = CSSProcessor::create( $css );
+		$actual_tokens = $this->collect_tokens( $processor, array( 'type', 'raw', 'value' ) );
+		$this->assertSame( $expected, $actual_tokens );
+	}
+
+	/**
+	 * When an invalid UTF-8 byte is the character directly after a backslash
+	 * (i.e. it is the escaped character itself), decode_escape_at() must replace
+	 * the invalid byte with U+FFFD.
+	 */
+	public function test_invalid_utf8_as_escaped_character(): void {
+		// The CSS `.\xF1` is a delim + ident containing a lone invalid byte.
+		// Adding a backslash before the invalid byte makes it an escape sequence:
+		// `.\\\xF1` => delim + ident whose value is the escaped 0xF1 byte.
+		$css = ".a\\\xF1b";
+
+		$expected = array(
+			array(
+				'type'  => CSSProcessor::TOKEN_DELIM,
+				'raw'   => '.',
+				'value' => '.',
+			),
+			array(
+				'type'  => CSSProcessor::TOKEN_IDENT,
+				'raw'   => "a\\\xF1b",
+				// The escaped 0xF1 must be replaced with U+FFFD.
+				'value' => "a\u{FFFD}b",
+			),
+		);
+
+		$processor = CSSProcessor::create( $css );
+		$actual_tokens = $this->collect_tokens( $processor, array( 'type', 'raw', 'value' ) );
 		$this->assertSame( $expected, $actual_tokens );
 	}
 
@@ -957,6 +1126,40 @@ CSS;
 	}
 
 	/**
+	 * Tests token_type_flag for different token types.
+	 *
+	 * @dataProvider data_token_type_flag
+	 */
+	public function test_token_type_flag( string $css, ?string $expected_type ): void {
+		$processor = CSSProcessor::create( $css );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( $expected_type, $processor->get_token_type_flag() );
+	}
+
+	public static function data_token_type_flag(): array {
+		return array(
+			'integer'                   => array( '42', 'integer' ),
+			'positive integer'          => array( '+42', 'integer' ),
+			'negative integer'          => array( '-42', 'integer' ),
+			'zero'                      => array( '0', 'integer' ),
+			'decimal'                   => array( '42.0', 'number' ),
+			'decimal with fraction'     => array( '42.5', 'number' ),
+			'leading decimal point'     => array( '.5', 'number' ),
+			'exponent lowercase'        => array( '1e2', 'number' ),
+			'exponent uppercase'        => array( '1E2', 'number' ),
+			'exponent with plus'        => array( '1E+2', 'number' ),
+			'exponent with minus'       => array( '1e-2', 'number' ),
+			'dimension integer'         => array( '10px', 'integer' ),
+			'dimension decimal'         => array( '10.5px', 'number' ),
+			'dimension exponent'        => array( '1e2px', 'number' ),
+			'percentage integer'        => array( '20%', null ),
+			'percentage decimal'        => array( '20.0%', null ),
+			'ident token'               => array( 'red', null ),
+			'string token'              => array( '"hello"', null ),
+		);
+	}
+
+	/**
 	 * Tests that create() validates encoding and only accepts UTF-8.
 	 */
 	public function test_create_validates_encoding(): void {
@@ -1685,5 +1888,47 @@ CSS;
 		$processor->next_token();
 		$this->assertSame( CSSProcessor::TOKEN_BAD_STRING, $processor->get_token_type() );
 		$this->assertNull( $processor->get_token_value() );
+	}
+
+	/**
+	 * Tests that decode_string_or_url() respects the token's length boundary
+	 * and does not include content from beyond the token end.
+	 *
+	 * The escape sequence \41 (= 'A') triggers the slow path in
+	 * decode_string_or_url(). The CSS string continues with "; color: red;"
+	 * after the closing quote, which must not appear in the token value.
+	 */
+	public function test_decode_string_or_url_respects_length_boundary(): void {
+		// \41 = 'A' — triggers the slow path; "; color: red;" follows the token.
+		$css = '"hello\\41 world"; color: red;';
+
+		$processor = CSSProcessor::create( $css );
+		$processor->next_token();
+
+		$this->assertSame( CSSProcessor::TOKEN_STRING, $processor->get_token_type() );
+		$this->assertSame( 'helloAworld', $processor->get_token_value() );
+		$this->assertSame( '"helloAworld"', $processor->get_normalized_token() );
+	}
+
+	/**
+	 * Tests that decode_escape_at() consumes at most 6 hex digits, as required
+	 * by the CSS Syntax Level 3 specification.
+	 *
+	 * A hex escape with 7 consecutive hex digits must only consume the first 6,
+	 * leaving the 7th as a literal character in the string value.
+	 *
+	 * @see https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+	 */
+	public function test_decode_escape_at_hex_limit_is_six_digits(): void {
+		// \000041 is 6 hex digits → U+0041 = 'A'; the trailing '1' is literal.
+		// Without the length limit, strspn() would scan 7 hex digits (0000411),
+		// giving U+0411 = 'Б' (Cyrillic), which is incorrect.
+		$css = '"\\0000411rest"';
+
+		$processor = CSSProcessor::create( $css );
+		$processor->next_token();
+
+		$this->assertSame( CSSProcessor::TOKEN_STRING, $processor->get_token_type() );
+		$this->assertSame( 'A1rest', $processor->get_token_value() );
 	}
 }
