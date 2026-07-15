@@ -218,14 +218,15 @@ class CSSProcessor {
 	/**
 	 * The type flag for the current token, if any.
 	 *
-	 * Per CSS Syntax Level 3, <number-token> and <dimension-token> have a type
-	 * flag indicating whether the number was written as an integer or a number
-	 * (with decimal point or exponent). <percentage-token> does not have a type flag.
+	 * Hash tokens carry an "id" or "unrestricted" flag. Per CSS Syntax Level 3,
+	 * <number-token> and <dimension-token> have a type flag indicating whether
+	 * the number was written as an integer or a number (with decimal point or
+	 * exponent). <percentage-token> does not have a type flag.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
 	 * @var string|null
-	 * @phpstan-var 'integer'|'number'|null
+	 * @phpstan-var 'id'|'unrestricted'|'integer'|'number'|null
 	 */
 	private $token_type_flag = null;
 
@@ -280,15 +281,15 @@ class CSSProcessor {
 	private $token_value_length = null;
 
 	/**
-	 * The string value of the current token.
+	 * A cache for the decoded and normalized token value.
 	 *
-	 * For numbers, this is a float.
-	 * For identifiers/functions/strings/URLs with escapes, this is a decoded string.
-	 * Otherwise, it's null and the value is computed from token indices.
+	 * - `false` indicates the has not been computed.
+	 * - `null` is used for token types without an associated value will have `null`: whitespace, bad-url, comment, punctuation, etc.
+	 * - `string` is used for token types with an associated value: ident, string, function, url, etc.
 	 *
-	 * @var string|float|null
+	 * @var string|null|false
 	 */
-	private $token_value = null;
+	private $token_value = false;
 
 	/**
 	 * The unit of the current token, e.g. "px", "em", "deg", etc.
@@ -428,9 +429,9 @@ class CSSProcessor {
 					// Create a <hash-token>.
 					++$this->at;
 
-					// We skip this check as we don't track the type flag:
-					// > If the next 3 input code points would start an ident sequence,
-					// > set the <hash-token>'s type flag to "id".
+					$this->token_type_flag = $this->check_if_3_code_points_start_an_ident_sequence( $this->at )
+						? 'id'
+						: 'unrestricted';
 
 					// Consume an ident sequence, and set the <hash-token>'s value to the returned string.
 					$this->consume_ident_sequence();
@@ -631,20 +632,21 @@ class CSSProcessor {
 	/**
 	 * Gets the current token type flag.
 	 *
-	 * This flag is only set on number and dimension tokens. For
-	 * other token types, this is always `null`.
-	 *
-	 * For number and dimension tokens:
-	 *   - "integer" when the number was written without a decimal point or
-	 *     exponent (e.g. "42", "+7")
-	 *   - "number" otherwise.
-	 *
-	 * Returns null for all other token types, including percentage tokens.
+	 * Some token types have an additional flag:
+	 * - Hash tokens have a flag that is either "id" or "unrestricted". The
+	 *   following example uses an "id" hash token as the `#ident` ID selector and
+	 *   an "unrestricted" hash token as the `#0f0` hex color:
+	 *       #ident {
+	 *         color: #0f0;
+	 *       }
+	 * - Number and dimension tokens have an "integer" flag when the number was
+	 *   written without a decimal point or exponent (e.g. "42", "+7"), and a
+	 *   "number" flag otherwise. Percentage tokens do not have a type flag.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-number
 	 *
-	 * @return string|null "integer", "number", or null.
-	 * @phpstan-return 'integer'|'number'|null
+	 * @return string|null
+	 * @phpstan-return 'id'|'unrestricted'|'integer'|'number'|null
 	 */
 	public function get_token_type_flag(): ?string {
 		return $this->token_type_flag;
@@ -708,8 +710,8 @@ class CSSProcessor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#tokenization
 	 * @return string|null
 	 */
-	public function get_token_value() {
-		if ( null === $this->token_value ) {
+	public function get_token_value(): ?string {
+		if ( false === $this->token_value ) {
 			if ( null === $this->token_starts_at || null === $this->token_length ) {
 				return null;
 			}
@@ -1025,7 +1027,7 @@ class CSSProcessor {
 		$this->token_type_flag       = null;
 		$this->token_starts_at       = null;
 		$this->token_length          = null;
-		$this->token_value           = null;
+		$this->token_value           = false;
 		$this->token_unit            = null;
 		$this->token_value_starts_at = null;
 		$this->token_value_length    = null;
