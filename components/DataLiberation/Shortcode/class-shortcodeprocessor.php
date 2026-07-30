@@ -48,6 +48,13 @@ class ShortcodeProcessor {
 	private $length;
 
 	/**
+	 * Byte offset of the final closing square bracket, or false when absent.
+	 *
+	 * @var int|false
+	 */
+	private $last_closing_bracket_at;
+
+	/**
 	 * Byte offset at which the next token scan begins.
 	 *
 	 * @var int
@@ -157,13 +164,21 @@ class ShortcodeProcessor {
 	private $lexical_updates = array();
 
 	/**
+	 * Byte offset at which scanning may resume after a failed candidate.
+	 *
+	 * @var int|null
+	 */
+	private $scan_at_after_failure = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string $text Text containing possible shortcode markup.
 	 */
 	public function __construct( string $text ) {
-		$this->text   = $text;
-		$this->length = strlen( $text );
+		$this->text                    = $text;
+		$this->length                  = strlen( $text );
+		$this->last_closing_bracket_at = strrpos( $text, ']' );
 	}
 
 	/**
@@ -255,9 +270,19 @@ class ShortcodeProcessor {
 				break;
 			}
 
+			if (
+				false === $this->last_closing_bracket_at ||
+				$candidate_at > $this->last_closing_bracket_at
+			) {
+				// The remaining `[` bytes cannot begin complete shortcode tokens.
+				break;
+			}
+
 			$shortcode = $this->scan_shortcode_at( $candidate_at );
 			if ( false === $shortcode ) {
-				$scan_at = $candidate_at + 1;
+				$scan_at = null === $this->scan_at_after_failure
+					? $candidate_at + 1
+					: $this->scan_at_after_failure;
 				continue;
 			}
 
@@ -394,6 +419,7 @@ class ShortcodeProcessor {
 		}
 
 		if ( $this->attribute_index + 1 >= count( $this->attributes ) ) {
+			$this->attribute_index = count( $this->attributes );
 			return false;
 		}
 
@@ -570,13 +596,26 @@ class ShortcodeProcessor {
 				$length = $attribute['value_length'] + 2;
 				$text   = $alternate_quote . $value . $alternate_quote;
 			}
-		} elseif ( ! $this->can_use_unquoted_attribute_value( $value ) ) {
-			if ( false === strpos( $value, '"' ) ) {
-				$text = '"' . $value . '"';
-			} elseif ( false === strpos( $value, "'" ) ) {
-				$text = "'" . $value . "'";
-			} else {
-				return false;
+		} else {
+			$requires_quotes = ! $this->can_use_unquoted_attribute_value( $value );
+			if (
+				! $requires_quotes &&
+				! $this->has_self_closing_flag &&
+				count( $this->attributes ) - 1 === $this->attribute_index &&
+				'' !== $value &&
+				'/' === $value[ strlen( $value ) - 1 ]
+			) {
+				$requires_quotes = true;
+			}
+
+			if ( $requires_quotes ) {
+				if ( false === strpos( $value, '"' ) ) {
+					$text = '"' . $value . '"';
+				} elseif ( false === strpos( $value, "'" ) ) {
+					$text = "'" . $value . "'";
+				} else {
+					return false;
+				}
 			}
 		}
 
@@ -703,6 +742,8 @@ class ShortcodeProcessor {
 	 * }|false
 	 */
 	private function scan_shortcode_at( int $start ) {
+		$this->scan_at_after_failure = null;
+
 		$at = $start + 1;
 		if ( $at >= $this->length ) {
 			return false;
@@ -770,6 +811,7 @@ class ShortcodeProcessor {
 		}
 
 		$attributes_start = $at;
+		$first_quote_at   = null;
 		$quote            = null;
 		while ( $at < $this->length ) {
 			$byte = $this->text[ $at ];
@@ -789,6 +831,9 @@ class ShortcodeProcessor {
 			}
 
 			if ( '"' === $byte || "'" === $byte ) {
+				if ( null === $first_quote_at ) {
+					$first_quote_at = $at;
+				}
 				$quote = $byte;
 				++$at;
 				continue;
@@ -800,10 +845,12 @@ class ShortcodeProcessor {
 			}
 
 			$attributes_end = $at;
-			$tail           = $this->previous_non_whitespace_offset( $attributes_end );
-			$self_closing   = $tail >= $attributes_start && '/' === $this->text[ $tail ];
+			$self_closing   = (
+				$attributes_end > $attributes_start &&
+				'/' === $this->text[ $attributes_end - 1 ]
+			);
 			if ( $self_closing ) {
-				$attributes_end = $tail;
+				--$attributes_end;
 			}
 
 			++$at;
@@ -826,6 +873,16 @@ class ShortcodeProcessor {
 					$attributes_end
 				),
 			);
+		}
+
+		if ( null !== $first_quote_at ) {
+			/*
+			 * No candidate before this quote can close before it: this scan would
+			 * already have stopped at that closing bracket. Resume inside the
+			 * quoted region so a standalone candidate there can still be recovered
+			 * without rescanning the entire preceding suffix.
+			 */
+			$this->scan_at_after_failure = $first_quote_at + 1;
 		}
 
 		return false;
@@ -1043,7 +1100,7 @@ class ShortcodeProcessor {
 	 * @return bool Whether the value can remain unquoted.
 	 */
 	private function can_use_unquoted_attribute_value( string $value ): bool {
-		if ( false !== strpbrk( $value, " \t\f\r\n\"'[]" ) ) {
+		if ( '' === $value || false !== strpbrk( $value, " \t\v\f\r\n\"'[]" ) ) {
 			return false;
 		}
 
@@ -1098,7 +1155,7 @@ class ShortcodeProcessor {
 			return false;
 		}
 
-		if ( false !== strpos( " \t\f\r\n", $this->text[ $at ] ) ) {
+		if ( false !== strpos( " \t\v\f\r\n", $this->text[ $at ] ) ) {
 			return true;
 		}
 
@@ -1117,7 +1174,7 @@ class ShortcodeProcessor {
 	 */
 	private function skip_shortcode_whitespace( int $at, int $end ): int {
 		while ( $at < $end ) {
-			$ascii_length = strspn( $this->text, " \t\f\r\n", $at, $end - $at );
+			$ascii_length = strspn( $this->text, " \t\v\f\r\n", $at, $end - $at );
 			if ( $ascii_length > 0 ) {
 				$at += $ascii_length;
 				continue;
@@ -1130,42 +1187,6 @@ class ShortcodeProcessor {
 
 			if ( 0 === substr_compare( $this->text, "\u{200B}", $at, 3 ) ) {
 				$at += 3;
-				continue;
-			}
-
-			break;
-		}
-
-		return $at;
-	}
-
-	/**
-	 * Finds the previous non-whitespace byte before an exclusive offset.
-	 *
-	 * @param int $before Exclusive byte offset.
-	 * @return int Previous non-whitespace offset, or -1.
-	 */
-	private function previous_non_whitespace_offset( int $before ): int {
-		$at = $before - 1;
-		while ( $at >= 0 ) {
-			if ( false !== strpos( " \t\f\r\n", $this->text[ $at ] ) ) {
-				--$at;
-				continue;
-			}
-
-			if (
-				$at >= 1 &&
-				0 === substr_compare( $this->text, "\u{00A0}", $at - 1, 2 )
-			) {
-				$at -= 2;
-				continue;
-			}
-
-			if (
-				$at >= 2 &&
-				0 === substr_compare( $this->text, "\u{200B}", $at - 2, 3 )
-			) {
-				$at -= 3;
 				continue;
 			}
 
