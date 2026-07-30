@@ -242,6 +242,16 @@ class PHPURLInTextProcessor {
 			) {
 				$this->matched_url = substr( $this->matched_url, 0, - 1 );
 			}
+			/*
+			 * Quoted CSS url() values end in `")` or `')`. Once the outer
+			 * parenthesis is removed, keep the quote outside the URL too.
+			 */
+			if (
+				"'" === $this->matched_url[ strlen( $this->matched_url ) - 1 ] ||
+				'"' === $this->matched_url[ strlen( $this->matched_url ) - 1 ]
+			) {
+				$this->matched_url = substr( $this->matched_url, 0, - 1 );
+			}
 			$url_starts_at              = $matches[0][1];
 			$this->bytes_already_parsed = $url_starts_at + strlen( $this->matched_url );
 
@@ -300,7 +310,7 @@ class PHPURLInTextProcessor {
 
 			$this->parsed_url    = $parsed_url;
 			$this->url_starts_at = $url_starts_at;
-			$this->url_length    = strlen( $matches[0][0] );
+			$this->url_length    = strlen( $this->matched_url );
 
 			return true;
 		}
