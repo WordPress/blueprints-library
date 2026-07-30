@@ -300,7 +300,7 @@ class PHPURLInTextProcessor {
 
 			$this->parsed_url    = $parsed_url;
 			$this->url_starts_at = $url_starts_at;
-			$this->url_length    = strlen( $matches[0][0] );
+			$this->url_length    = strlen( $this->matched_url );
 
 			return true;
 		}

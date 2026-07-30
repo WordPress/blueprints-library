@@ -462,6 +462,11 @@ class URLInTextProcessorTest extends TestCase {
 				'wikipedia.org',
 				'Have you seen wikipedia.org (or wp.org)?',
 			),
+			'Preserve trailing parenthesis'         => array(
+				'background: url(https://wordpress.org/image.jpg) no-repeat;',
+				'https://w.org/image.jpg',
+				'background: url(https://w.org/image.jpg) no-repeat;',
+			),
 		);
 	}
 
