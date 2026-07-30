@@ -462,10 +462,30 @@ class URLInTextProcessorTest extends TestCase {
 				'wikipedia.org',
 				'Have you seen wikipedia.org (or wp.org)?',
 			),
-			'Preserve trailing parenthesis'         => array(
-				'background: url(https://wordpress.org/image.jpg) no-repeat;',
+			'Preserve closing parenthesis before background shorthand' => array(
+				'background: url(https://wordpress.org/image.jpg) no-repeat center center fixed;',
 				'https://w.org/image.jpg',
-				'background: url(https://w.org/image.jpg) no-repeat;',
+				'background: url(https://w.org/image.jpg) no-repeat center center fixed;',
+			),
+			'Preserve double-quoted CSS URL delimiters' => array(
+				'background: url(  "https://wordpress.org/image.jpg") center / cover no-repeat;',
+				'https://w.org/image.jpg',
+				'background: url(  "https://w.org/image.jpg") center / cover no-repeat;',
+			),
+			'Preserve single-quoted URL in layered background' => array(
+				"background-image: linear-gradient(#0008, #0000), url('https://wordpress.org/image.jpg');",
+				'https://w.org/image.jpg',
+				"background-image: linear-gradient(#0008, #0000), url('https://w.org/image.jpg');",
+			),
+			'Preserve CSS after percent-encoded UTF-8 URL' => array(
+				'background: url(https://wordpress.org/uploads/Gr%C3%BC%C3%9Fe-%E2%9C%93-%28hero%29.jpg?label=Za%C5%BC%C3%B3%C5%82%C4%87) center / contain no-repeat;',
+				'https://cdn.example/uploads/Gr%C3%BC%C3%9Fe-%E2%9C%93-%28hero%29.jpg?label=Za%C5%BC%C3%B3%C5%82%C4%87',
+				'background: url(https://cdn.example/uploads/Gr%C3%BC%C3%9Fe-%E2%9C%93-%28hero%29.jpg?label=Za%C5%BC%C3%B3%C5%82%C4%87) center / contain no-repeat;',
+			),
+			'Preserve image-set descriptor after raw UTF-8 URL' => array(
+				'image-set(url(https://wordpress.org/uploads/zażółć-🌍.png) 1x, url(https://wordpress.org/uploads/zażółć-🌍@2x.png) 2x)',
+				'https://cdn.example/uploads/zażółć-🌍.png',
+				'image-set(url(https://cdn.example/uploads/zażółć-🌍.png) 1x, url(https://wordpress.org/uploads/zażółć-🌍@2x.png) 2x)',
 			),
 		);
 	}
