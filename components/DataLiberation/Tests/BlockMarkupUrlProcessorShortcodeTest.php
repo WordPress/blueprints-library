@@ -27,78 +27,99 @@ class BlockMarkupUrlProcessorShortcodeTest extends TestCase {
 	}
 
 	public static function shortcode_css_url_provider(): array {
-		$old_url = 'https://old.example/media/hero.jpg?width=1200&height=800';
-		$new_url = 'https://new.example/media/hero.jpg?width=1200&height=800';
-
-		$divi_css = '.hero::before { content: "<&>"; background: url(' . $old_url
-			. ') no-repeat; mask: url("' . $old_url . '"); }';
-		$expected_divi_css = '.hero::before { content: "<&>"; background: url("'
-			. $new_url . '") no-repeat; mask: url("' . $new_url . '"); }';
-
-		$wpbakery_css = '.vc_custom_1 { background-image: url(' . $old_url . '); }';
-		$expected_wpbakery_css = '.vc_custom_1 { background-image: url("'
-			. $new_url . '"); }';
-
 		return array(
 			'Divi CSS preserves raw text bytes while updating multiple URLs' => array(
-				'<!-- wp:shortcode -->'
-					. "[et_pb_section custom_css_main_element='" . $divi_css . "']"
-					. '[/et_pb_section]'
-					. '<!-- /wp:shortcode -->',
-				'<!-- wp:shortcode -->'
-					. "[et_pb_section custom_css_main_element='" . $expected_divi_css . "']"
-					. '[/et_pb_section]'
-					. '<!-- /wp:shortcode -->',
+				<<<'HTML'
+<!-- wp:shortcode -->
+[et_pb_section custom_css_main_element='.hero::before { content: "<&>"; background: url(https://old.example/media/hero.jpg?width=1200&height=800) no-repeat; mask: url("https://old.example/media/hero.jpg?width=1200&height=800"); }']
+[/et_pb_section]
+<!-- /wp:shortcode -->
+HTML
+				,
+				<<<'HTML'
+<!-- wp:shortcode -->
+[et_pb_section custom_css_main_element='.hero::before { content: "<&>"; background: url("https://new.example/media/hero.jpg?width=1200&height=800") no-repeat; mask: url("https://new.example/media/hero.jpg?width=1200&height=800"); }']
+[/et_pb_section]
+<!-- /wp:shortcode -->
+HTML
+				,
 				2,
 			),
 			'WPBakery CSS switches delimiters instead of encoding quotes' => array(
-				'<!-- wp:shortcode -->[vc_row css="' . $wpbakery_css
-					. '"][/vc_row]<!-- /wp:shortcode -->',
-				"<!-- wp:shortcode -->[vc_row css='" . $expected_wpbakery_css
-					. "'][/vc_row]<!-- /wp:shortcode -->",
+				<<<'HTML'
+<!-- wp:shortcode -->
+[vc_row css=".vc_custom_1 { background-image: url(https://old.example/media/hero.jpg?width=1200&height=800); }"]
+[/vc_row]
+<!-- /wp:shortcode -->
+HTML
+				,
+				<<<'HTML'
+<!-- wp:shortcode -->
+[vc_row css='.vc_custom_1 { background-image: url("https://new.example/media/hero.jpg?width=1200&height=800"); }']
+[/vc_row]
+<!-- /wp:shortcode -->
+HTML
+				,
 				1,
 			),
 		);
 	}
 
 	public function test_rewrites_block_html_and_shortcode_urls_in_one_pass(): void {
-		$input = '<!-- wp:image {"url":"https://old.example/block.jpg"} -->'
-			. '<figure><img src="https://old.example/block.jpg"></figure>'
-			. '<!-- /wp:image -->'
-			. '<!-- wp:shortcode -->'
-			. '[et_pb_image src="https://old.example/shortcode.jpg?width=800&height=600"]'
-			. '<!-- /wp:shortcode -->';
+		$input = <<<'HTML'
+<!-- wp:image {"url":"https://old.example/block.jpg"} -->
+<figure><img src="https://old.example/block.jpg"></figure>
+<!-- /wp:image -->
+<!-- wp:shortcode -->
+[et_pb_image src="https://old.example/shortcode.jpg?width=800&height=600"]
+<!-- /wp:shortcode -->
+HTML;
 		$processor = new BlockMarkupUrlProcessor( $input, 'https://old.example/' );
 
 		$this->assertSame( 3, $this->replace_old_base_url( $processor ) );
 		$this->assertSame(
-			'<!-- wp:image {"url":"https:\/\/new.example\/block.jpg"} -->'
-				. '<figure><img src="https://new.example/block.jpg"></figure>'
-				. '<!-- /wp:image -->'
-				. '<!-- wp:shortcode -->'
-				. '[et_pb_image src="https://new.example/shortcode.jpg?width=800&height=600"]'
-				. '<!-- /wp:shortcode -->',
+			<<<'HTML'
+<!-- wp:image {"url":"https:\/\/new.example\/block.jpg"} -->
+<figure><img src="https://new.example/block.jpg"></figure>
+<!-- /wp:image -->
+<!-- wp:shortcode -->
+[et_pb_image src="https://new.example/shortcode.jpg?width=800&height=600"]
+<!-- /wp:shortcode -->
+HTML
+			,
 			$processor->get_updated_html()
 		);
 	}
 
 	public function test_rewrites_direct_shortcode_urls_from_multiple_site_builders(): void {
-		$input = '[fusion_builder_container background_image="https://old.example/avada.jpg?width=1600&quality=80"]'
-			. '[vc_video link="https://old.example/wpbakery.mp4?autoplay=1&muted=1"][/vc_video]'
-			. '[themify_button link="https://old.example/themify?iframe=true&width=100%"]Button[/themify_button]'
-			. '[x_image href="https://old.example/cornerstone?slide=1&from=builder"]';
+		$input = <<<'HTML'
+[fusion_builder_container background_image="https://old.example/avada.jpg?width=1600&quality=80"]
+[vc_video link="https://old.example/wpbakery.mp4?autoplay=1&muted=1"][/vc_video]
+[themify_button link="https://old.example/themify?iframe=true&width=100%"]Button[/themify_button]
+[x_image href="https://old.example/cornerstone?slide=1&from=builder"]
+HTML;
 		$processor = new BlockMarkupUrlProcessor( $input, 'https://old.example/' );
 
 		$this->assertSame( 4, $this->replace_old_base_url( $processor ) );
 		$this->assertSame(
-			str_replace( 'https://old.example/', 'https://new.example/', $input ),
+			<<<'HTML'
+[fusion_builder_container background_image="https://new.example/avada.jpg?width=1600&quality=80"]
+[vc_video link="https://new.example/wpbakery.mp4?autoplay=1&muted=1"][/vc_video]
+[themify_button link="https://new.example/themify?iframe=true&width=100%"]Button[/themify_button]
+[x_image href="https://new.example/cornerstone?slide=1&from=builder"]
+HTML
+			,
 			$processor->get_updated_html()
 		);
 	}
 
 	public function test_preserves_text_node_span_across_incremental_shortcode_updates(): void {
-		$input = '[vc_row css="background:url(https://old.example/first.jpg?x=1&y=2);'
-			. 'mask:url(https://old.example/second.svg?x=3&y=4)"]';
+		$input = <<<'HTML'
+[vc_row css="
+	background: url(https://old.example/first.jpg?x=1&y=2);
+	mask: url(https://old.example/second.svg?x=3&y=4);
+"]
+HTML;
 		$processor    = new BlockMarkupUrlProcessor( $input, 'https://old.example/' );
 		$new_base_url = WPURL::parse( 'https://new-and-longer.example/migrated/' );
 
@@ -106,8 +127,13 @@ class BlockMarkupUrlProcessorShortcodeTest extends TestCase {
 		$this->assertSame( 'https://old.example/first.jpg?x=1&y=2', $processor->get_raw_url() );
 		$this->assertTrue( $processor->replace_base_url( $new_base_url ) );
 		$this->assertSame(
-			'[vc_row css=\'background:url("https://new-and-longer.example/migrated/first.jpg?x=1&y=2");'
-				. 'mask:url(https://old.example/second.svg?x=3&y=4)\']',
+			<<<'HTML'
+[vc_row css='
+	background: url("https://new-and-longer.example/migrated/first.jpg?x=1&y=2");
+	mask: url(https://old.example/second.svg?x=3&y=4);
+']
+HTML
+			,
 			$processor->get_updated_html()
 		);
 
@@ -115,29 +141,39 @@ class BlockMarkupUrlProcessorShortcodeTest extends TestCase {
 		$this->assertSame( 'https://old.example/second.svg?x=3&y=4', $processor->get_raw_url() );
 		$this->assertTrue( $processor->replace_base_url( $new_base_url ) );
 		$this->assertSame(
-			'[vc_row css=\'background:url("https://new-and-longer.example/migrated/first.jpg?x=1&y=2");'
-				. 'mask:url("https://new-and-longer.example/migrated/second.svg?x=3&y=4")\']',
+			<<<'HTML'
+[vc_row css='
+	background: url("https://new-and-longer.example/migrated/first.jpg?x=1&y=2");
+	mask: url("https://new-and-longer.example/migrated/second.svg?x=3&y=4");
+']
+HTML
+			,
 			$processor->get_updated_html()
 		);
 	}
 
 	public function test_only_interprets_shortcodes_in_html_text_nodes(): void {
-		$real_shortcode = '[button url="https://old.example/real?one=1&two=2"]';
-		$input = '<!-- wp:group {"metadata":{"pattern":'
-			. '"[button url=\"https://old.example/block-json\"]"}} -->'
-			. '<div data-code="[button url=\'https://old.example/html-attribute\']">'
-			. '[[button url="https://old.example/escaped"]]'
-			. $real_shortcode
-			. '</div><!-- /wp:group -->';
+		$input = <<<'HTML'
+<!-- wp:group {"metadata":{"pattern":"[button url=\"https://old.example/block-json\"]"}} -->
+<div data-code="[button url='https://old.example/html-attribute']">
+[[button url="https://old.example/escaped"]]
+[button url="https://old.example/real?one=1&two=2"]
+</div>
+<!-- /wp:group -->
+HTML;
 		$processor = new BlockMarkupUrlProcessor( $input, 'https://old.example/' );
 
 		$this->assertSame( 1, $this->replace_old_base_url( $processor ) );
 		$this->assertSame(
-			str_replace(
-				$real_shortcode,
-				'[button url="https://new.example/real?one=1&two=2"]',
-				$input
-			),
+			<<<'HTML'
+<!-- wp:group {"metadata":{"pattern":"[button url=\"https://old.example/block-json\"]"}} -->
+<div data-code="[button url='https://old.example/html-attribute']">
+[[button url="https://old.example/escaped"]]
+[button url="https://new.example/real?one=1&two=2"]
+</div>
+<!-- /wp:group -->
+HTML
+			,
 			$processor->get_updated_html()
 		);
 	}
