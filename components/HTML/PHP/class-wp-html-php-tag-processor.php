@@ -3806,6 +3806,57 @@ class WP_HTML_PHP_Tag_Processor {
 	}
 
 	/**
+	 * Returns the exact source bytes for the current text node.
+	 *
+	 * This bypasses HTML character-reference decoding and input-stream
+	 * normalization. It is intended for subclasses that hand the text node to
+	 * another parser whose grammar owns those bytes.
+	 *
+	 * @return string Raw text-node bytes, or an empty string on another token.
+	 */
+	protected function get_modifiable_text_raw(): string {
+		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+			return '';
+		}
+
+		if ( isset( $this->lexical_updates['modifiable text'] ) ) {
+			return $this->lexical_updates['modifiable text']->text;
+		}
+
+		return substr( $this->html, $this->text_starts_at, $this->text_length );
+	}
+
+	/**
+	 * Replaces the current text node with exact source bytes.
+	 *
+	 * Unlike set_modifiable_text(), this method performs no HTML escaping. A
+	 * subclass must only use it after a nested parser has preserved the text
+	 * node's grammar and changed a safe lexical span within it.
+	 *
+	 * @param string $raw_content Replacement source bytes.
+	 * @return bool Whether the text was able to update.
+	 */
+	protected function set_modifiable_text_raw( string $raw_content ): bool {
+		if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+			return false;
+		}
+
+		$replaced_length = isset( $this->lexical_updates['modifiable text'] )
+			? $this->lexical_updates['modifiable text']->length
+			: $this->text_length;
+
+		$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
+			$this->text_starts_at,
+			$replaced_length,
+			$raw_content
+		);
+		$this->text_length                        = strlen( $raw_content );
+		$this->token_length                       = $this->text_length;
+
+		return true;
+	}
+
+	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * For boolean attributes special handling is provided:
