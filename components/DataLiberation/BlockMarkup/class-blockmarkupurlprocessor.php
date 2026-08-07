@@ -3,8 +3,9 @@
 namespace WordPress\DataLiberation\BlockMarkup;
 
 use Rowbot\URL\URL;
-use WordPress\DataLiberation\URL\URLInTextProcessor;
+use WordPress\DataLiberation\Shortcode\ShortcodeProcessor;
 use WordPress\DataLiberation\URL\CSSURLProcessor;
+use WordPress\DataLiberation\URL\URLInTextProcessor;
 use WordPress\DataLiberation\URL\WPURL;
 
 /**
@@ -23,6 +24,11 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 	private $url_in_text_node_updated;
 	private $css_url_processor;
 	private $css_url_processor_updated;
+	private $text_node_uses_shortcode_processor;
+	private $shortcode_processor;
+	private $shortcode_css_url_processor;
+	private $shortcode_url_context;
+	private $shortcode_processor_updated;
 
 	/**
 	 * The list of names of URL-related HTML attributes that may be available on
@@ -47,6 +53,11 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 	}
 
 	public function get_updated_html(): string {
+		if ( $this->shortcode_processor_updated ) {
+			$this->set_modifiable_text_raw( $this->shortcode_processor->get_updated_text() );
+			$this->shortcode_processor_updated = false;
+		}
+
 		if ( $this->url_in_text_node_updated ) {
 			$this->set_modifiable_text( $this->url_in_text_processor->get_updated_text() );
 			$this->url_in_text_node_updated = false;
@@ -74,14 +85,18 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 	public function next_token(): bool {
 		$this->get_updated_html();
 
-		$this->raw_url                    = null;
-		$this->parsed_url                 = null;
-		$this->inspecting_html_attributes = null;
-		$this->url_in_text_processor      = null;
-		$this->css_url_processor          = null;
+		$this->raw_url                            = null;
+		$this->parsed_url                         = null;
+		$this->inspecting_html_attributes         = null;
+		$this->url_in_text_processor              = null;
+		$this->css_url_processor                  = null;
+		$this->text_node_uses_shortcode_processor = null;
+		$this->shortcode_processor                = null;
+		$this->shortcode_css_url_processor        = null;
+		$this->shortcode_url_context              = null;
 		/*
-		 * Do not reset url_in_text_node_updated or css_url_processor_updated – they're reset
-		 * in get_updated_html() which is called in parent::next_token().
+		 * Do not reset the update flags. They are reset in get_updated_html(),
+		 * which is called above before advancing the parent processor.
 		 */
 
 		return parent::next_token();
@@ -116,6 +131,32 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 			return false;
 		}
 
+		if ( null === $this->text_node_uses_shortcode_processor ) {
+			$raw_text        = $this->get_modifiable_text_raw();
+			$shortcode_probe = new ShortcodeProcessor( $raw_text );
+
+			$this->text_node_uses_shortcode_processor = $shortcode_probe->next_shortcode(
+				array( 'escaped' => false )
+			);
+
+			if ( $this->text_node_uses_shortcode_processor ) {
+				$this->shortcode_processor = new ShortcodeProcessor( $raw_text );
+			}
+		}
+
+		if ( $this->text_node_uses_shortcode_processor ) {
+			return $this->next_url_in_shortcode_text_node();
+		}
+
+		return $this->next_url_in_plain_text_node();
+	}
+
+	/**
+	 * Finds the next URL in an HTML text node without shortcode markup.
+	 *
+	 * @return bool Whether a URL was found.
+	 */
+	private function next_url_in_plain_text_node() {
 		if ( null === $this->url_in_text_processor ) {
 			/*
 			 * Use the base URL for URLs matched in text nodes. This is the only
@@ -134,6 +175,112 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		while ( $this->url_in_text_processor->next_url() ) {
 			$this->raw_url    = $this->url_in_text_processor->get_raw_url();
 			$this->parsed_url = $this->url_in_text_processor->get_parsed_url();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Finds the next URL while respecting shortcode token boundaries.
+	 *
+	 * Shortcode attributes may own another grammar, such as CSS. Process that
+	 * grammar before deciding whether the complete attribute is itself a URL.
+	 * Text between shortcodes retains the existing free-text URL matching.
+	 *
+	 * @return bool Whether a URL was found.
+	 */
+	private function next_url_in_shortcode_text_node() {
+		while ( true ) {
+			if ( null !== $this->shortcode_css_url_processor ) {
+				if ( $this->next_url_in_shortcode_css_attribute() ) {
+					return true;
+				}
+
+				$this->shortcode_css_url_processor = null;
+				$this->shortcode_url_context       = null;
+			}
+
+			if ( null !== $this->url_in_text_processor ) {
+				while ( $this->url_in_text_processor->next_url() ) {
+					$this->raw_url    = $this->url_in_text_processor->get_raw_url();
+					$this->parsed_url = $this->url_in_text_processor->get_parsed_url();
+
+					return true;
+				}
+
+				$this->url_in_text_processor = null;
+				$this->shortcode_url_context = null;
+
+				if ( ! $this->shortcode_processor->next_token() ) {
+					return false;
+				}
+			}
+
+			if ( ShortcodeProcessor::TOKEN_TEXT === $this->shortcode_processor->get_token_type() ) {
+				$text = $this->shortcode_processor->get_modifiable_text();
+				if ( null !== $text ) {
+					$this->url_in_text_processor = new URLInTextProcessor( $text, $this->base_url_string );
+					$this->shortcode_url_context = 'text';
+					continue;
+				}
+			} elseif (
+				ShortcodeProcessor::TOKEN_SHORTCODE === $this->shortcode_processor->get_token_type() &&
+				! $this->shortcode_processor->is_escaped() &&
+				! $this->shortcode_processor->is_tag_closer()
+			) {
+				while ( $this->shortcode_processor->next_attribute() ) {
+					$value = $this->shortcode_processor->get_attribute_value();
+					if ( null === $value ) {
+						continue;
+					}
+
+					$this->shortcode_css_url_processor = new CSSURLProcessor( $value );
+					if ( $this->next_url_in_shortcode_css_attribute() ) {
+						return true;
+					}
+					$this->shortcode_css_url_processor = null;
+
+					$parsed_url = WPURL::parse( $value );
+					if ( false === $parsed_url ) {
+						continue;
+					}
+
+					$this->raw_url               = $value;
+					$this->parsed_url            = $parsed_url;
+					$this->shortcode_url_context = 'attribute';
+
+					return true;
+				}
+			}
+
+			if ( ! $this->shortcode_processor->next_token() ) {
+				return false;
+			}
+		}
+	}
+
+	/**
+	 * Advances through CSS URLs in the current shortcode attribute.
+	 *
+	 * @return bool Whether a URL was found.
+	 */
+	private function next_url_in_shortcode_css_attribute() {
+		while ( $this->shortcode_css_url_processor->next_url() ) {
+			if ( $this->shortcode_css_url_processor->is_data_uri() ) {
+				continue;
+			}
+
+			$raw_url    = $this->shortcode_css_url_processor->get_raw_url();
+			$parsed_url = WPURL::parse( $raw_url, $this->base_url_string );
+			if ( false === $parsed_url ) {
+				continue;
+			}
+
+			$this->raw_url               = $raw_url;
+			$this->parsed_url            = $parsed_url;
+			$this->shortcode_url_context = 'css-attribute';
 
 			return true;
 		}
@@ -373,6 +520,10 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 				return $this->set_block_attribute_value( $raw_url );
 
 			case '#text':
+				if ( $this->text_node_uses_shortcode_processor ) {
+					return $this->set_url_in_shortcode_text_node( $raw_url );
+				}
+
 				if ( null === $this->url_in_text_processor ) {
 					return false;
 				}
@@ -380,6 +531,40 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 
 				return $this->url_in_text_processor->set_raw_url( $raw_url );
 		}
+	}
+
+	/**
+	 * Replaces the current URL through the nested shortcode grammar.
+	 *
+	 * @param string $raw_url Replacement URL.
+	 * @return bool Whether the URL was set.
+	 */
+	private function set_url_in_shortcode_text_node( $raw_url ) {
+		if ( 'attribute' === $this->shortcode_url_context ) {
+			$updated = $this->shortcode_processor->set_attribute_value( $raw_url );
+		} elseif ( 'css-attribute' === $this->shortcode_url_context ) {
+			$updated = $this->shortcode_css_url_processor->set_raw_url( $raw_url );
+			if ( $updated ) {
+				$updated = $this->shortcode_processor->set_attribute_value(
+					$this->shortcode_css_url_processor->get_updated_css()
+				);
+			}
+		} elseif ( 'text' === $this->shortcode_url_context ) {
+			$updated = $this->url_in_text_processor->set_raw_url( $raw_url );
+			if ( $updated ) {
+				$updated = $this->shortcode_processor->set_modifiable_text(
+					$this->url_in_text_processor->get_updated_text()
+				);
+			}
+		} else {
+			return false;
+		}
+
+		if ( $updated ) {
+			$this->shortcode_processor_updated = true;
+		}
+
+		return $updated;
 	}
 
 	/**
@@ -398,6 +583,10 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		if ( ! $base_url ) {
 			return false;
 		}
+		$is_shortcode_attribute_url = (
+			'#text' === $this->get_token_type() &&
+			in_array( $this->shortcode_url_context, array( 'attribute', 'css-attribute' ), true )
+		);
 
 		$result = WPURL::replace_base_url(
 			$this->get_parsed_url(),
@@ -407,12 +596,12 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 				'raw_url'      => $this->get_raw_url(),
 				'is_relative'  => (
 					/**
-					 * In text nodes, the only detected URLs are absolute. The tricky part
-					 * is they may start without a protocol, e.g. `wordpress.org`. Therefore,
-					 * we need to tell WPURL::replace_base_url what's our intention regarding
-					 * the URL's relativity. It cannot just infer it from the URL itself.
+					 * Free-text URLs are treated as absolute even when they omit a protocol,
+					 * as in `wordpress.org`. Shortcode attributes are structured regions,
+					 * so relative CSS URLs inside them retain their relative form just like
+					 * URLs in HTML and block attributes.
 					 */
-					'#text' !== $this->get_token_type() &&
+					( '#text' !== $this->get_token_type() || $is_shortcode_attribute_url ) &&
 					! WPURL::can_parse( $this->get_raw_url() )
 				),
 			)
@@ -422,9 +611,7 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 			return false;
 		}
 
-		$this->set_url( $result . '', $result->new_url );
-
-		return true;
+		return $this->set_url( $result . '', $result->new_url );
 	}
 
 	/**
