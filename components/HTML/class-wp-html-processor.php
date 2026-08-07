@@ -1,4 +1,4 @@
-<?php // phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+<?php
 /**
  * HTML API: WP_HTML_Processor class
  *
@@ -140,7 +140,7 @@
  * @see WP_HTML_Tag_Processor
  * @see https://html.spec.whatwg.org/
  */
-class WP_HTML_PHP_Processor extends WP_HTML_Tag_Processor {
+class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * The maximum number of bookmarks allowed to exist at any given time.
 	 *
