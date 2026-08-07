@@ -70,6 +70,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Ignore historical WASM extension tags when calculating package releases.
           git tag --list 'wp-native-apis-wasm-*' | xargs -r git tag -d
           $(composer global config bin-dir --absolute)/monorepo-builder release v${{ steps.semver.outputs.new_version }} 
 
