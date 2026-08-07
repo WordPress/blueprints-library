@@ -1,4 +1,4 @@
-<?php // phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+<?php
 
 namespace WordPress\DataLiberation\URL;
 
@@ -106,7 +106,7 @@ use WP_HTML_Text_Replacement;
  *
  * This reflects how URLs actually appear in text blocks where whitespace often terminates a link.
  */
-class PHPURLInTextProcessor {
+class URLInTextProcessor {
 
 	private $text;
 	private $url_starts_at;

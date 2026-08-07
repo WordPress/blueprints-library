@@ -1,4 +1,4 @@
-<?php // phpcs:disable WordPress.Files.FileName.InvalidClassFileName
+<?php
 
 namespace WordPress\XML;
 
@@ -341,7 +341,7 @@ use function WordPress\Encoding\utf8_ord;
  *
  * @since WP_VERSION
  */
-class PHPXMLProcessor {
+class XMLProcessor {
 	/**
 	 * The maximum number of bookmarks allowed to exist at
 	 * any given time.
