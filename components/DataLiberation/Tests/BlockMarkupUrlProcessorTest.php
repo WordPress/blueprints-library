@@ -306,6 +306,76 @@ HTML
 	}
 
 	/**
+	 * @dataProvider provider_replace_base_url_in_structured_values
+	 */
+	public function test_replace_base_url_in_structured_values( $markup, $expected ) {
+		$p = new BlockMarkupUrlProcessor( $markup, 'http://old.example/media' );
+
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->replace_base_url( 'https://new.example/assets' ) );
+		$this->assertSame( $expected, $p->get_updated_html() );
+	}
+
+	public static function provider_replace_base_url_in_structured_values() {
+		return array(
+			'HTML attribute' => array(
+				'<a href="http://old.example/media/a/./b/../%7e//file?raw=%2f+%20#F%72ag"></a>',
+				'<a href="https://new.example/assets/a/./b/../%7e//file?raw=%2f+%20#F%72ag"></a>',
+			),
+			'CSS URL' => array(
+				'<div style="background:url(http://old.example/media/file?raw=%2f+%20#F%72ag)"></div>',
+				'<div style="background:url(&quot;https://new.example/assets/file?raw=%2f+%20#F%72ag&quot;)"></div>',
+			),
+			'block attribute' => array(
+				'<!-- wp:image {"url":"http:\/\/old.example\/%6dedia\/file?raw=%2f+%20#F%72ag"} /-->',
+				'<!-- wp:image {"url":"https:\/\/new.example\/assets\/file?raw=%2f+%20#F%72ag"} /-->',
+			),
+		);
+	}
+
+	public function test_replace_base_url_updates_parsed_url_without_a_source_replacement() {
+		$markup = '<A HREF=\'//old.example/media/file\'></A>';
+		$p      = new BlockMarkupUrlProcessor( $markup, 'http://old.example/media' );
+
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->replace_base_url( 'https://old.example/media' ) );
+		$this->assertSame( 'https://old.example/media/file', $p->get_parsed_url()->toString() );
+		$this->assertSame( $markup, $p->get_updated_html() );
+	}
+
+	public function test_replace_base_url_rewrites_later_css_urls_after_flushing() {
+		$markup = '<div style="background:url(http://very-long-old.example/very/long/base/one),url(http://very-long-old.example/very/long/base/two)"></div>';
+		$p      = new BlockMarkupUrlProcessor( $markup, 'http://very-long-old.example/very/long/base' );
+
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->replace_base_url( 'https://n.example/x' ) );
+		$p->get_updated_html();
+
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->replace_base_url( 'https://n.example/x' ) );
+		$this->assertSame(
+			'<div style="background:url(&quot;https://n.example/x/one&quot;),url(&quot;https://n.example/x/two&quot;)"></div>',
+			$p->get_updated_html()
+		);
+	}
+
+	public function test_set_url_replaces_a_materialized_css_base_update() {
+		$p = new BlockMarkupUrlProcessor(
+			'<div style="background:url(http://old.example/media/first),url(http://old.example/media/second)"></div>',
+			'http://old.example/media'
+		);
+
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->next_url() );
+		$this->assertTrue( $p->replace_base_url( 'https://new.example/assets' ) );
+		$this->assertTrue( $p->set_url( 'https://other.example/file', WPURL::parse( 'https://other.example/file' ) ) );
+		$this->assertSame(
+			'<div style="background:url(http://old.example/media/first),url(&quot;https://other.example/file&quot;)"></div>',
+			$p->get_updated_html()
+		);
+	}
+
+	/**
 	 * @dataProvider provider_test_css_url_detection
 	 */
 	public function test_detects_css_urls_in_style_attribute( $expected_url, $markup, $base_url = 'https://example.com' ) {

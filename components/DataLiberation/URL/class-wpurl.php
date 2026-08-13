@@ -230,9 +230,158 @@ class WPURL {
 				$converted_url->was_relative         = true;
 				$converted_url->new_raw_relative_url = $relative_url;
 			}
+
+			$raw_url_base_replacements = self::create_raw_url_base_replacements(
+				$options['raw_url'],
+				$url,
+				$old_base_url,
+				$new_base_url
+			);
+			if ( null !== $raw_url_base_replacements ) {
+				$updated_raw_url = $options['raw_url'];
+				foreach ( array_reverse( $raw_url_base_replacements ) as $replacement ) {
+					$updated_raw_url = substr_replace(
+						$updated_raw_url,
+						$replacement['replacement'],
+						$replacement['start'],
+						$replacement['length']
+					);
+				}
+
+				$updated_raw_url = self::parse( $updated_raw_url, $new_base_url->toString() );
+				$expected_url    = self::parse( (string) $converted_url, $new_base_url->toString() );
+				if (
+					false !== $updated_raw_url &&
+					false !== $expected_url &&
+					$updated_raw_url->toString() === $expected_url->toString()
+				) {
+					$converted_url->raw_url_base_replacements = $raw_url_base_replacements;
+					$converted_url->new_url                   = $updated_raw_url;
+				}
+			}
 		}
 
 		return $converted_url;
+	}
+
+	/**
+	 * Creates decoded-URL base replacements using slash-delimited path segments.
+	 *
+	 * @return array<int, array{start: int, length: int, replacement: string}>|null
+	 */
+	private static function create_raw_url_base_replacements( $raw_url, $url, $old_base_url, $new_base_url ) {
+		$source_url = self::parse( $raw_url, $old_base_url->toString() );
+		if (
+			false === $source_url ||
+			$source_url->toString() !== $url->toString() ||
+			! is_child_url_of( $source_url, $old_base_url )
+		) {
+			return null;
+		}
+
+		$is_absolute          = 1 === preg_match( '/\A([A-Za-z][A-Za-z0-9+.\-]*):\/\//', $raw_url, $absolute_match );
+		$is_protocol_relative = 0 === strpos( $raw_url, '//' );
+		$is_path_relative     = ! $is_absolute && ! $is_protocol_relative && 0 !== strpos( $raw_url, '/' );
+		if (
+			( $is_absolute && 'file' === strtolower( $absolute_match[1] ) ) ||
+			( ! $is_absolute && 1 === preg_match( '/\A[A-Za-z][A-Za-z0-9+.\-]*:/', $raw_url ) ) ||
+			( $is_path_relative && ( 0 === strpos( $raw_url, './' ) || 0 === strpos( $raw_url, '../' ) ) )
+		) {
+			return null;
+		}
+
+		$path_end     = strcspn( $raw_url, '?#' );
+		$path_start   = 0;
+		$replacements = array();
+		if ( $is_absolute || $is_protocol_relative ) {
+			$scheme_end      = $is_absolute ? strpos( $raw_url, ':' ) : null;
+			$authority_start = $is_absolute ? $scheme_end + 3 : 2;
+			$path_start      = $authority_start + strcspn( $raw_url, '/?#', $authority_start );
+			if ( $authority_start === $path_start ) {
+				return null;
+			}
+
+			$authority   = substr( $raw_url, $authority_start, $path_start - $authority_start );
+			$userinfo_at = strrpos( $authority, '@' );
+			$host_start  = $authority_start + ( false === $userinfo_at ? 0 : $userinfo_at + 1 );
+			$raw_host    = substr( $raw_url, $host_start, $path_start - $host_start );
+			if ( $is_absolute && $url->protocol !== $new_base_url->protocol ) {
+				$replacements[] = array(
+					'start'       => 0,
+					'length'      => $scheme_end,
+					'replacement' => rtrim( $new_base_url->protocol, ':' ),
+				);
+			}
+			if (
+				$url->host !== $new_base_url->host ||
+				(
+					$url->protocol !== $new_base_url->protocol &&
+					1 === preg_match( '/:\d+$/', $raw_host )
+				)
+			) {
+				$replacements[] = array(
+					'start'       => $host_start,
+					'length'      => $path_start - $host_start,
+					'replacement' => $new_base_url->host,
+				);
+			}
+		}
+
+		if ( $old_base_url->pathname !== $new_base_url->pathname ) {
+			$raw_path = substr( $raw_url, $path_start, $path_end - $path_start );
+
+			/*
+			 * Consume the same number of slash-delimited segments as the parsed base.
+			 * The caller rejects spellings where those segments do not produce the mapped URL.
+			 */
+			$source_segment_count = substr_count( rtrim( $old_base_url->pathname, '/' ), '/' );
+			if ( $is_path_relative ) {
+				$source_segment_count = (
+					'' === $raw_path ||
+					0 === $source_segment_count ||
+					'/' === substr( $old_base_url->pathname, -1 )
+				) ? 0 : 1;
+			}
+
+			$raw_path_segments = explode( '/', $raw_path );
+			$segments_to_use   = $source_segment_count + ( 0 === strpos( $raw_path, '/' ) ? 1 : 0 );
+			if ( $segments_to_use > count( $raw_path_segments ) ) {
+				return null;
+			}
+			$source_length = strlen( implode( '/', array_slice( $raw_path_segments, 0, $segments_to_use ) ) );
+
+			$unmatched_path = substr( $raw_path, $source_length );
+			$target_path    = '/' === $new_base_url->pathname ? '' : rtrim( $new_base_url->pathname, '/' );
+			if (
+				'' !== $target_path &&
+				(
+					( '' !== $unmatched_path && '/' !== $unmatched_path[0] ) ||
+					( '' === $unmatched_path && $path_end < strlen( $raw_url ) ) ||
+					( $is_path_relative && '' === $raw_path && '/' === substr( $old_base_url->pathname, -1 ) )
+				)
+			) {
+				$target_path .= '/';
+			} elseif (
+				'' === $unmatched_path &&
+				'' === $target_path &&
+				( ! $is_path_relative || '' === $raw_path )
+			) {
+				$target_path = '/';
+			}
+			$replacements[] = array(
+				'start'       => $path_start,
+				'length'      => $source_length,
+				'replacement' => $target_path,
+			);
+		}
+
+		foreach ( $replacements as $replacement ) {
+			if ( false !== strpos( substr( $raw_url, $replacement['start'], $replacement['length'] ), '\\' ) ) {
+				return null;
+			}
+		}
+
+		return $replacements;
 	}
 
 	/**

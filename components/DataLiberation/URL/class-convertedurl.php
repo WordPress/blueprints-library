@@ -22,6 +22,17 @@ class ConvertedUrl {
 	/** @var string|null */
 	public $new_raw_relative_url;
 
+	/**
+	 * Base-component replacements at ascending decoded-URL byte offsets.
+	 *
+	 * Null means the source spelling could not be aligned safely. An empty array
+	 * means the mapped URL needs no source-byte changes. Apply non-empty entries
+	 * from last to first so earlier offsets remain valid.
+	 *
+	 * @var array<int, array{start: int, length: int, replacement: string}>|null
+	 */
+	public $raw_url_base_replacements = null;
+
 	/** @var bool */
 	public $was_relative = false;
 

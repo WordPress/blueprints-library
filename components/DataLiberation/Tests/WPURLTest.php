@@ -87,4 +87,158 @@ class WPURLTest extends TestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider provider_replace_base_url_raw_url_base_replacements
+	 */
+	public function test_replace_base_url_returns_raw_url_base_replacements(
+		$raw_url,
+		$old_base_url,
+		$new_base_url,
+		$expected_raw_url,
+		$expected_replacement_count = null,
+		$include_raw_url = true
+	) {
+		$url     = WPURL::parse( $raw_url, $old_base_url );
+		$options = array(
+			'old_base_url' => $old_base_url,
+			'new_base_url' => $new_base_url,
+			'is_relative'  => ! WPURL::can_parse( $raw_url ),
+		);
+		if ( $include_raw_url ) {
+			$options['raw_url'] = $raw_url;
+		}
+		$result = WPURL::replace_base_url(
+			$url,
+			$options
+		);
+
+		$this->assertNotFalse( $result );
+		if ( null === $expected_raw_url ) {
+			$this->assertNull( $result->raw_url_base_replacements );
+			return;
+		}
+
+		$this->assertNotNull( $result->raw_url_base_replacements );
+		if ( null !== $expected_replacement_count ) {
+			$this->assertCount( $expected_replacement_count, $result->raw_url_base_replacements );
+		}
+		foreach ( array_reverse( $result->raw_url_base_replacements ) as $replacement ) {
+			$raw_url = substr_replace(
+				$raw_url,
+				$replacement['replacement'],
+				$replacement['start'],
+				$replacement['length']
+			);
+		}
+		$this->assertSame( $expected_raw_url, $raw_url );
+		$this->assertSame(
+			WPURL::parse( $expected_raw_url, $new_base_url )->toString(),
+			$result->new_url->toString()
+		);
+	}
+
+	public static function provider_replace_base_url_raw_url_base_replacements() {
+		return array(
+			'absolute'          => array(
+				'http://old.example/media/file?x=1#section',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'https://new.example/assets/file?x=1#section',
+			),
+			'protocol-relative' => array(
+				'//old.example/media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'//new.example/assets/file',
+			),
+			'root-relative'     => array(
+				'/media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'/assets/file',
+			),
+			'percent-encoded source segment' => array(
+				'/m%65dia/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'/assets/file',
+			),
+			'path-relative'     => array(
+				'file',
+				'http://old.example/',
+				'https://new.example/assets/',
+				'/assets/file',
+			),
+			'query-only'        => array(
+				'?x=1',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'/assets/?x=1',
+			),
+			'empty relative URL' => array(
+				'',
+				'http://old.example/media/',
+				'https://new.example/assets/',
+				'/assets/',
+			),
+			'exact absolute base' => array(
+				'http://old.example/media',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'https://new.example/assets',
+			),
+			'explicit default port' => array(
+				'http://old.example:80/media/file',
+				'http://old.example/media',
+				'https://old.example/assets',
+				'https://old.example/assets/file',
+			),
+			'no source changes' => array(
+				'http://OLD.example/media/%7euser',
+				'http://old.example/media',
+				'http://old.example/media',
+				'http://OLD.example/media/%7euser',
+				0,
+			),
+			'file URL' => array(
+				'file://old.example/media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				null,
+			),
+			'explicit scheme without slashes' => array(
+				'http:media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				null,
+			),
+			'parent-directory-relative path' => array(
+				'../file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				null,
+			),
+			'backslashes in mapped components' => array(
+				'http://old.example\\media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				null,
+			),
+			'encoded slash at the mapped boundary' => array(
+				'/media%2Fa',
+				'http://old.example/media',
+				'https://new.example/',
+				null,
+			),
+			'raw URL not supplied' => array(
+				'http://old.example/media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				null,
+				null,
+				false,
+			),
+		);
+	}
 }
