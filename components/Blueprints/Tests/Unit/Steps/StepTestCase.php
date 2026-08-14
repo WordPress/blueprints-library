@@ -64,7 +64,13 @@ class StepTestCase extends TestCase {
 			;
 		}
 
-		$blueprint = array( 'version' => 2 );
+		$blueprint = array(
+			'version'   => 2,
+			'constants' => array(
+				'SQLITE_JOURNAL_MODE'                           => 'DELETE',
+				'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS' => true,
+			),
+		);
 		if ( PHP_VERSION_ID < 70400 ) {
 			$blueprint['wordpressVersion'] = '6.6.2';
 		}
