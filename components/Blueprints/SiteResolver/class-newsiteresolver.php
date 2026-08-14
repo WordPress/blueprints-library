@@ -7,6 +7,7 @@ use WordPress\Blueprints\DataReference\File;
 use WordPress\Blueprints\Exception\BlueprintExecutionException;
 use WordPress\Blueprints\Progress\Tracker;
 use WordPress\Blueprints\Runtime;
+use WordPress\Blueprints\Steps\DefineConstantsStep;
 use WordPress\Blueprints\VersionStrings\VersionConstraint;
 use WordPress\HttpClient\Client;
 use WordPress\HttpClient\Request;
@@ -71,10 +72,6 @@ class NewSiteResolver {
 
 		// If SQLite integration zip provided, unzip into appropriate folder.
 		if ( 'sqlite' === $runtime->get_configuration()->get_database_engine() ) {
-			/*
-			 * @TODO: Ensure DB_NAME gets defined in wp-config.php before installing the SQLite plugin.
-			 */
-
 			$progress['resolve_assets']->setCaption( 'Downloading SQLite integration plugin' );
 			$resolved = $runtime->resolve( $assets['sqlite-integration'] );
 			if ( ! $resolved instanceof File ) {
@@ -114,6 +111,13 @@ class NewSiteResolver {
 				} else {
 					throw new BlueprintExecutionException( 'Neither wp-config.php, nor wp-config-sample.php was found in the WordPress archive.' );
 				}
+			}
+
+			// Database configuration constants must be available when core installation opens its connection.
+			$blueprint = $runtime->get_blueprint();
+			if ( ! empty( $blueprint['constants'] ) && is_array( $blueprint['constants'] ) ) {
+				$define_constants_step = new DefineConstantsStep( $blueprint['constants'] );
+				$define_constants_step->run( $runtime, $progress['install_wordpress'] );
 			}
 
 			// Perform installation using WP-CLI.

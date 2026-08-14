@@ -60,6 +60,9 @@ class DefineConstantsStepTest extends StepTestCase {
 <?php
 
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 
 /* That's all, stop editing! */
@@ -81,6 +84,9 @@ PHP
 <?php
 
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 
 
@@ -104,6 +110,9 @@ PHP
 <?php
 
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 
 /** Sets up WordPress vars and included files. */
@@ -123,6 +132,9 @@ PHP
 <?php
 
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 
 
@@ -143,6 +155,9 @@ PHP
 			<<<'PHP'
 <?php
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 require_once ABSPATH . 'wp-settings.php';
 PHP
@@ -159,6 +174,9 @@ PHP
 			<<<'PHP'
 <?php
 $table_prefix = 'wp_';
+define( 'DB_NAME', 'database_name_here' );
+define( 'SQLITE_JOURNAL_MODE', 'DELETE' );
+define( 'WP_SQLITE_UNSAFE_ENABLE_UNSUPPORTED_VERSIONS', true );
 define( 'WP_DEBUG', true );
 
 define( 'WP_MEMORY_LIMIT', '256M' );

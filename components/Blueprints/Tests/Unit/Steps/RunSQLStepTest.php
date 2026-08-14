@@ -146,7 +146,7 @@ PHP
 	 * Test handling SQL errors
 	 */
 	public function testHandleSQLErrors() {
-		$sql = "CREATE TABLE test_table (id INT PRIMARY KEY); INSERT INTO nonexistent_table VALUES (1);";
+		$sql = "CREATE TABLE test_table (id INT PRIMARY KEY);\nINSERT INTO nonexistent_table VALUES (1);";
 		$this->execution_context->put_contents( 'test.sql', $sql );
 
 		$step = new RunSqlStep( DataReference::create( './test.sql', [
