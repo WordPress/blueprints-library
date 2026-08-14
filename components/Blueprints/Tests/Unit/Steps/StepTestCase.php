@@ -79,7 +79,7 @@ class StepTestCase extends TestCase {
 			->set_blueprint( new AbsoluteLocalPath( wp_join_unix_paths( $this->execution_context_path, 'blueprint.json' ) ) )
 			->set_database_engine( 'sqlite' )
 			->set_sqlite_integration_plugin(
-				DataReference::create( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.2.2.23.zip' )
+				DataReference::create( 'https://downloads.wordpress.org/plugin/sqlite-database-integration.3.0.0.zip' )
 			)
 			->set_target_site_url( 'http://127.0.0.1:2456' );
 
