@@ -331,8 +331,9 @@ class WPURL {
 			$raw_path = substr( $raw_url, $path_start, $path_end - $path_start );
 
 			/*
-			 * Consume the same number of slash-delimited segments as the parsed base.
-			 * The caller rejects spellings where those segments do not produce the mapped URL.
+			 * Propose a boundary after the same number of slash-delimited segments as the
+			 * parsed base. Parsing that prefix validates its normalized path. Split before
+			 * decoding so "%2F" cannot become a delimiter.
 			 */
 			$source_segment_count = substr_count( rtrim( $old_base_url->pathname, '/' ), '/' );
 			if ( $is_path_relative ) {
@@ -349,6 +350,20 @@ class WPURL {
 				return null;
 			}
 			$source_length = strlen( implode( '/', array_slice( $raw_path_segments, 0, $segments_to_use ) ) );
+
+			$source_prefix_url = self::parse(
+				substr( $raw_url, 0, $path_start + $source_length ),
+				$old_base_url->toString()
+			);
+			if (
+				false === $source_prefix_url ||
+				$source_prefix_url->protocol !== $old_base_url->protocol ||
+				$source_prefix_url->host !== $old_base_url->host ||
+				array_map( 'rawurldecode', explode( '/', rtrim( $source_prefix_url->pathname, '/' ) ) ) !==
+					array_map( 'rawurldecode', explode( '/', rtrim( $old_base_url->pathname, '/' ) ) )
+			) {
+				return null;
+			}
 
 			$unmatched_path = substr( $raw_path, $source_length );
 			$target_path    = '/' === $new_base_url->pathname ? '' : rtrim( $new_base_url->pathname, '/' );

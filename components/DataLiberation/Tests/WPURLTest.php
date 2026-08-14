@@ -231,6 +231,18 @@ class WPURLTest extends TestCase {
 				'https://new.example/',
 				null,
 			),
+			'parent segment hides a different lexical base' => array(
+				'http://old.example/x/../media/file',
+				'http://old.example/media',
+				'http://old.example/foo/media',
+				null,
+			),
+			'encoded slash and dot hide different lexical segments' => array(
+				'/a%2Fb/./file',
+				'http://old.example/a/b',
+				'https://new.example/assets',
+				null,
+			),
 			'raw URL not supplied' => array(
 				'http://old.example/media/file',
 				'http://old.example/media',
