@@ -351,6 +351,11 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		if ( null === $this->raw_url ) {
 			return false;
 		}
+		if ( $raw_url === $this->raw_url ) {
+			// A relative URL may resolve against a new base without changing its source spelling.
+			$this->parsed_url = $parsed_url;
+			return true;
+		}
 		$this->raw_url    = $raw_url;
 		$this->parsed_url = $parsed_url;
 		switch ( parent::get_token_type() ) {
@@ -384,14 +389,15 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 
 	/**
 	 * Rewrites the components of the currently matched URL from ones
-	 * provided in $from_url to ones specified in $to_url.
+	 * provided in $base_url to ones specified in $to_url.
 	 *
-	 * It preserves the relative nature of the matched URL.
+	 * Structured values retain unmatched decoded URL bytes and their relative
+	 * nature. Text nodes retain their complete-value behavior.
 	 *
 	 * @TODO: Should this method live in this class? It's specific to the import process
 	 *        and the URL rewriting logic and has knowledge about the quirks of detecting
-	 *        relative URLs in text nodes. On the other hand, the detection is performed
-	 *        by this WPURL_In_Text_Processor class so maybe the two do go hand in hand?
+	 *        relative URLs in text nodes. On the other hand, URLInTextProcessor performs
+	 *        that detection, so maybe the two do go hand in hand?
 	 */
 	public function replace_base_url( $to_url, $base_url = null ) {
 		$base_url = $base_url ?? $this->base_url_object;
@@ -421,10 +427,14 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		if ( false === $result ) {
 			return false;
 		}
+		if ( '#text' === parent::get_token_type() ) {
+			return $this->set_url( (string) $result, $result->new_url );
+		}
+		if ( null === $result->new_source_preserving_raw_url ) {
+			return false;
+		}
 
-		$this->set_url( $result . '', $result->new_url );
-
-		return true;
+		return $this->set_url( $result->new_source_preserving_raw_url, $result->new_url );
 	}
 
 	/**

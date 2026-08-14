@@ -1615,7 +1615,7 @@ CSS;
 	}
 
 	/**
-	 * Tests that multiple URL values can be updated in the same CSS.
+	 * Tests that multiple URL values can be updated and the last update to a token wins.
 	 */
 	public function test_set_token_value_multiple_urls(): void {
 		$css = 'background: url(old1.jpg); border-image: url(old2.png);';
@@ -1628,6 +1628,7 @@ CSS;
 				if ( 1 === $url_count ) {
 					$processor->set_token_value( 'new1.jpg' );
 				} elseif ( 2 === $url_count ) {
+					$processor->set_token_value( 'discarded.png' );
 					$processor->set_token_value( 'new2.png' );
 				}
 			}

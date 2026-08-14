@@ -888,23 +888,36 @@ class CSSProcessor {
 		// Only URL and string tokens are currently supported.
 		switch ( $this->token_type ) {
 			case self::TOKEN_URL:
-				$this->lexical_updates[] = array(
-					'start'  => $this->token_value_starts_at,
-					'length' => $this->token_value_length,
-					'text'   => $this->escape_url_value( $new_value ),
-				);
-				return true;
+				$update_start  = $this->token_value_starts_at;
+				$update_length = $this->token_value_length;
+				break;
 			case self::TOKEN_STRING:
-				$this->lexical_updates[] = array(
-					'start'  => $this->token_starts_at,
-					'length' => $this->token_length,
-					'text'   => $this->escape_url_value( $new_value ),
-				);
-				return true;
+				$update_start  = $this->token_starts_at;
+				$update_length = $this->token_length;
+				break;
 			default:
 				_doing_it_wrong( __METHOD__, 'set_token_value() only supports URL and string tokens. Got token type: ' . $this->token_type, '1.0.0' );
 				return false;
 		}
+
+		$escaped_value     = $this->escape_url_value( $new_value );
+		$last_update_index = count( $this->lexical_updates ) - 1;
+		// A later write to the current token supersedes its pending update.
+		if (
+			0 <= $last_update_index &&
+			$update_start === $this->lexical_updates[ $last_update_index ]['start'] &&
+			$update_length === $this->lexical_updates[ $last_update_index ]['length']
+		) {
+			$this->lexical_updates[ $last_update_index ]['text'] = $escaped_value;
+			return true;
+		}
+
+		$this->lexical_updates[] = array(
+			'start'  => $update_start,
+			'length' => $update_length,
+			'text'   => $escaped_value,
+		);
+		return true;
 	}
 
 	/**

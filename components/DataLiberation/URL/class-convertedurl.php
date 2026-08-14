@@ -22,6 +22,14 @@ class ConvertedUrl {
 	/** @var string|null */
 	public $new_raw_relative_url;
 
+	/**
+	 * Updated decoded URL with only its base spelling changed, or null when the
+	 * source spelling could not be aligned safely.
+	 *
+	 * @var string|null
+	 */
+	public $new_source_preserving_raw_url = null;
+
 	/** @var bool */
 	public $was_relative = false;
 

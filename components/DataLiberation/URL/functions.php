@@ -8,8 +8,11 @@ use WordPress\DataLiberation\BlockMarkup\BlockMarkupUrlProcessor;
 require_once __DIR__ . '/class-urlrewritecache.php';
 
 /**
- * Migrate URLs in post content. See WPRewriteUrlsTests for
- * specific examples. TODO: A better description.
+ * Rewrites mapped URLs in post content.
+ *
+ * Structured values change only the mapped base in the decoded URL. The existing
+ * HTML, CSS, or block serializer still applies its normal escaping to the complete
+ * value. Text-node URLs retain their existing complete-value behavior.
  *
  * Example:
  *
@@ -68,48 +71,28 @@ function wp_rewrite_urls( $options ) {
 
 	$p = new BlockMarkupUrlProcessor( $options['block_markup'], $options['base_url'] );
 	while ( $p->next_url() ) {
-		$token_type = $p->get_token_type();
-		$raw_url    = $p->get_raw_url();
-		$cache_key  = $mapping_cache_key . "\0" . $token_type . "\0" . $raw_url;
+		$cache_key = $mapping_cache_key . "\0" . $p->get_parsed_url()->toString();
 
-		$cached = $rewrite_cache->get( $cache_key );
-		if ( null !== $cached ) {
-			if ( false !== $cached ) {
-				$p->set_url( $cached['raw_url'], $cached['parsed_url'] );
+		$mapping_index = $rewrite_cache->get( $cache_key );
+		if ( null === $mapping_index ) {
+			$mapping_index = false;
+			foreach ( $url_mapping as $index => $mapping ) {
+				if ( is_child_url_of( $p->get_parsed_url(), $mapping['from_url'] ) ) {
+					$mapping_index = $index;
+					break;
+				}
 			}
-			continue;
+			$rewrite_cache->set( $cache_key, $mapping_index );
 		}
 
-		$parsed_url = $p->get_parsed_url();
-		$converted  = false;
-		foreach ( $url_mapping as $mapping ) {
-			if ( is_child_url_of( $parsed_url, $mapping['from_url'] ) ) {
-				$converted = WPURL::replace_base_url(
-					$parsed_url,
-					array(
-						'old_base_url' => $base_url_object,
-						'new_base_url' => $mapping['to_url'],
-						'raw_url'      => $raw_url,
-						'is_relative'  => (
-							'#text' !== $token_type &&
-							! WPURL::can_parse( $raw_url )
-						),
-					)
-				);
-				break;
-			}
-		}
-
-		$cache_value = false;
-		if ( false !== $converted ) {
-			$cache_value = array(
-				'raw_url'    => (string) $converted,
-				'parsed_url' => $converted->new_url,
+		if ( false !== $mapping_index ) {
+			$p->replace_base_url(
+				$url_mapping[ $mapping_index ]['to_url'],
+				'#text' === $p->get_token_type()
+					? $base_url_object
+					: $url_mapping[ $mapping_index ]['from_url']
 			);
-			$p->set_url( $cache_value['raw_url'], $cache_value['parsed_url'] );
 		}
-
-		$rewrite_cache->set( $cache_key, $cache_value );
 	}
 
 	return $p->get_updated_html();

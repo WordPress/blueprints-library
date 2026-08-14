@@ -5,6 +5,36 @@ use PHPUnit\Framework\TestCase;
 use function WordPress\DataLiberation\URL\wp_rewrite_urls;
 
 class RewriteUrlsTest extends TestCase {
+	public function test_structured_urls_use_the_selected_mapping_base() {
+		$this->assertSame(
+			'<a href="/assets/file"></a>',
+			wp_rewrite_urls(
+				array(
+					'block_markup' => '<a href="/root/second/file"></a>',
+					'base_url'     => 'http://old.example/root/first/',
+					'url-mapping'  => array(
+						'http://old.example/root/first/'  => 'https://first.example/first/',
+						'http://old.example/root/second/' => 'https://second.example/assets/',
+					),
+				)
+			)
+		);
+	}
+
+	public function test_text_urls_keep_the_configured_base_url_semantics() {
+		$this->assertSame(
+			'<p>https://new.example/assets/sub/file</p>',
+			wp_rewrite_urls(
+				array(
+					'block_markup' => '<p>http://old.example/root/sub/file</p>',
+					'base_url'     => 'http://old.example/root/',
+					'url-mapping'  => array(
+						'http://old.example/root/sub/' => 'https://new.example/assets/',
+					),
+				)
+			)
+		);
+	}
 
 	/**
 	 *
