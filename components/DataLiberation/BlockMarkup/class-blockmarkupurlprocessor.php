@@ -23,15 +23,6 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 	private $url_in_text_node_updated;
 	private $css_url_processor;
 	private $css_url_processor_updated;
-	/**
-	 * One-based index of the current URL in the style attribute.
-	 *
-	 * Base replacement flushes CSS before a postprocess hook may call set_url().
-	 * The replacement processor is advanced back to the same URL afterward.
-	 *
-	 * @var int|null
-	 */
-	private $css_url_index;
 
 	/**
 	 * The list of names of URL-related HTML attributes that may be available on
@@ -167,7 +158,6 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 			}
 
 			$this->css_url_processor = new CSSURLProcessor( $css_value );
-			$this->css_url_index     = 0;
 		}
 
 		while ( $this->css_url_processor->next_url() ) {
@@ -183,7 +173,6 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 			if ( false === $this->parsed_url ) {
 				continue;
 			}
-			++$this->css_url_index;
 
 			return true;
 		}
@@ -362,6 +351,11 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		if ( null === $this->raw_url ) {
 			return false;
 		}
+		if ( $raw_url === $this->raw_url ) {
+			// A relative URL may resolve against a new base without changing its source spelling.
+			$this->parsed_url = $parsed_url;
+			return true;
+		}
 		$this->raw_url    = $raw_url;
 		$this->parsed_url = $parsed_url;
 		switch ( parent::get_token_type() ) {
@@ -394,11 +388,16 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 	}
 
 	/**
-	 * Replaces mapped components while retaining structured URL suffix bytes.
+	 * Rewrites the components of the currently matched URL from ones
+	 * provided in $base_url to ones specified in $to_url.
 	 *
-	 * WPURL supplies replacements for the decoded structured value. The existing
-	 * HTML, CSS, or block setter then applies that value using its normal escaping.
-	 * Text nodes retain the complete-value behavior needed by URLInTextProcessor.
+	 * Structured values retain unmatched decoded URL bytes and their relative
+	 * nature. Text nodes retain their complete-value behavior.
+	 *
+	 * @TODO: Should this method live in this class? It's specific to the import process
+	 *        and the URL rewriting logic and has knowledge about the quirks of detecting
+	 *        relative URLs in text nodes. On the other hand, URLInTextProcessor performs
+	 *        that detection, so maybe the two do go hand in hand?
 	 */
 	public function replace_base_url( $to_url, $base_url = null ) {
 		$base_url = $base_url ?? $this->base_url_object;
@@ -431,49 +430,11 @@ class BlockMarkupUrlProcessor extends BlockMarkupProcessor {
 		if ( '#text' === parent::get_token_type() ) {
 			return $this->set_url( (string) $result, $result->new_url );
 		}
-		if ( null === $result->raw_url_base_replacements ) {
-			return false;
-		}
-		$raw_url = $this->get_raw_url();
-		if ( ! is_string( $raw_url ) ) {
+		if ( null === $result->new_source_preserving_raw_url ) {
 			return false;
 		}
 
-		$updated_raw_url = $raw_url;
-		foreach ( array_reverse( $result->raw_url_base_replacements ) as $replacement ) {
-			$updated_raw_url = substr_replace(
-				$updated_raw_url,
-				$replacement['replacement'],
-				$replacement['start'],
-				$replacement['length']
-			);
-		}
-		if ( empty( $result->raw_url_base_replacements ) ) {
-			$this->parsed_url = $result->new_url;
-			return true;
-		}
-		if ( null !== $this->css_url_processor ) {
-			/*
-			 * CSSProcessor queues complete token replacements. Materialize the base
-			 * replacement now so a postprocess hook may replace the same URL again.
-			 */
-			$css_url_index = $this->css_url_index;
-			if ( ! $this->set_url( $updated_raw_url, $result->new_url ) ) {
-				return false;
-			}
-			$this->get_updated_html();
-			$this->css_url_processor = null;
-			for ( $index = 0; $index < $css_url_index; ++$index ) {
-				if ( ! $this->next_url_in_css() ) {
-					return false;
-				}
-			}
-			$this->raw_url    = $updated_raw_url;
-			$this->parsed_url = $result->new_url;
-			return true;
-		}
-
-		return $this->set_url( $updated_raw_url, $result->new_url );
+		return $this->set_url( $result->new_source_preserving_raw_url, $result->new_url );
 	}
 
 	/**

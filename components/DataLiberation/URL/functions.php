@@ -10,10 +10,9 @@ require_once __DIR__ . '/class-urlrewritecache.php';
 /**
  * Rewrites mapped URLs in post content.
  *
- * Structured values apply WPURL's decoded-URL base replacements instead of its
- * rendering of the unmatched suffix. The existing HTML, CSS, or block serializer
- * still applies its normal escaping to the complete value. Text-node URLs retain
- * their existing complete-value behavior.
+ * Structured values change only the mapped base in the decoded URL. The existing
+ * HTML, CSS, or block serializer still applies its normal escaping to the complete
+ * value. Text-node URLs retain their existing complete-value behavior.
  *
  * Example:
  *

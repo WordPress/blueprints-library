@@ -234,29 +234,30 @@ class WPURL {
 			$raw_url_base_replacements = self::create_raw_url_base_replacements(
 				$options['raw_url'],
 				$url,
+				$updated_url,
 				$old_base_url,
 				$new_base_url
 			);
 			if ( null !== $raw_url_base_replacements ) {
-				$updated_raw_url = $options['raw_url'];
+				$source_preserving_raw_url = $options['raw_url'];
 				foreach ( array_reverse( $raw_url_base_replacements ) as $replacement ) {
-					$updated_raw_url = substr_replace(
-						$updated_raw_url,
+					$source_preserving_raw_url = substr_replace(
+						$source_preserving_raw_url,
 						$replacement['replacement'],
 						$replacement['start'],
 						$replacement['length']
 					);
 				}
 
-				$updated_raw_url = self::parse( $updated_raw_url, $new_base_url->toString() );
-				$expected_url    = self::parse( (string) $converted_url, $new_base_url->toString() );
+				$source_preserving_url = self::parse( $source_preserving_raw_url, $new_base_url->toString() );
+				$expected_url          = self::parse( (string) $converted_url, $new_base_url->toString() );
 				if (
-					false !== $updated_raw_url &&
+					false !== $source_preserving_url &&
 					false !== $expected_url &&
-					$updated_raw_url->toString() === $expected_url->toString()
+					$source_preserving_url->toString() === $expected_url->toString()
 				) {
-					$converted_url->raw_url_base_replacements = $raw_url_base_replacements;
-					$converted_url->new_url                   = $updated_raw_url;
+					$converted_url->new_source_preserving_raw_url = $source_preserving_raw_url;
+					$converted_url->new_url                       = $source_preserving_url;
 				}
 			}
 		}
@@ -267,9 +268,13 @@ class WPURL {
 	/**
 	 * Creates decoded-URL base replacements using slash-delimited path segments.
 	 *
+	 * Only spellings whose base-component boundaries can be located from literal delimiters are accepted.
+	 * Ambiguous spellings return null. The caller reparses the edited string and accepts
+	 * it only when it matches the normal semantic conversion.
+	 *
 	 * @return array<int, array{start: int, length: int, replacement: string}>|null
 	 */
-	private static function create_raw_url_base_replacements( $raw_url, $url, $old_base_url, $new_base_url ) {
+	private static function create_raw_url_base_replacements( $raw_url, $url, $updated_url, $old_base_url, $new_base_url ) {
 		$source_url = self::parse( $raw_url, $old_base_url->toString() );
 		if (
 			false === $source_url ||
@@ -305,24 +310,24 @@ class WPURL {
 			$userinfo_at = strrpos( $authority, '@' );
 			$host_start  = $authority_start + ( false === $userinfo_at ? 0 : $userinfo_at + 1 );
 			$raw_host    = substr( $raw_url, $host_start, $path_start - $host_start );
-			if ( $is_absolute && $url->protocol !== $new_base_url->protocol ) {
+			if ( $is_absolute && $url->protocol !== $updated_url->protocol ) {
 				$replacements[] = array(
 					'start'       => 0,
 					'length'      => $scheme_end,
-					'replacement' => rtrim( $new_base_url->protocol, ':' ),
+					'replacement' => rtrim( $updated_url->protocol, ':' ),
 				);
 			}
 			if (
-				$url->host !== $new_base_url->host ||
+				$url->host !== $updated_url->host ||
 				(
-					$url->protocol !== $new_base_url->protocol &&
+					$url->protocol !== $updated_url->protocol &&
 					1 === preg_match( '/:\d+$/', $raw_host )
 				)
 			) {
 				$replacements[] = array(
 					'start'       => $host_start,
 					'length'      => $path_start - $host_start,
-					'replacement' => $new_base_url->host,
+					'replacement' => $updated_url->host,
 				);
 			}
 		}
@@ -346,10 +351,7 @@ class WPURL {
 
 			$raw_path_segments = explode( '/', $raw_path );
 			$segments_to_use   = $source_segment_count + ( 0 === strpos( $raw_path, '/' ) ? 1 : 0 );
-			if ( $segments_to_use > count( $raw_path_segments ) ) {
-				return null;
-			}
-			$source_length = strlen( implode( '/', array_slice( $raw_path_segments, 0, $segments_to_use ) ) );
+			$source_length     = strlen( implode( '/', array_slice( $raw_path_segments, 0, $segments_to_use ) ) );
 
 			$source_prefix_url = self::parse(
 				substr( $raw_url, 0, $path_start + $source_length ),
@@ -358,7 +360,7 @@ class WPURL {
 			if (
 				false === $source_prefix_url ||
 				$source_prefix_url->protocol !== $old_base_url->protocol ||
-				$source_prefix_url->host !== $old_base_url->host ||
+				$source_prefix_url->hostname !== $old_base_url->hostname ||
 				array_map( 'rawurldecode', explode( '/', rtrim( $source_prefix_url->pathname, '/' ) ) ) !==
 					array_map( 'rawurldecode', explode( '/', rtrim( $old_base_url->pathname, '/' ) ) )
 			) {

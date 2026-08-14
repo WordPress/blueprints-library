@@ -89,14 +89,13 @@ class WPURLTest extends TestCase {
 	}
 
 	/**
-	 * @dataProvider provider_replace_base_url_raw_url_base_replacements
+	 * @dataProvider provider_replace_base_url_source_preserving_raw_url
 	 */
-	public function test_replace_base_url_returns_raw_url_base_replacements(
+	public function test_replace_base_url_returns_source_preserving_raw_url(
 		$raw_url,
 		$old_base_url,
 		$new_base_url,
 		$expected_raw_url,
-		$expected_replacement_count = null,
 		$include_raw_url = true
 	) {
 		$url     = WPURL::parse( $raw_url, $old_base_url );
@@ -114,31 +113,18 @@ class WPURLTest extends TestCase {
 		);
 
 		$this->assertNotFalse( $result );
+		$this->assertSame( $expected_raw_url, $result->new_source_preserving_raw_url );
 		if ( null === $expected_raw_url ) {
-			$this->assertNull( $result->raw_url_base_replacements );
 			return;
 		}
 
-		$this->assertNotNull( $result->raw_url_base_replacements );
-		if ( null !== $expected_replacement_count ) {
-			$this->assertCount( $expected_replacement_count, $result->raw_url_base_replacements );
-		}
-		foreach ( array_reverse( $result->raw_url_base_replacements ) as $replacement ) {
-			$raw_url = substr_replace(
-				$raw_url,
-				$replacement['replacement'],
-				$replacement['start'],
-				$replacement['length']
-			);
-		}
-		$this->assertSame( $expected_raw_url, $raw_url );
 		$this->assertSame(
 			WPURL::parse( $expected_raw_url, $new_base_url )->toString(),
 			$result->new_url->toString()
 		);
 	}
 
-	public static function provider_replace_base_url_raw_url_base_replacements() {
+	public static function provider_replace_base_url_source_preserving_raw_url() {
 		return array(
 			'absolute'          => array(
 				'http://old.example/media/file?x=1#section',
@@ -194,12 +180,17 @@ class WPURLTest extends TestCase {
 				'https://old.example/assets',
 				'https://old.example/assets/file',
 			),
-			'no source changes' => array(
+			'non-default source port' => array(
+				'http://old.example:81/media/file',
+				'http://old.example/media',
+				'https://new.example/assets',
+				'https://new.example/assets/file',
+			),
+			'no-op keeps same input' => array(
 				'http://OLD.example/media/%7euser',
 				'http://old.example/media',
 				'http://old.example/media',
 				'http://OLD.example/media/%7euser',
-				0,
 			),
 			'file URL' => array(
 				'file://old.example/media/file',
@@ -248,9 +239,24 @@ class WPURLTest extends TestCase {
 				'http://old.example/media',
 				'https://new.example/assets',
 				null,
-				null,
 				false,
 			),
 		);
+	}
+
+	public function test_replace_base_url_source_preserving_raw_url_follows_the_semantic_result() {
+		$raw_url = 'http://user@old.example/media/file';
+		$result  = WPURL::replace_base_url(
+			WPURL::parse( $raw_url ),
+			array(
+				'old_base_url' => 'http://old.example/media',
+				'new_base_url' => 'https://new.example/assets',
+				'raw_url'      => $raw_url,
+				'is_relative'  => false,
+			)
+		);
+
+		$this->assertNotFalse( $result );
+		$this->assertSame( (string) $result, $result->new_source_preserving_raw_url );
 	}
 }

@@ -196,7 +196,7 @@ class BlockMarkupUrlProcessorTest extends TestCase {
 			'In the "url" block attribute of a navigation-link block' => array(
 				'<!-- wp:navigation-link {"url": "https://w.org"} /-->',
 				'https://w.org',
-				'<!-- wp:navigation-link {"url":"https:\/\/w.org"} /-->',
+				'<!-- wp:navigation-link {"url": "https://w.org"} /-->',
 			),
 			'In a text node'                      => array(
 				'Have you seen https://wordpress.org yet?',
@@ -343,7 +343,7 @@ HTML
 		$this->assertSame( $markup, $p->get_updated_html() );
 	}
 
-	public function test_replace_base_url_rewrites_later_css_urls_after_flushing() {
+	public function test_replace_base_url_rewrites_later_css_urls_after_rendering_an_earlier_update() {
 		$markup = '<div style="background:url(http://very-long-old.example/very/long/base/one),url(http://very-long-old.example/very/long/base/two)"></div>';
 		$p      = new BlockMarkupUrlProcessor( $markup, 'http://very-long-old.example/very/long/base' );
 
@@ -359,7 +359,7 @@ HTML
 		);
 	}
 
-	public function test_set_url_replaces_a_materialized_css_base_update() {
+	public function test_set_url_replaces_a_pending_css_base_update() {
 		$p = new BlockMarkupUrlProcessor(
 			'<div style="background:url(http://old.example/media/first),url(http://old.example/media/second)"></div>',
 			'http://old.example/media'
