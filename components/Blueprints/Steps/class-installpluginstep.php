@@ -215,34 +215,6 @@ if ( ! file_exists( $plugin_zip_path ) ) {
 	exit( 1 );
 }
 
-// List files from the plugin zip
-$zip = new ZipArchive();
-if ( $zip->open( $plugin_zip_path ) !== true ) {
-	fwrite( STDERR, "Failed to open plugin zip file: " . $plugin_zip_path . "\n" );
-	exit( 1 );
-}
-
-fwrite( STDERR, "Plugin zip contents:" . "\n" );
-for ( $i = 0; $i < $zip->numFiles; $i ++ ) {
-	$filename = $zip->getNameIndex( $i );
-	$stats    = $zip->statIndex( $i );
-	$size     = $stats['size'];
-	$is_dir   = substr( $filename, - 1 ) === '/';
-}
-
-// Extract plugin slug from the zip file
-$plugin_slug = '';
-// Check the first directory in the zip file
-if ( $zip->numFiles > 0 ) {
-	$first_entry = $zip->getNameIndex( 0 );
-	// Most plugin zips have a top-level directory that is the plugin slug
-	if ( strpos( $first_entry, '/' ) !== false ) {
-		$plugin_slug = explode( '/', $first_entry )[0];
-	}
-}
-
-$zip->close();
-
 // Make sure the destination directory is writable
 $wp_plugin_dir = WP_PLUGIN_DIR;
 if ( ! is_writable( $wp_plugin_dir ) ) {
@@ -258,26 +230,9 @@ if ( ! is_writable( $wp_plugin_dir ) ) {
 $skin     = new Blueprint_WP_Upgrader_Skin();
 $upgrader = new Plugin_Upgrader( $skin );
 
-// If we have a plugin slug from the zip, create the target directory first
-$target_directory = null;
-if ( ! empty( $plugin_slug ) ) {
-	$target_directory = WP_PLUGIN_DIR . '/' . $plugin_slug;
-
-	// Remove existing directory if it exists
-	if ( is_dir( $target_directory ) ) {
-		$GLOBALS['wp_filesystem']->delete( $target_directory, true );
-	}
-
-	// Create the directory
-	$GLOBALS['wp_filesystem']->mkdir( $target_directory );
-
-	fwrite( STDERR, "Created target directory: " . $target_directory . "\n" );
-}
-
 // Install the plugin
 $result = $upgrader->install( $plugin_zip_path, array(
 	'overwrite_package' => true,
-	'destination'       => $target_directory,
 ) );
 
 // Check for filesystem errors
@@ -304,7 +259,7 @@ if ( $result === false || $result === null ) {
 }
 
 // Installation successful, find the main plugin file.
-$plugin_folder_name = ! empty( $plugin_slug ) ? $plugin_slug : ( $upgrader->result['destination_name'] ?? null );
+$plugin_folder_name = $upgrader->result['destination_name'] ?? null;
 if ( ! $plugin_folder_name ) {
 	fwrite( STDERR, "Could not determine plugin folder name after installation." . "\n" );
 	exit( 1 );
