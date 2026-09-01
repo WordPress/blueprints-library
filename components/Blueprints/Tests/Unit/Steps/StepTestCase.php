@@ -101,10 +101,8 @@ class StepTestCase extends TestCase {
 	 * @after
 	 */
 	public function tearDown(): void {
-		// Don't clean up on Windows – it adds ~20s to each test in GitHub CI!
-		if (PHP_OS_FAMILY === 'Windows') {
-			return;
-		}
+		// Cleanup is slow on Windows, but retaining every copied WordPress site
+		// exhausts the temporary drive during the full test suite.
 		// Clean up temp directory
 		if ( is_dir( $this->document_root ) ) {
 			$this->removeDirectory( $this->document_root );

@@ -198,6 +198,35 @@ PHP
 		$this->assertContains( 'subfolder-name/test-plugin.php', $active_plugins );
 	}
 
+	public function testInstallPluginFromZipWithDotRootPreservesExistingPlugins() {
+		$target_filesystem = $this->runtime->get_target_filesystem();
+		$target_filesystem->put_contents(
+			'wp-content/plugins/existing-plugin.php',
+			self::PLUGIN_FILE_CONTENT
+		);
+
+		$zip_file = wp_join_unix_paths( $this->execution_context_path, 'dot-root-plugin.zip' );
+		$zip      = new ZipArchive();
+		if ( $zip->open( $zip_file, ZipArchive::CREATE ) === true ) {
+			$zip->addEmptyDir( './' );
+			$zip->addFromString( './test-plugin.php', self::PLUGIN_FILE_CONTENT );
+			$zip->close();
+		}
+
+		$step = new InstallPluginStep(
+			DataReference::create( './dot-root-plugin.zip', [
+				ExecutionContextPath::class
+			] ),
+			false
+		);
+
+		$tracker = new Tracker();
+		$step->run( $this->runtime, $tracker );
+
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/plugins/existing-plugin.php' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/plugins/dot-root-plugin/test-plugin.php' ) );
+	}
+
 	public function testInstallPluginFromADirectory() {
 		$this->execution_context->mkdir(
 			'plugin-directory', [ 'recursive' => true ]

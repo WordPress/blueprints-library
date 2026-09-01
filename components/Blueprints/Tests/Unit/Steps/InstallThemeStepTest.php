@@ -124,17 +124,27 @@ PHP
 		$this->assertNotEquals( 'test-theme', trim( $active_theme ) );
 	}
 
-	public function testInstallThemeFromZip() {
-		$zip_file = wp_join_unix_paths( $this->execution_context_path, 'zipped-test-theme.zip' );
+	public function testInstallThemeFromZipWithDotRootPreservesExistingThemes() {
+		$target_filesystem = $this->runtime->get_target_filesystem();
+		$target_filesystem->mkdir(
+			'wp-content/themes/existing-theme', [ 'recursive' => true ]
+		);
+		$target_filesystem->put_contents(
+			'wp-content/themes/existing-theme/style.css',
+			self::THEME_STYLE_CSS_CONTENT
+		);
+
+		$zip_file = wp_join_unix_paths( $this->execution_context_path, 'dot-root-theme.zip' );
 		$zip      = new ZipArchive();
 		if ( $zip->open( $zip_file, ZipArchive::CREATE ) === true ) {
-			$zip->addFromString( 'test-theme/style.css', self::THEME_STYLE_CSS_CONTENT );
-			$zip->addFromString( 'test-theme/index.php', self::THEME_INDEX_PHP_CONTENT );
+			$zip->addEmptyDir( './' );
+			$zip->addFromString( './style.css', self::THEME_STYLE_CSS_CONTENT );
+			$zip->addFromString( './index.php', self::THEME_INDEX_PHP_CONTENT );
 			$zip->close();
 		}
 
 		$step = new InstallThemeStep(
-			DataReference::create( './zipped-test-theme.zip', [
+			DataReference::create( './dot-root-theme.zip', [
 				ExecutionContextPath::class
 			] ),
 			true
@@ -143,10 +153,10 @@ PHP
 		$tracker = new Tracker();
 		$step->run( $this->runtime, $tracker );
 
-		$fs = $this->runtime->get_target_filesystem();
-		$this->assertTrue( $fs->exists( 'wp-content/themes/test-theme' ) );
-		$this->assertTrue( $fs->exists( 'wp-content/themes/test-theme/style.css' ) );
-		$this->assertTrue( $fs->exists( 'wp-content/themes/test-theme/index.php' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/existing-theme/style.css' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/dot-root-theme' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/dot-root-theme/style.css' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/dot-root-theme/index.php' ) );
 
 		$active_theme = $this->runtime->eval_php_code_in_subprocess(
 			<<<'PHP'
@@ -157,6 +167,6 @@ PHP
 
 		)->output_file_content;
 
-		$this->assertEquals( 'test-theme', trim( $active_theme ) );
+		$this->assertEquals( 'dot-root-theme', trim( $active_theme ) );
 	}
 }
