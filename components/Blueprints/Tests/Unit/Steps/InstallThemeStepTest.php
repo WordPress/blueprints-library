@@ -159,4 +159,38 @@ PHP
 
 		$this->assertEquals( 'test-theme', trim( $active_theme ) );
 	}
+
+	public function testInstallThemeFromZipWithDotRootPreservesExistingThemes() {
+		$target_filesystem = $this->runtime->get_target_filesystem();
+		$target_filesystem->mkdir(
+			'wp-content/themes/existing-theme', [ 'recursive' => true ]
+		);
+		$target_filesystem->put_contents(
+			'wp-content/themes/existing-theme/style.css',
+			self::THEME_STYLE_CSS_CONTENT
+		);
+
+		$zip_file = wp_join_unix_paths( $this->execution_context_path, 'dot-root-theme.zip' );
+		$zip      = new ZipArchive();
+		if ( $zip->open( $zip_file, ZipArchive::CREATE ) === true ) {
+			$zip->addEmptyDir( './' );
+			$zip->addFromString( './style.css', self::THEME_STYLE_CSS_CONTENT );
+			$zip->addFromString( './index.php', self::THEME_INDEX_PHP_CONTENT );
+			$zip->close();
+		}
+
+		$step = new InstallThemeStep(
+			DataReference::create( './dot-root-theme.zip', [
+				ExecutionContextPath::class
+			] ),
+			false
+		);
+
+		$tracker = new Tracker();
+		$step->run( $this->runtime, $tracker );
+
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/existing-theme/style.css' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/dot-root-theme/style.css' ) );
+		$this->assertTrue( $target_filesystem->exists( 'wp-content/themes/dot-root-theme/index.php' ) );
+	}
 }

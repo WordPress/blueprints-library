@@ -160,40 +160,10 @@ if ( ! is_writable( $wp_theme_dir ) ) {
 	}
 }
 
-// Extract theme slug from the zip file
-$theme_slug = '';
-$zip        = new ZipArchive();
-if ( $zip->open( $theme_zip_path ) === true ) {
-	// Check the first directory in the zip file
-	if ( $zip->numFiles > 0 ) {
-		$first_entry = $zip->getNameIndex( 0 );
-		// Most theme zips have a top-level directory that is the theme slug
-		if ( strpos( $first_entry, '/' ) !== false ) {
-			$theme_slug = explode( '/', $first_entry )[0];
-		}
-	}
-	$zip->close();
-}
-
-// Target directory for the theme
-$target_directory = null;
-if ( ! empty( $theme_slug ) ) {
-	$target_directory = $wp_theme_dir . '/' . $theme_slug;
-
-	// Remove existing directory if it exists
-	if ( is_dir( $target_directory ) ) {
-		$GLOBALS['wp_filesystem']->delete( $target_directory, true );
-	}
-
-	// Create the directory
-	$GLOBALS['wp_filesystem']->mkdir( $target_directory );
-}
-
 // Use the Theme_Upgrader class to install the theme
 $upgrader = new Theme_Upgrader();
 $result   = $upgrader->install( $theme_zip_path, array(
 	'overwrite_package' => true,
-	'destination'       => $target_directory,
 ) );
 
 // Check for filesystem errors
@@ -217,7 +187,7 @@ if ( $result === false || $result === null ) {
 }
 
 // Installation successful, get the theme folder name (stylesheet) from the result array
-$theme_folder_name = ! empty( $theme_slug ) ? $theme_slug : ( $upgrader->result['destination_name'] ?? null );
+$theme_folder_name = $upgrader->result['destination_name'] ?? null;
 if ( ! $theme_folder_name ) {
 	error_log( "Blueprint Error: Could not determine theme folder name after installation." );
 	exit( 1 );
