@@ -358,8 +358,10 @@ class BlockMarkupProcessor extends WP_HTML_Tag_Processor {
 		// Skip wp.
 		$at += 3;
 
-		// Parse the actual block name after wp.
-		$name_length = strspn( $text, 'abcdefghijklmnopqrstuwxvyzABCDEFGHIJKLMNOPRQSTUWXVYZ0123456789_-', $at );
+		// Parse the actual block name after wp. Core block names use the short
+		// `wp:name` form. Other blocks use `wp:namespace/name`.
+		$block_name_characters = 'abcdefghijklmnopqrstuwxvyzABCDEFGHIJKLMNOPRQSTUWXVYZ0123456789_-';
+		$name_length           = strspn( $text, $block_name_characters, $at );
 		if ( 0 === $name_length ) {
 			// This wasn't a block after all, just a regular comment.
 			$this->last_block_error = new WP_Error(
@@ -368,6 +370,21 @@ class BlockMarkupProcessor extends WP_HTML_Tag_Processor {
 			);
 
 			return true;
+		}
+
+		$namespace_separator_at = $at + $name_length;
+		if ( $namespace_separator_at < strlen( $text ) && '/' === $text[ $namespace_separator_at ] ) {
+			$name_after_namespace_length = strspn( $text, $block_name_characters, $namespace_separator_at + 1 );
+			if ( 0 === $name_after_namespace_length ) {
+				$this->last_block_error = new WP_Error(
+					'suspicious-delimiter',
+					sprintf( 'An HTML comment contained a block namespace that was not followed by a valid block name: %s', $text )
+				);
+
+				return true;
+			}
+
+			$name_length += 1 + $name_after_namespace_length;
 		}
 		$name = substr( $text, $name_starts_at, $name_length + 3 );
 		$at  += $name_length;

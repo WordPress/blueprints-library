@@ -21,6 +21,7 @@ class BlockMarkupProcessorTest extends TestCase {
 		return array(
 			'Opener with a line break before whitespace'       => array( "<!-- \nwp:paragraph -->", 'wp:paragraph', array() ),
 			'Opener without attributes'                        => array( '<!-- wp:paragraph -->', 'wp:paragraph', array() ),
+			'Namespaced opener without attributes'             => array( '<!-- wp:divi/text -->', 'wp:divi/text', array() ),
 			'Opener without the trailing whitespace'           => array( '<!--wp:paragraph-->', 'wp:paragraph', array() ),
 			'Opener with a lot of trailing whitespace'         => array( '<!--    wp:paragraph          -->', 'wp:paragraph', array() ),
 			'Opener with attributes'                           => array(
@@ -73,6 +74,11 @@ class BlockMarkupProcessorTest extends TestCase {
 				'wp:spacer',
 				array( 'height' => '20px' ),
 			),
+			'Namespaced self-closing block with attributes' => array(
+				'<!-- wp:divi/text {"content":"Hello"} /-->',
+				'wp:divi/text',
+				array( 'content' => 'Hello' ),
+			),
 		);
 	}
 
@@ -91,6 +97,7 @@ class BlockMarkupProcessorTest extends TestCase {
 	public static function provider_test_finds_block_closers() {
 		return array(
 			'Closer without attributes'                => array( '<!-- /wp:paragraph -->', 'wp:paragraph' ),
+			'Namespaced closer without attributes'     => array( '<!-- /wp:divi/text -->', 'wp:divi/text' ),
 			'Closer without the trailing whitespace'   => array( '<!--/wp:paragraph-->', 'wp:paragraph' ),
 			'Closer with a lot of trailing whitespace' => array( '<!--    /wp:paragraph          -->', 'wp:paragraph' ),
 		);
@@ -112,6 +119,7 @@ class BlockMarkupProcessorTest extends TestCase {
 		return array(
 			'Block name including !'                  => array( '<!-- wp:pa!ragraph -->' ),
 			'Block name including a whitespace'       => array( '<!-- wp: paragraph -->' ),
+			'Namespace without a block name'           => array( '<!-- wp:divi/ -->' ),
 			'No namespace in the block name'          => array( '<!-- paragraph -->' ),
 			'Non-object attributes'                   => array( '<!-- wp:paragraph "attrs" -->' ),
 			'Invalid JSON as attributes – Double }} ' => array( '<!-- wp:paragraph {"class":"wp-block"}} -->' ),
