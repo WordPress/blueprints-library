@@ -308,6 +308,15 @@ class CSSProcessor {
 	 */
 	private $lexical_updates = array();
 
+	/** @var array|null Durable lexical state for chunked input; null for whole strings. */
+	private $stream;
+
+	/** @var int|null Last byte at which a new CSS code point may begin in this chunk. */
+	private $fragment_limit;
+
+	/** @var bool Whether this fragment consumed the unquoted URL closing parenthesis. */
+	private $url_closed = false;
+
 	/**
 	 * Constructor for the CSS processor.
 	 *
@@ -342,6 +351,236 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Opens a bounded-input tokenizer. Drain next_token_fragment() before appending.
+	 *
+	 * Fragments preserve source bytes. Strings, comments, names, and URLs may span
+	 * fragments. url( is exposed as a function before its quoted or unquoted value;
+	 * the whole-string next_token() API keeps its existing CSS Syntax token types.
+	 *
+	 * @param array|null $cursor {
+	 *     Optional state returned by get_reentrancy_cursor().
+	 *     @type array $lexer Lexical continuation state.
+	 *     @type string $pending_b64 Unconsumed source bytes, base64 encoded.
+	 * }
+	 * @return static
+	 */
+	public static function create_for_streaming( ?array $cursor = null ) {
+		$processor         = new static( '' );
+		$processor->stream = array(
+			'phase' => '',
+			'quote' => '',
+			'name' => '',
+			'kind' => '',
+			'number' => 'integer',
+			'finished' => false,
+		);
+		if ( null !== $cursor ) {
+			if ( ! isset( $cursor['lexer'], $cursor['pending_b64'] ) || ! is_array( $cursor['lexer'] ) || ! is_string( $cursor['pending_b64'] ) ) {
+				throw new \InvalidArgumentException( 'The CSS cursor must contain lexer state and a base64 input tail.' );
+			}
+			$processor->stream = $cursor['lexer'];
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Cursor JSON must preserve arbitrary source bytes.
+			$processor->css = base64_decode( $cursor['pending_b64'], true );
+			if ( false === $processor->css ) {
+				throw new \InvalidArgumentException( 'The CSS cursor contains an invalid base64 input tail.' );
+			}
+			$processor->length = strlen( $processor->css );
+		}
+		return $processor;
+	}
+
+	/**
+	 * Supplies at most 64 KiB of source bytes. The caller marks actual EOF explicitly.
+	 *
+	 * @param string $bytes Next source chunk.
+	 * @param bool   $is_last Whether this is the end of the stylesheet.
+	 */
+	public function append_bytes( string $bytes, bool $is_last = false ): void {
+		if ( null === $this->stream || $this->stream['finished'] ) {
+			throw new \LogicException( 'CSS input can only be appended to an unfinished streaming processor.' );
+		}
+		if ( strlen( $bytes ) > 65536 || $this->length - $this->at > 13 ) {
+			throw new \InvalidArgumentException( 'CSS input must be drained before appending a chunk of at most 65536 bytes; received ' . strlen( $bytes ) . ' bytes with ' . ( $this->length - $this->at ) . ' unread bytes.' );
+		}
+		$this->css                = substr( $this->css, $this->at ) . $bytes;
+		$this->at                 = 0;
+		$this->length             = strlen( $this->css );
+		$this->stream['finished'] = $is_last;
+	}
+
+	/**
+	 * Returns one token fragment, or null when more input is needed or EOF is reached.
+	 *
+	 * Names are retained only up to 32 decoded bytes. Longer names cannot be url,
+	 * import, image-set, or -webkit-image-set; their source bytes still pass through.
+	 *
+	 * @return array|null {
+	 *     @type string $text  Original source bytes for this fragment.
+	 *     @type string $type  CSS token type; a later fragment may finish a name as a function.
+	 *     @type string $name  Complete short function or at-keyword name, otherwise empty.
+	 *     @type string $value Decoded string or URL value fragment, excluding its syntax.
+	 *     @type string $raw_value Original bytes of that value fragment.
+	 *     @type string $before Syntax preceding the value, such as an opening quote.
+	 *     @type string $after Syntax following the value, such as a closing parenthesis.
+	 *     @type bool   $first For strings and URLs, whether this begins their value.
+	 *     @type bool   $last  For strings and URLs, whether this finishes their value.
+	 *     @type bool   $closes_url Whether an unquoted URL consumed its closing parenthesis.
+	 * }
+	 */
+	public function next_token_fragment(): ?array {
+		if ( null === $this->stream ) {
+			throw new \LogicException( 'Token fragments require create_for_streaming().' );
+		}
+		// A CSS escape needs at most six hex digits and CRLF after its backslash.
+		// Keeping ten bytes also covers UTF-8, number lookahead, and comment delimiters.
+		$this->fragment_limit = $this->stream['finished'] ? $this->length : max( 0, $this->length - 10 );
+		if ( ! $this->stream['finished'] && $this->fragment_limit > 0 ) {
+			$start = $this->fragment_limit;
+			for ( $back = 0; $back < 3 && $start > 0; ++$back ) {
+				if ( 0x80 !== ( ord( $this->css[ $start ] ) & 0xc0 ) ) {
+					break;
+				}
+				--$start;
+			}
+			$end     = $start;
+			$invalid = 0;
+			if ( $start < $this->fragment_limit && 1 === _wp_scan_utf8( $this->css, $end, $invalid, null, 1 ) && $end > $this->fragment_limit ) {
+				$this->fragment_limit = $start;
+			}
+		}
+		if ( $this->at >= $this->fragment_limit ) {
+			return null;
+		}
+		$start = $this->at;
+		$phase = $this->stream['phase'];
+		$this->after_token();
+		$this->token_starts_at = $start;
+		switch ( $phase ) {
+			case 'comment':
+				$this->consume_comment_fragment( false );
+				break;
+			case 'string':
+				$this->consume_string( $this->stream['quote'] );
+				break;
+			case 'url-start':
+				$whitespace = strspn( $this->css, "\t\n\f\r ", $this->at, $this->fragment_limit - $this->at );
+				if ( $whitespace ) {
+					$this->at        += $whitespace;
+					$this->token_type = self::TOKEN_WHITESPACE;
+				} elseif ( '"' === $this->css[ $this->at ] || "'" === $this->css[ $this->at ] ) {
+					$this->stream['phase'] = '';
+					$this->consume_string();
+				} else {
+					$this->consume_url( true );
+				}
+				break;
+			case 'url':
+			case 'url-space':
+				$this->consume_url( true, 'url-space' === $phase );
+				break;
+			case 'bad-url':
+				$this->consume_remnants_of_bad_url();
+				break;
+			case 'name':
+				$this->consume_name_fragment();
+				break;
+			case 'number':
+				$this->consume_numeric( true );
+				break;
+			default:
+				$this->stream['name'] = '';
+				if ( '/*' === substr( $this->css, $this->at, 2 ) ) {
+					$this->consume_comment_fragment( true );
+				} else {
+					$this->scan_next_token();
+				}
+		}
+		$type = $this->token_type;
+		$name = '';
+		if ( in_array( $type, array( self::TOKEN_IDENT, self::TOKEN_FUNCTION, self::TOKEN_AT_KEYWORD, self::TOKEN_HASH, self::TOKEN_DIMENSION ), true ) ) {
+			if ( 'name' !== $phase ) {
+				$this->stream['kind'] = $type;
+				$value                = $this->get_token_value();
+				$this->stream['name'] = is_string( $value ) && strlen( $value ) <= 32 ? $value : null;
+			}
+			if ( in_array( $type, array( self::TOKEN_FUNCTION, self::TOKEN_AT_KEYWORD ), true ) && 'name' !== $this->stream['phase'] ) {
+				$name = $this->stream['name'] ?? '';
+			}
+		}
+		$end          = $this->at;
+		$text         = substr( $this->css, $start, $end - $start );
+		$value_start  = $this->token_value_starts_at;
+		$value_length = $this->token_value_length;
+		$has_value    = in_array( $type, array( self::TOKEN_STRING, self::TOKEN_URL, self::TOKEN_BAD_STRING, self::TOKEN_BAD_URL ), true ) && null !== $value_start;
+		return array(
+			'text' => $text,
+			'type' => $type,
+			'name' => $name,
+			'value' => $has_value ? $this->decode_range( $value_start, $value_length, ! in_array( $type, array( self::TOKEN_URL, self::TOKEN_BAD_URL ), true ) ) : '',
+			'raw_value' => $has_value ? substr( $this->css, $value_start, $value_length ) : '',
+			'before' => $has_value ? substr( $this->css, $start, $value_start - $start ) : $text,
+			'after' => $has_value ? substr( $this->css, $value_start + $value_length, $end - $value_start - $value_length ) : '',
+			'first' => ! in_array( $phase, array( 'string', 'url', 'url-space', 'bad-url' ), true ),
+			'closes_url' => $this->url_closed,
+			'last' => self::TOKEN_BAD_URL === $type || 'url-space' === $this->stream['phase'] || ! in_array( $this->stream['phase'], array( 'string', 'url', 'url-space', 'bad-url' ), true ),
+		);
+	}
+
+	/**
+	 * Saves only the unfinished lexical state and unread input tail, without handles.
+	 *
+	 * @return array {
+	 *     @type array  $lexer       Lexical continuation fields used by create_for_streaming().
+	 *     @type string $pending_b64 Unconsumed source bytes, base64 encoded.
+	 * }
+	 */
+	public function get_reentrancy_cursor(): array {
+		if ( null === $this->stream ) {
+			throw new \LogicException( 'CSS cursors require create_for_streaming().' );
+		}
+		return array(
+			'lexer' => $this->stream,
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Cursor JSON must preserve arbitrary source bytes.
+			'pending_b64' => base64_encode( substr( $this->css, $this->at ) ),
+		);
+	}
+
+	/** Continues a comment without retaining the already returned comment bytes. */
+	private function consume_comment_fragment( bool $first ): void {
+		$end              = strpos( $this->css, '*/', $this->at + ( $first ? 2 : 0 ) );
+		$this->token_type = self::TOKEN_COMMENT;
+		if ( false !== $end ) {
+			$this->at              = $end + 2;
+			$this->stream['phase'] = '';
+		} else {
+			$this->at              = $this->fragment_limit;
+			$this->stream['phase'] = $this->stream['finished'] ? '' : 'comment';
+		}
+	}
+
+	/** Continues a name; only its short decoded spelling can identify a URL context. */
+	private function consume_name_fragment(): void {
+		$start = $this->at;
+		$this->consume_ident_sequence();
+		$name = $this->decode_range( $start, $this->at - $start );
+		if ( null !== $this->stream['name'] ) {
+			$this->stream['name'] .= $name;
+			if ( strlen( $this->stream['name'] ) > 32 ) {
+				$this->stream['name'] = null;
+			}
+		}
+		$this->token_type   = $this->stream['kind'];
+		$this->token_length = $this->at - $start;
+		if ( '' === $this->stream['phase'] && self::TOKEN_IDENT === $this->token_type && $this->at < $this->length && '(' === $this->css[ $this->at ] ) {
+			++$this->at;
+			$this->token_type = self::TOKEN_FUNCTION;
+			if ( 'url' === strtolower( $this->stream['name'] ?? '' ) ) {
+				$this->stream['phase'] = 'url-start';
+			}
+		}
+	}
+
+	/**
 	 * Moves to the next token in the CSS stream.
 	 *
 	 * Implements the main tokenization loop, consuming the next token from the input stream.
@@ -351,6 +590,14 @@ class CSSProcessor {
 	 * @return bool Whether a token was found.
 	 */
 	public function next_token(): bool {
+		if ( null !== $this->stream ) {
+			throw new \LogicException( 'Use next_token_fragment() for streamed CSS input.' );
+		}
+		return $this->scan_next_token();
+	}
+
+	/** Consumes a token using the same CSS rules for whole strings and input fragments. */
+	private function scan_next_token(): bool {
 		$this->after_token();
 
 		// Bale out once we reach the end.
@@ -885,20 +1132,23 @@ class CSSProcessor {
 	 * @return bool Whether the value was successfully updated.
 	 */
 	public function set_token_value( string $new_value ): bool {
+		if ( null !== $this->stream ) {
+			throw new \LogicException( 'Streaming callers rewrite returned value fragments instead of queuing whole-token edits.' );
+		}
 		// Only URL and string tokens are currently supported.
 		switch ( $this->token_type ) {
 			case self::TOKEN_URL:
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_value_starts_at,
 					'length' => $this->token_value_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			case self::TOKEN_STRING:
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_starts_at,
 					'length' => $this->token_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			default:
@@ -908,9 +1158,60 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Finds the source byte length of a decoded CSS value prefix.
+	 *
+	 * The caller retains only a candidate URL base, not an entire URL. Decode with
+	 * the same escape and UTF-8 rules used by token values before cutting its source.
+	 *
+	 * @param string $raw_value     CSS value bytes without quotes or url().
+	 * @param int    $decoded_bytes Number of decoded UTF-8 bytes to consume.
+	 * @param bool   $is_string     Whether CSS string line continuations are allowed.
+	 * @return int Source byte length of that prefix.
+	 */
+	public static function measure_value_prefix( string $raw_value, int $decoded_bytes, bool $is_string ): int {
+		$processor = new static( $raw_value );
+		$at        = 0;
+		$decoded   = 0;
+		while ( $decoded < $decoded_bytes && $at < $processor->length ) {
+			$char = $raw_value[ $at ];
+			if ( '\\' === $char && $is_string && $at + 1 < $processor->length && false !== strpos( "\r\n\f", $raw_value[ $at + 1 ] ) ) {
+				$at += "\r" === $raw_value[ $at + 1 ] && "\n" === substr( $raw_value, $at + 2, 1 ) ? 3 : 2;
+			} elseif ( '\\' === $char && $processor->is_valid_escape( $at ) ) {
+				++$at;
+				$decoded += strlen( $processor->decode_escape_at( $at, $consumed ) );
+				$at      += $consumed;
+			} else {
+				$next    = $at;
+				$invalid = 0;
+				if ( 1 === _wp_scan_utf8( $raw_value, $next, $invalid, null, 1 ) ) {
+					$decoded += "\x00" === $char ? 3 : $next - $at;
+					$at       = $next;
+				} else {
+					$decoded += 3;
+					$at      += $invalid;
+				}
+			}
+		}
+		return $at;
+	}
+
+	/**
+	 * Escapes a replacement prefix for either quoted or unquoted CSS URL syntax.
+	 *
+	 * Keep delimiters outside the replacement. In particular, do not turn an
+	 * unfinished unquoted URL into a quoted string before its remaining bytes arrive.
+	 *
+	 * @param string $value Decoded replacement URL base.
+	 * @return string CSS value bytes without surrounding quotes.
+	 */
+	public static function escape_value_prefix( string $value ): string {
+		return self::escape_url_value( $value, false );
+	}
+
+	/**
 	 * Escapes a URL value for use in quoted url() syntax.
 	 *
-	 * Always returns a quoted URL string since they're easier
+	 * Whole-value replacements use quoted URL strings because they are easier
 	 * to escape. Quoted URLs are consumed using the string token
 	 * rules, and the only values we need to escape in strings, are:
 	 *
@@ -918,13 +1219,20 @@ class CSSProcessor {
 	 * * Newlines. That amounts to \n, \r, \f, \r\n when preprocessing is considered.
 	 * * U+005C REVERSE SOLIDUS (\)
 	 *
+	 * Prefix replacements keep the surrounding syntax and also escape spaces,
+	 * controls, apostrophes, and parentheses to work in unquoted URLs.
+	 *
+	 * @param string $unescaped Decoded URL value or prefix.
+	 * @param bool   $quote Whether to wrap a complete replacement in quotes.
+	 * @return string Escaped CSS value bytes.
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 */
-	private function escape_url_value( string $unescaped ): string {
+	private static function escape_url_value( string $unescaped, bool $quote = true ): string {
 		$escaped = '';
 		$at      = 0;
+		$unsafe  = $quote ? "\n\r\f\\\"" : "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\\\"'()";
 		while ( $at < strlen( $unescaped ) ) {
-			$safe_len = strcspn( $unescaped, "\n\r\f\\\"", $at );
+			$safe_len = strcspn( $unescaped, $unsafe, $at );
 			if ( $safe_len > 0 ) {
 				$escaped .= substr( $unescaped, $at, $safe_len );
 				$at      += $safe_len;
@@ -945,7 +1253,7 @@ class CSSProcessor {
 					 * what the caller intended.
 					 */
 					$escaped .= '\\a ';
-					if ( strlen( $unescaped ) > $at + 1 && "\n" === $unescaped[ $at + 1 ] ) {
+					if ( strlen( $unescaped ) > $at && "\n" === $unescaped[ $at ] ) {
 						++$at;
 					}
 					break;
@@ -963,11 +1271,12 @@ class CSSProcessor {
 					$escaped .= '\\22 ';
 					break;
 				default:
-					_doing_it_wrong( __METHOD__, 'Unexpected character in URL value: ' . $unsafe_char, '1.0.0' );
+					++$at;
+					$escaped .= '\\' . dechex( ord( $unsafe_char ) ) . ' ';
 					break;
 			}
 		}
-		return '"' . $escaped . '"';
+		return $quote ? '"' . $escaped . '"' : $escaped;
 	}
 
 	/**
@@ -991,6 +1300,9 @@ class CSSProcessor {
 	 * @return string The modified CSS.
 	 */
 	public function get_updated_css(): string {
+		if ( null !== $this->stream ) {
+			throw new \LogicException( 'Streaming callers collect returned token fragments instead of a whole stylesheet.' );
+		}
 		if ( empty( $this->lexical_updates ) ) {
 			return $this->css;
 		}
@@ -1023,6 +1335,7 @@ class CSSProcessor {
 	 * Clears token state between tokens.
 	 */
 	private function after_token(): void {
+		$this->url_closed            = false;
 		$this->token_type            = null;
 		$this->token_type_flag       = null;
 		$this->token_starts_at       = null;
@@ -1043,27 +1356,33 @@ class CSSProcessor {
 	 *
 	 * @return bool
 	 */
-	private function consume_string(): bool {
+	private function consume_string( ?string $ending_char = null ): bool {
 		// Initially create a <string-token> with its value set to the empty string.
 		$this->token_starts_at = $this->at;
-		$ending_char           = $this->css[ $this->at ];
-
-		// Skip past the opening quote.
-		++$this->at;
+		if ( null === $ending_char ) {
+			$ending_char = $this->css[ $this->at ];
+			// Skip past the opening quote, but not when continuing its value.
+			++$this->at;
+		}
+		$limit = $this->fragment_limit ?? $this->length;
+		if ( null !== $this->stream ) {
+			$this->stream['phase'] = '';
+			$this->stream['quote'] = $ending_char;
+		}
 		$value_starts_at = $this->at;
 
 		// Characters that need special handling: the ending quote, newlines, backslashes.
 		$special_chars = "'" === $ending_char ? "'\n\f\r\\" : "\"\n\f\r\\";
 
-		while ( $this->at < $this->length ) {
+		while ( $this->at < $limit ) {
 			// Consume normal characters until we hit a special character.
-			$normal_len = strcspn( $this->css, $special_chars, $this->at );
+			$normal_len = strcspn( $this->css, $special_chars, $this->at, $limit - $this->at );
 			if ( $normal_len > 0 ) {
 				$this->at += $normal_len;
 			}
 
-			if ( $this->at >= $this->length ) {
-				break; // EOF.
+			if ( $this->at >= $limit ) {
+				break; // Input boundary.
 			}
 
 			$char = $this->css[ $this->at ];
@@ -1133,7 +1452,11 @@ class CSSProcessor {
 			}
 		}
 
-		// EOF
+		if ( null !== $this->stream && ! $this->stream['finished'] ) {
+			$this->stream['phase'] = 'string';
+		}
+
+		// EOF, or a value fragment awaiting the next input chunk.
 		// This is a parse error. Return the <string-token>.
 		$this->token_type            = self::TOKEN_STRING;
 		$this->token_length          = $this->at - $this->token_starts_at;
@@ -1153,26 +1476,31 @@ class CSSProcessor {
 	 *
 	 * @return bool
 	 */
-	private function consume_numeric(): bool {
+	private function consume_numeric( bool $continuing = false ): bool {
 		// Consume a number and let number be the result.
 		// The type flag defaults to "integer".
-		$number_type = 'integer';
+		$limit       = $this->fragment_limit ?? $this->length;
+		$stage       = $continuing ? $this->stream['number'] : 'integer';
+		$number_type = 'integer' === $stage ? 'integer' : 'number';
+		if ( null !== $this->stream ) {
+			$this->stream['phase'] = '';
+		}
 
 		// If the next input code point is U+002B PLUS SIGN (+) or U+002D HYPHEN-MINUS (-),
 		// consume it and append it to repr.
-		if ( '+' === $this->css[ $this->at ] || '-' === $this->css[ $this->at ] ) {
+		if ( ! $continuing && ( '+' === $this->css[ $this->at ] || '-' === $this->css[ $this->at ] ) ) {
 			++$this->at;
 		}
 
 		// While the next input code point is a digit, consume it and append it to repr.
-		$digits = strspn( $this->css, '0123456789', $this->at );
+		$digits = strspn( $this->css, '0123456789', $this->at, max( 0, $limit - $this->at ) );
 		if ( $digits > 0 ) {
 			$this->at += $digits;
 		}
 
 		// If the next 2 input code points are U+002E FULL STOP (.) followed by a digit, then.
 		if (
-			$this->at + 1 < $this->length &&
+			'integer' === $stage && $this->at < $limit && $this->at + 1 < $this->length &&
 			'.' === $this->css[ $this->at ] &&
 			$this->css[ $this->at + 1 ] >= '0' &&
 			$this->css[ $this->at + 1 ] <= '9'
@@ -1181,8 +1509,9 @@ class CSSProcessor {
 			++$this->at;
 			// Set type to "number".
 			$number_type = 'number';
+			$stage       = 'fraction';
 			// While the next input code point is a digit, consume it and append it to repr.
-			$digits = strspn( $this->css, '0123456789', $this->at );
+			$digits = strspn( $this->css, '0123456789', $this->at, max( 0, $limit - $this->at ) );
 			if ( $digits > 0 ) {
 				$this->at += $digits;
 			}
@@ -1191,7 +1520,7 @@ class CSSProcessor {
 		// If the next 2 or 3 input code points are U+0045 LATIN CAPITAL LETTER E (E)
 		// or U+0065 LATIN SMALL LETTER E (e), optionally followed by U+002D HYPHEN-MINUS (-)
 		// or U+002B PLUS SIGN (+), followed by a digit, then.
-		if ( $this->at < $this->length ) {
+		if ( 'exponent' !== $stage && $this->at < $limit ) {
 			$e = $this->css[ $this->at ];
 			if ( 'e' === $e || 'E' === $e ) {
 				$save_pos = $this->at;
@@ -1213,8 +1542,9 @@ class CSSProcessor {
 				if ( $has_exp ) {
 					// Set type to "number".
 					$number_type = 'number';
+					$stage       = 'exponent';
 					// While the next input code point is a digit, consume it and append it to repr.
-					$digits = strspn( $this->css, '0123456789', $this->at );
+					$digits = strspn( $this->css, '0123456789', $this->at, max( 0, $limit - $this->at ) );
 					if ( $digits > 0 ) {
 						$this->at += $digits;
 					}
@@ -1222,6 +1552,15 @@ class CSSProcessor {
 					$this->at = $save_pos;
 				}
 			}
+		}
+
+		if ( null !== $this->stream && $this->at >= $limit && ! $this->stream['finished'] ) {
+			$this->stream['phase']  = 'number';
+			$this->stream['number'] = $stage;
+			$this->token_type       = self::TOKEN_NUMBER;
+			$this->token_type_flag  = $number_type;
+			$this->token_length     = $this->at - $this->token_starts_at;
+			return true;
 		}
 
 		/**
@@ -1276,6 +1615,20 @@ class CSSProcessor {
 		$ident_start = $this->at;
 		$decoded     = $this->consume_ident_sequence();
 		$string      = $decoded ?? $this->decode_range( $ident_start, $this->at - $ident_start );
+
+		if ( null !== $this->stream ) {
+			$this->token_value = $string;
+			$this->token_type  = self::TOKEN_IDENT;
+			if ( '' === $this->stream['phase'] && $this->at < $this->length && '(' === $this->css[ $this->at ] ) {
+				++$this->at;
+				$this->token_type = self::TOKEN_FUNCTION;
+				if ( 0 === strcasecmp( $string, 'url' ) ) {
+					$this->stream['phase'] = 'url-start';
+				}
+			}
+			$this->token_length = $this->at - $this->token_starts_at;
+			return true;
+		}
 
 		// If string's value is an ASCII case-insensitive match for "url",
 		// and the next input code point is U+0028 LEFT PARENTHESIS (().
@@ -1340,18 +1693,31 @@ class CSSProcessor {
 	 *
 	 * @return bool
 	 */
-	private function consume_url(): bool {
+	private function consume_url( bool $continuing = false, bool $trailing_space = false ): bool {
 		// Initially create a <url-token> with its value set to the empty string.
 		// Consume as much whitespace as possible.
-		$this->at += strspn( $this->css, "\t\n\f\r ", $this->at );
+		$limit = $this->fragment_limit ?? $this->length;
+		if ( ! $continuing ) {
+			$this->at += strspn( $this->css, "\t\n\f\r ", $this->at, max( 0, $limit - $this->at ) );
+		}
+		if ( null !== $this->stream ) {
+			$this->stream['phase'] = '';
+		}
 
-		$value_starts_at = $this->at;
+		$value_starts_at             = $this->at;
+		$this->token_value_starts_at = $value_starts_at;
 
 		// Repeatedly consume the next input code point from the stream.
-		while ( $this->at < $this->length ) {
+		while ( $this->at < $limit ) {
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $this->at, $limit - $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			// U+0029 RIGHT PARENTHESIS ())
 			// Return the <url-token>.
 			if ( ')' === $this->css[ $this->at ] ) {
+				$this->url_closed = true;
 				++$this->at;
 				$this->token_type            = self::TOKEN_URL;
 				$this->token_length          = $this->at - $this->token_starts_at;
@@ -1365,12 +1731,15 @@ class CSSProcessor {
 			// U+0029 RIGHT PARENTHESIS ()) or EOF, consume it and return the <url-token>
 			// (if EOF was encountered, this is a parse error); otherwise, consume the
 			// remnants of a bad url, create a <bad-url-token>, and return it.
-			$ws_len = strspn( $this->css, "\t\n\f\r ", $this->at );
-			if ( $ws_len > 0 ) {
+			$ws_len = strspn( $this->css, "\t\n\f\r ", $this->at, $limit - $this->at );
+			if ( $ws_len > 0 || $trailing_space ) {
 				$value_ends_at = $this->at;
 				$this->at     += $ws_len;
 				// Accept either ) or EOF after whitespace.
-				if ( $this->at >= $this->length ) {
+				if ( $this->at >= $limit ) {
+					if ( null !== $this->stream && ! $this->stream['finished'] ) {
+						$this->stream['phase'] = 'url-space';
+					}
 					// EOF is a parse error, but we return the <url-token> anyway.
 					$this->token_type            = self::TOKEN_URL;
 					$this->token_length          = $this->at - $this->token_starts_at;
@@ -1380,6 +1749,7 @@ class CSSProcessor {
 				}
 
 				if ( ')' === $this->css[ $this->at ] ) {
+					$this->url_closed = true;
 					// Skip the closing parenthesis and return the <url-token>.
 					++$this->at;
 					$this->token_type            = self::TOKEN_URL;
@@ -1447,8 +1817,12 @@ class CSSProcessor {
 			}
 		}
 
-		// EOF
-		// This is a parse error. Return the <url-token>.
+		if ( null !== $this->stream && ! $this->stream['finished'] ) {
+			$this->stream['phase'] = 'url';
+		}
+
+		// Return the URL value fragment at an input boundary. Actual EOF before
+		// the closing parenthesis is a parse error, but still returns a URL token.
 		$this->token_type            = self::TOKEN_URL;
 		$this->token_length          = $this->at - $this->token_starts_at;
 		$this->token_value_starts_at = $value_starts_at;
@@ -1467,10 +1841,18 @@ class CSSProcessor {
 	 * @return bool
 	 */
 	private function consume_remnants_of_bad_url(): bool {
-		while ( $this->at < $this->length ) {
-			$this->at += strcspn( $this->css, ')\\', $this->at );
+		$limit = $this->fragment_limit ?? $this->length;
+		if ( null !== $this->stream ) {
+			$this->token_value_length = null === $this->token_value_starts_at ? null : $this->at - $this->token_value_starts_at;
+			$this->stream['phase']    = '';
+		}
+		while ( $this->at < $limit ) {
+			$this->at += strcspn( $this->css, ')\\', $this->at, $limit - $this->at );
 
-			if ( $this->at >= $this->length ) {
+			if ( $this->at >= $limit ) {
+				if ( null !== $this->stream && ! $this->stream['finished'] ) {
+					$this->stream['phase'] = 'bad-url';
+				}
 				break;
 			}
 
@@ -1482,6 +1864,7 @@ class CSSProcessor {
 					continue;
 				}
 			} elseif ( ')' === $this->css[ $this->at ] ) {
+				$this->url_closed = true;
 				++$this->at;
 				break;
 			}
@@ -1504,7 +1887,13 @@ class CSSProcessor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-name
 	 */
 	private function consume_ident_sequence() {
-		while ( $this->at < $this->length ) {
+		$limit = $this->fragment_limit ?? $this->length;
+		while ( $this->at < $limit ) {
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_', $this->at, $limit - $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			$codepoint_bytes = $this->consume_ident_codepoint( $this->at );
 			if ( $codepoint_bytes > 0 ) {
 				$this->at += $codepoint_bytes;
@@ -1520,6 +1909,9 @@ class CSSProcessor {
 			}
 
 			break;
+		}
+		if ( null !== $this->stream ) {
+			$this->stream['phase'] = $this->at >= $limit && ! $this->stream['finished'] ? 'name' : '';
 		}
 	}
 
@@ -1747,8 +2139,8 @@ class CSSProcessor {
 		// Hex digits (CSS spec allows at most 6).
 		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at, 6 );
 		if ( $hex_len > 0 ) {
-			$hex     = substr( $this->css, $at, $hex_len );
-			$at     += $hex_len;
+			$hex = substr( $this->css, $at, $hex_len );
+			$at += $hex_len;
 
 			// If the next input code point is whitespace, consume it as well.
 			if ( $at < $this->length ) {

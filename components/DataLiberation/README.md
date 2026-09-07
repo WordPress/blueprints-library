@@ -281,3 +281,70 @@ posts: 2
 block markup exported
 frontmatter title exported
 ```
+
+## Rewrite a CSS file in chunks and resume
+
+A download can stop between `https://old.exa` and `mple/photo.png`. The CSS
+processor keeps that unfinished prefix and its CSS context in a cursor.
+It uses the same tokenizer as inline CSS rewriting. Comments and displayed
+text stay unchanged; `url()`, bare `@import` strings, and `image-set()` URL
+strings are recognized.
+
+<!-- snippet:
+filename: css-chunks.php
+runnable: true
+-->
+```php
+<?php
+require '/php-toolkit/vendor/autoload.php';
+
+use WordPress\DataLiberation\URL\CSSURLProcessor;
+
+$mapping = array( 'https://old.example' => 'https://new.example' );
+$processor = CSSURLProcessor::create_for_streaming( $mapping );
+foreach ( $processor->rewrite_chunk( 'a{src:url(https://old.exa', false ) as $bytes ) {
+	echo $bytes;
+}
+
+// Save this cursor only after writing every output chunk. A new process can
+// restore it without reading the completed source bytes again.
+$cursor = json_decode( json_encode( $processor->get_reentrancy_cursor() ), true );
+$processor = CSSURLProcessor::create_for_streaming( $mapping, $cursor );
+foreach ( $processor->rewrite_chunk( 'mple/photo.png)}', true ) as $bytes ) {
+	echo $bytes;
+}
+echo "\n";
+```
+
+<!-- expected-output -->
+```
+a{src:url(https://new.example/photo.png)}
+```
+
+For files, read bounded source chunks and write each yielded output chunk
+before saving a checkpoint. Output chunks are at most 64 KiB. A checkpoint
+must contain the source byte offset, destination byte offset, and processor
+cursor together. Flush destination writes before publishing that checkpoint.
+On resume, seek the source to its saved offset and truncate the destination
+to its saved offset before appending. Keep the source and URL mapping unchanged.
+If a write fails or the output iterator is abandoned, reopen from the last
+saved checkpoint rather than continuing the partially consumed iterator.
+[The separate-process file test](Tests/fixtures/css-stream/rewrite-file.php)
+shows this write, checkpoint, and replay order.
+
+Matching decodes CSS escapes, compares the HTTP(S) origin without case, and
+compares the path with case. The longest matching source base wins, at a
+`/`, `?`, `#`, or URL end boundary. Protocol-relative URLs keep their `//`
+form. Relative paths, data URLs, and unrelated hosts remain unchanged. The
+replacement preserves surrounding CSS syntax and the raw unmatched suffix;
+escapes within the replaced prefix can change spelling. This is base-prefix
+matching, not full URL canonicalization: dot segments and alternate encoded
+host spellings are not resolved.
+
+The tokenizer retains at most 13 unread source bytes after a drained chunk.
+An undecided URL prefix can retain up to 1 MiB of raw bytes between chunks;
+source and escaped target bases are also capped at 1 MiB. Nested `image-set`
+contexts are capped at 128. Exceeding a cap throws instead of buffering an
+unbounded token. Completed comments, strings, and data URLs are not retained.
+Call `rewrite_chunk('', true)` if EOF is learned after the final nonempty read.
+EOF must mean the actual end of the stylesheet, not an interrupted response.
