@@ -66,7 +66,9 @@ class CSSURLStreamProcessTest extends TestCase {
 	private function run_worker( $stop ) {
 		$arguments = array( PHP_BINARY, __DIR__ . '/fixtures/css-stream/rewrite-file.php', $this->directory . '/source.css', $this->directory . '/target.css', $this->directory . '/state.json', $stop );
 		$command = implode( ' ', array_map( 'escapeshellarg', $arguments ) );
-		$process = proc_open( $command, array( 0 => array( 'pipe', 'r' ), 1 => array( 'file', $this->directory . '/worker.log', 'w' ), 2 => array( 'file', $this->directory . '/worker.log', 'a' ) ), $pipes );
+		// Windows cmd.exe strips quotes from this command. Launch PHP directly;
+		// the command stays a string for PHP 7.2, which cannot accept an argument array.
+		$process = proc_open( $command, array( 0 => array( 'pipe', 'r' ), 1 => array( 'file', $this->directory . '/worker.log', 'w' ), 2 => array( 'file', $this->directory . '/worker.log', 'a' ) ), $pipes, null, null, array( 'bypass_shell' => true ) );
 		$this->assertIsResource( $process );
 		fclose( $pipes[0] );
 		return proc_close( $process );
