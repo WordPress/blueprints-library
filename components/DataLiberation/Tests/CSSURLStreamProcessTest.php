@@ -45,6 +45,7 @@ class CSSURLStreamProcessTest extends TestCase {
 		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
 	}
 
+	/** Prefix-limit failure must preserve a resumable boundary on both the first run and resume. */
 	public function test_file_rewrite_reports_a_prefix_limit_and_keeps_the_last_checkpoint() {
 		$input = 'a{src:url("h' . str_repeat( "\\\n", 550000 ) . 'ttps://old.example/a")}';
 		file_put_contents( $this->directory . '/source.css', $input );
@@ -58,6 +59,7 @@ class CSSURLStreamProcessTest extends TestCase {
 		}
 	}
 
+	/** Runs through completion or exits on either side of the second file checkpoint. */
 	public static function interruptions() {
 		return array( array( 'none' ), array( 'before' ), array( 'after' ) );
 	}

@@ -19,6 +19,7 @@ class CSSURLStreamTest extends TestCase {
 		}
 	}
 
+	/** Pairs URL syntax and non-URL text with the exact bytes expected after rewriting. */
 	public static function stylesheets() {
 		return array(
 			'trailing URL spaces' => array( 'a{src:url(https://old.example                       )}', 'a{src:url(http://new.example/local                       )}' ),
@@ -107,6 +108,7 @@ class CSSURLStreamTest extends TestCase {
 		$this->assertSame( hash_final( $expected ), hash_final( $actual ) );
 	}
 
+	/** A saved cursor must not skip output still held by the generator. */
 	public function test_cannot_checkpoint_unconsumed_output() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$output = $processor->rewrite_chunk( 'a{src:url(https://old.example/a)}', true );
@@ -116,6 +118,7 @@ class CSSURLStreamTest extends TestCase {
 		$processor->get_reentrancy_cursor();
 	}
 
+	/** An unfinished source base cannot be resumed with a different replacement. */
 	public function test_changed_mapping_cannot_resume_an_open_url() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$this->rewrite_chunk( $processor, 'a{src:url("https://old.exa', false );
@@ -135,6 +138,7 @@ class CSSURLStreamTest extends TestCase {
 		}
 	}
 
+	/** Replacement bytes must stay inside the value in all three URL quoting forms. */
 	public function test_replacement_prefix_escapes_controls_and_delimiters() {
 		$input = "https://new.example/" . chr( 1 ) . "\rX\n \"'()";
 		$escaped = CSSProcessor::escape_value_prefix( $input );
@@ -145,6 +149,7 @@ class CSSURLStreamTest extends TestCase {
 		}
 	}
 
+	/** The existing iterator recognizes import and image-set URLs without matching displayed text. */
 	public function test_whole_string_finder_uses_the_same_url_contexts() {
 		$css = '@import "https://old.example/theme.css";a{src:image-set("https://old.example/a" 1x,url(https://old.example/b) 2x,"https://old.example/c" 3x);content:"https://old.example/text"}';
 		$processor = new CSSURLProcessor( $css );

@@ -1456,8 +1456,8 @@ class CSSProcessor {
 			$this->stream['phase'] = 'string';
 		}
 
-		// EOF, or a value fragment awaiting the next input chunk.
-		// This is a parse error. Return the <string-token>.
+		// EOF without a closing quote is a parse error; an input boundary is not.
+		// Return the <string-token> in either case, retaining the phase when more bytes may arrive.
 		$this->token_type            = self::TOKEN_STRING;
 		$this->token_length          = $this->at - $this->token_starts_at;
 		$this->token_value_starts_at = $value_starts_at;

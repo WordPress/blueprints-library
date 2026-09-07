@@ -21,6 +21,7 @@ class CSSStreamTest extends TestCase {
 		$this->assertSame( $input, $output );
 	}
 
+	/** Supplies the CSS corpus plus byte sequences that cross UTF-8 and escape boundaries. */
 	public static function corpus() {
 		$cases = json_decode( file_get_contents( __DIR__ . '/css-test-cases.json' ), true );
 		foreach ( $cases as $name => $case ) {
