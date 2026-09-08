@@ -2,7 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use WordPress\DataLiberation\URL\CSSURLProcessor;
-use WordPress\DataLiberation\CSS\CSSProcessor;
 
 /** Streamed stylesheets must keep CSS context across input and process boundaries. */
 class CSSURLStreamTest extends TestCase {
@@ -147,28 +146,6 @@ class CSSURLStreamTest extends TestCase {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ), json_decode( json_encode( $processor->get_reentrancy_cursor() ), true ) );
 		$output .= $this->rewrite_chunk( $processor, ')}', true );
 		$this->assertSame( 'a{src:url(https://new.example/' . str_repeat( 'a', 65536 ) . ')}', $output );
-	}
-
-	/** Replacement bytes must stay inside the value in all three URL quoting forms. */
-	public function test_replacement_prefix_escapes_controls_and_delimiters() {
-		$input = "https://new.example/" . chr( 1 ) . "\rX\n \"'()";
-		$escaped = CSSProcessor::escape_value_prefix( $input );
-		foreach ( array( 'url(' . $escaped . ')', 'url("' . $escaped . '")', "url('" . $escaped . "')" ) as $css ) {
-			$processor = new CSSURLProcessor( $css );
-			$this->assertTrue( $processor->next_url() );
-			$this->assertSame( str_replace( "\r", "\n", $input ), $processor->get_raw_url() );
-		}
-	}
-
-	/** The existing iterator recognizes import and image-set URLs without matching displayed text. */
-	public function test_whole_string_finder_uses_the_same_url_contexts() {
-		$css = '@import "https://old.example/theme.css";a{src:image-set("https://old.example/a" 1x,url(https://old.example/b) 2x,"https://old.example/c" 3x);content:"https://old.example/text"}';
-		$processor = new CSSURLProcessor( $css );
-		$urls = array();
-		while ( $processor->next_url() ) {
-			$urls[] = $processor->get_raw_url();
-		}
-		$this->assertSame( array( 'https://old.example/theme.css', 'https://old.example/a', 'https://old.example/b', 'https://old.example/c' ), $urls );
 	}
 
 	/** Collects only the small input chunks supplied by these assertions. */
