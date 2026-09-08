@@ -12,13 +12,13 @@ class CSSURLProcessor {
 	 * @var CSSProcessor
 	 */
 	private $processor;
-	/** @var array URL syntax context shared by whole-string and streaming callers. */
+
+	/** @var array URL syntax context used by the whole-string iterator. */
 	private $context = array(
 		'depth' => 0,
 		'images' => array(),
 		'expect' => '',
 	);
-
 
 	/**
 	 * @param string $css CSS source without wrapping braces.
