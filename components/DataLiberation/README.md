@@ -293,3 +293,13 @@ normalizes CRLF to one newline without dropping text after a lone CR.
 
 [The file-edit test caller](Tests/fixtures/css-prefix/edit-file.php) exercises
 both prefix and whole-value edits without streamed input or saved cursors.
+
+## Find CSS URLs in imports and image sets
+
+`CSSURLProcessor::next_url()` recognizes `url()`, bare `@import` strings, and
+strings used as images in `image-set()` or `-webkit-image-set()`. Comments,
+displayed text, MIME-type strings, and malformed string or URL tokens are
+not returned. More than 128 nested image sets throw an error.
+
+[The file-rewrite caller](Tests/fixtures/css-context/rewrite-file.php) uses the
+whole-string iterator and writes the output only after iteration completes.

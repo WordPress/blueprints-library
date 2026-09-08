@@ -12,6 +12,13 @@ class CSSURLProcessor {
 	 * @var CSSProcessor
 	 */
 	private $processor;
+	/** @var array URL syntax context shared by whole-string and streaming callers. */
+	private $context = array(
+		'depth' => 0,
+		'images' => array(),
+		'expect' => '',
+	);
+
 
 	/**
 	 * @param string $css CSS source without wrapping braces.
@@ -27,31 +34,58 @@ class CSSURLProcessor {
 	 */
 	public function next_url(): bool {
 		while ( $this->processor->next_token() ) {
-			$type = $this->processor->get_token_type();
-
-			// Direct URL token.
-			if ( CSSProcessor::TOKEN_URL === $type ) {
+			$type   = $this->processor->get_token_type();
+			$name   = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
+			$is_url = $this->inspect_url_context( $type, $name );
+			if ( $is_url && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_URL ), true ) ) {
 				return true;
-			}
-
-			// url() function with STRING token.
-			if ( CSSProcessor::TOKEN_FUNCTION === $type &&
-				0 === strcasecmp( $this->processor->get_token_value(), 'url' ) ) {
-				// Look ahead for STRING token, skipping whitespace.
-				while ( $this->processor->next_token() ) {
-					$inner_type = $this->processor->get_token_type();
-					if ( CSSProcessor::TOKEN_WHITESPACE === $inner_type ) {
-						continue; // Skip whitespace.
-					}
-					if ( CSSProcessor::TOKEN_STRING === $inner_type ) {
-						return true; // Found the URL string.
-					}
-					// Hit something else (like RIGHT_PAREN or another token).
-					break;
-				}
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Recognizes URL values without treating comments or displayed text as URLs.
+	 *
+	 * The url() function expects a STRING token after whitespace. Bare @import and
+	 * image-set strings use the same lookahead; another token clears that expectation.
+	 * Direct unquoted URL tokens already include their url() wrapper.
+	 *
+	 * @param string $type CSS token type.
+	 * @param string $name Decoded function or at-keyword name, otherwise empty.
+	 * @return bool Whether this begins a URL value.
+	 */
+	private function inspect_url_context( string $type, string $name ): bool {
+		if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
+			return false;
+		}
+		$expected                = $this->context['expect'];
+		$this->context['expect'] = '';
+		if ( CSSProcessor::TOKEN_FUNCTION === $type ) {
+			++$this->context['depth'];
+			$name                    = strtolower( $name );
+			$this->context['expect'] = 'url' === $name ? 'url' : '';
+			if ( in_array( $name, array( 'image-set', '-webkit-image-set' ), true ) ) {
+				if ( count( $this->context['images'] ) >= 128 ) {
+					throw new \RuntimeException( 'CSS image-set nesting exceeds 128 open functions.' );
+				}
+				$this->context['images'][] = $this->context['depth'];
+				$this->context['expect']   = 'image';
+			}
+		} elseif ( CSSProcessor::TOKEN_AT_KEYWORD === $type ) {
+			$this->context['expect'] = 'import' === strtolower( $name ) ? 'import' : '';
+		} elseif ( CSSProcessor::TOKEN_LEFT_PAREN === $type ) {
+			++$this->context['depth'];
+		} elseif ( CSSProcessor::TOKEN_RIGHT_PAREN === $type ) {
+			if ( end( $this->context['images'] ) === $this->context['depth'] ) {
+				array_pop( $this->context['images'] );
+			}
+			$this->context['depth'] = max( 0, $this->context['depth'] - 1 );
+		} elseif ( CSSProcessor::TOKEN_COMMA === $type && end( $this->context['images'] ) === $this->context['depth'] ) {
+			$this->context['expect'] = 'image';
+		}
+		return in_array( $type, array( CSSProcessor::TOKEN_URL, CSSProcessor::TOKEN_BAD_URL ), true ) ||
+			( '' !== $expected && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_BAD_STRING ), true ) );
 	}
 
 	/**
