@@ -232,6 +232,12 @@ class CSSURLProcessor {
 			$name                    = strtolower( $name );
 			$this->context['expect'] = 'url' === $name ? 'url' : '';
 			if ( in_array( $name, array( 'image-set', '-webkit-image-set' ), true ) ) {
+				// In image-set("a.png" type("image/png"), "b.png" 2x),
+				// type() is nested one level deeper than image-set(). Save each
+				// open image-set's depth so only commas at that depth start images.
+				// The matching ')' removes that entry. Cap the stack at 128 open
+				// image-set() calls, even for malformed input. This does not cap
+				// images within a set or separate image-set() calls in the file.
 				if ( count( $this->context['images'] ) >= 128 ) {
 					throw new \RuntimeException( 'CSS image-set nesting exceeds 128 open functions.' );
 				}
