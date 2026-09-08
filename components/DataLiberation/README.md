@@ -291,6 +291,10 @@ those bytes with `escape_value_prefix()` output to keep the existing quotes,
 works in unquoted URLs. Whole-value `set_token_value()` still adds quotes and
 normalizes CRLF to one newline without dropping text after a lone CR.
 
+Prefix measurement scans ordinary URL bytes with `strspn()` and decodes escapes
+and UTF-8 separately. Replacement escaping uses `strtr()` rather than a PHP
+character loop, with an early return when no bytes need escaping.
+
 [The prefix-edit caller](Tests/fixtures/css-prefix/replace-url-prefix.php) and
 [the whole-URL caller](Tests/fixtures/css-prefix/replace-whole-url.php) show each
 operation separately, without streamed input or saved cursors.
