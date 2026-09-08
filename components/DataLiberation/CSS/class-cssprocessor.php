@@ -1586,6 +1586,12 @@ class CSSProcessor {
 
 		// Repeatedly consume the next input code point from the stream.
 		while ( $this->at < $this->length ) {
+			// Scan runs such as https://example.com/photo.png in native code rather
+			// than one PHP iteration per byte. These ASCII bytes need no special
+			// handling in an unquoted URL. Quotes, parentheses, whitespace, escapes,
+			// and non-ASCII bytes fall through to the rules below.
+			// Only the cursor advances; source bytes stay unchanged. This also makes
+			// reparsing a long unfinished URL cheaper when another chunk arrives.
 			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $this->at );
 			if ( $plain > 0 ) {
 				$this->at += $plain;
