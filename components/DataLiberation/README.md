@@ -285,10 +285,11 @@ frontmatter title exported
 ## Rewrite a CSS file in chunks and resume
 
 A download can stop between `https://old.exa` and `mple/photo.png`. The CSS
-processor keeps that unfinished prefix and its CSS context in a cursor.
+processor keeps the entire unfinished token and its CSS context in a cursor.
+It parses that token again when more input arrives, like the XML processor.
 It uses the same tokenizer as inline CSS rewriting. Comments and displayed
 text stay unchanged; `url()`, bare `@import` strings, and `image-set()` URL
-strings are recognized.
+strings are recognized. Malformed string and URL tokens stay unchanged.
 
 <!-- snippet:
 filename: css-chunks.php
@@ -341,10 +342,19 @@ escapes within the replaced prefix can change spelling. This is base-prefix
 matching, not full URL canonicalization: dot segments and alternate encoded
 host spellings are not resolved.
 
-The tokenizer retains at most 13 unread source bytes after a drained chunk.
-An undecided URL prefix can retain up to 1 MiB of raw bytes between chunks;
-source and escaped target bases are also capped at 1 MiB. Nested `image-set`
-contexts are capped at 128. Exceeding a cap throws instead of buffering an
-unbounded token. Completed comments, strings, and data URLs are not retained.
+The tokenizer uses the same `next_token()` and value getters for whole strings
+and streamed input. It keeps an unfinished token and a small amount of trailing
+input, then tries parsing again after another read. Completed input is released.
+There is no token-size cap: a large comment, string, identifier, or embedded
+image increases both memory use and the saved cursor size. Repeated reads also
+reparse that token. Small input chunks do not bound the size of a single token.
+Output is still yielded in chunks of at most 64 KiB. Nested `image-set` contexts
+remain capped at 128; exceeding that limit throws without completing the file.
+
+For direct `CSSProcessor` callers, `flush_processed_css()` returns completed
+input with queued edits applied. Call it before `append_bytes()` or saving a
+cursor. The existing `set_token_value()` works on completed streamed tokens.
+`CSSURLProcessor::rewrite_chunk()` handles that flushing for its caller.
+
 Call `rewrite_chunk('', true)` if EOF is learned after the final nonempty read.
 EOF must mean the actual end of the stylesheet, not an interrupted response.

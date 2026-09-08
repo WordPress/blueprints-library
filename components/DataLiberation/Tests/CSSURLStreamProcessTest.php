@@ -45,16 +45,16 @@ class CSSURLStreamProcessTest extends TestCase {
 		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
 	}
 
-	/** Prefix-limit failure must preserve a resumable boundary on both the first run and resume. */
-	public function test_file_rewrite_reports_a_prefix_limit_and_keeps_the_last_checkpoint() {
-		$input = 'a{src:url("h' . str_repeat( "\\\n", 550000 ) . 'ttps://old.example/a")}';
+	/** A nesting-limit failure must leave the preceding file checkpoint usable on resume. */
+	public function test_file_rewrite_reports_a_nesting_limit_and_keeps_the_last_checkpoint() {
+		$input = '/*' . str_repeat( 'a', 65536 ) . '*/a{src:' . str_repeat( 'image-set(', 129 ) . '"https://old.example/a"' . str_repeat( ')', 129 ) . '}';
 		file_put_contents( $this->directory . '/source.css', $input );
 		for ( $attempt = 0; $attempt < 2; ++$attempt ) {
 			$this->assertNotSame( 0, $this->run_worker( 'none' ) );
-			$this->assertStringContainsString( 'exceeding 1048576', file_get_contents( $this->directory . '/worker.log' ) );
+			$this->assertStringContainsString( 'nesting exceeds 128', file_get_contents( $this->directory . '/worker.log' ) );
 			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
 			$this->assertLessThan( strlen( $input ), $state['source_bytes'] );
-			$this->assertFalse( $state['css']['urls']['finished'] );
+			$this->assertTrue( $state['css']['css']['expecting_more_input'] );
 			$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
 		}
 	}

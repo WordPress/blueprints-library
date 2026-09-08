@@ -24,8 +24,8 @@ class CSSURLStreamTest extends TestCase {
 		return array(
 			'trailing URL spaces' => array( 'a{src:url(https://old.example                       )}', 'a{src:url(http://new.example/local                       )}' ),
 			'leading URL spaces' => array( 'a{src:url(                              "https://old.example/a")}', 'a{src:url(                              "http://new.example/local/a")}' ),
-			'bad URL keeps its syntax' => array( 'a{src:url(https://old.example/a(broken)}', 'a{src:url(http://new.example/local/a(broken)}' ),
-			'bad string keeps its syntax' => array( "@import \"https://old.example/a\n", "@import \"http://new.example/local/a\n" ),
+			'bad URL keeps its syntax' => array( 'a{src:url(https://old.example/a(broken)}', 'a{src:url(https://old.example/a(broken)}' ),
+			'bad string keeps its syntax' => array( "@import \"https://old.example/a\n", "@import \"https://old.example/a\n" ),
 			'not a url function' => array( 'a{src:10url("https://old.example/a"),noturl("https://old.example/a")}', 'a{src:10url("https://old.example/a"),noturl("https://old.example/a")}' ),
 			'nested image set' => array( 'a{src:image-set(image-set("https://old.example/a" 1x) 1x,"https://old.example/b" type("https://old.example/mime"))}', 'a{src:image-set(image-set("http://new.example/local/a" 1x) 1x,"http://new.example/local/b" type("https://old.example/mime"))}' ),
 			'parenthesized resolution' => array( 'a{src:image-set("https://old.example/a" calc(1x * (2 + 3)), "https://old.example/b" 2x)}', 'a{src:image-set("http://new.example/local/a" calc(1x * (2 + 3)), "http://new.example/local/b" 2x)}' ),
@@ -62,7 +62,7 @@ class CSSURLStreamTest extends TestCase {
 	}
 
 	/** A single token, not just a stylesheet, can exceed the input chunk size. */
-	public function test_large_tokens_keep_memory_and_cursor_bounded() {
+	public function test_large_tokens_are_retained_until_complete_then_released() {
 		$mapping = array( 'https://old.example' => 'https://old.example/moved' );
 		foreach ( array( array( '/*', '*/' ), array( 'a{content:"', '"}' ), array( 'a{src:url(data:image/png;base64,', ')}' ), array( 'a{src:url(https://old.example/', ')}' ), array( '.long', '{}' ) ) as $token ) {
 			$processor = CSSURLProcessor::create_for_streaming( $mapping );
@@ -71,19 +71,20 @@ class CSSURLStreamTest extends TestCase {
 			$expected_prefix = str_replace( 'https://old.example/', 'https://old.example/moved/', $token[0] );
 			hash_update( $input_hash, $expected_prefix );
 			hash_update( $output_hash, $this->rewrite_chunk( $processor,  $token[0], false ) );
-			$start_memory = memory_get_usage();
+			$retained_bytes = 0;
 			for ( $chunk = 0; $chunk < 128; ++$chunk ) {
 				$bytes = str_repeat( 'a', 32768 );
 				hash_update( $input_hash, $bytes );
 				hash_update( $output_hash, $this->rewrite_chunk( $processor,  $bytes, false ) );
 				$cursor = $processor->get_reentrancy_cursor();
-				$this->assertLessThan( 2048, strlen( json_encode( $cursor ) ) );
-				$this->assertLessThan( 2 * 1024 * 1024, memory_get_usage() - $start_memory );
+				$this->assertGreaterThan( $retained_bytes, strlen( $cursor['css']['pending_b64'] ) );
+				$retained_bytes = strlen( $cursor['css']['pending_b64'] );
 				$processor = CSSURLProcessor::create_for_streaming( $mapping, $cursor );
 			}
 			hash_update( $input_hash, $token[1] );
 			hash_update( $output_hash, $this->rewrite_chunk( $processor,  $token[1], true ) );
 			$this->assertSame( hash_final( $input_hash ), hash_final( $output_hash ) );
+			$this->assertSame( '', $processor->get_reentrancy_cursor()['css']['pending_b64'] );
 		}
 	}
 	/** Expanding a short source URL many times must not buffer a large output string. */
@@ -127,15 +128,25 @@ class CSSURLStreamTest extends TestCase {
 		CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://other.example' ), $processor->get_reentrancy_cursor() );
 	}
 
-	/** Zero-width line continuations cannot make an undecided prefix consume unlimited memory. */
-	public function test_undecided_url_prefix_limit_reports_a_failure() {
+	/** Source line continuations are buffered with the token instead of capped as a prefix. */
+	public function test_long_escaped_url_is_rewritten_after_its_closing_quote() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
-		$this->rewrite_chunk( $processor, 'a{src:url("h', false );
-		$this->expectException( RuntimeException::class );
-		$this->expectExceptionMessage( 'exceeding 1048576' );
+		$output = $this->rewrite_chunk( $processor, 'a{src:url("h', false );
 		for ( $index = 0; $index < 34; ++$index ) {
-			$this->rewrite_chunk( $processor, str_repeat( "\\\n", 16384 ), false );
+			$output .= $this->rewrite_chunk( $processor, str_repeat( "\\\n", 16384 ), false );
 		}
+		$output .= $this->rewrite_chunk( $processor, 'ttps://old.example/a")}', true );
+		$this->assertSame( 'a{src:url("https://new.example/a")}', $output );
+	}
+
+	/** A URL is returned only after the tokenizer can identify its complete value. */
+	public function test_unfinished_url_is_not_written_before_its_end() {
+		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
+		$output = $this->rewrite_chunk( $processor, 'a{src:url(https://old.example/' . str_repeat( 'a', 65536 ), false );
+		$this->assertSame( 'a{src:', $output );
+		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ), json_decode( json_encode( $processor->get_reentrancy_cursor() ), true ) );
+		$output .= $this->rewrite_chunk( $processor, ')}', true );
+		$this->assertSame( 'a{src:url(https://new.example/' . str_repeat( 'a', 65536 ) . ')}', $output );
 	}
 
 	/** Replacement bytes must stay inside the value in all three URL quoting forms. */

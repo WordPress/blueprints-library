@@ -9,16 +9,24 @@ class CSSStreamTest extends TestCase {
 	public function test_source_bytes_survive_one_byte_input_and_resume( $input ) {
 		$processor = CSSProcessor::create_for_streaming();
 		$output = '';
+		$tokens = array();
+		$whole_tokens = array();
+		$whole = CSSProcessor::create( $input );
+		while ( $whole->next_token() ) {
+			$whole_tokens[] = array( $whole->get_token_type(), $whole->get_token_value(), $whole->get_unnormalized_token() );
+		}
 		for ( $offset = 0; $offset <= strlen( $input ); ++$offset ) {
 			$processor->append_bytes( substr( $input, $offset, 1 ), strlen( $input ) === $offset );
 			$steps = 0;
-			while ( null !== ( $fragment = $processor->next_token_fragment() ) ) {
-				$output .= $fragment['text'];
+			while ( $processor->next_token() ) {
+				$tokens[] = array( $processor->get_token_type(), $processor->get_token_value(), $processor->get_unnormalized_token() );
 				$this->assertLessThan( 64, ++$steps, 'The lexer must consume input or finish its current token.' );
 			}
-			$processor = CSSProcessor::create_for_streaming( $processor->get_reentrancy_cursor() );
+			$output .= $processor->flush_processed_css();
+			$processor = CSSProcessor::create_for_streaming( json_decode( json_encode( $processor->get_reentrancy_cursor() ), true ) );
 		}
 		$this->assertSame( $input, $output );
+		$this->assertSame( $whole_tokens, $tokens );
 	}
 
 	/** Supplies the CSS corpus plus byte sequences that cross UTF-8 and escape boundaries. */
@@ -31,8 +39,8 @@ class CSSStreamTest extends TestCase {
 		yield 'UTF-8 at every position' => array( 'a{content:"aé東京😀\1f600 \0000e9 b"}' );
 	}
 
-	/** The decoded fragments must use the same UTF-8 and escape rules as a whole value. */
-	public function test_decoded_string_fragments_match_the_whole_token() {
+	/** A buffered string uses the same UTF-8 and escape rules as whole-string input. */
+	public function test_buffered_strings_match_the_whole_token() {
 		foreach ( array( '"é東京😀\1f600 \0000e9 b"', "\"before\\\r\nafter\\\nend\\\ftail\"", "\"\xc3x\xe2\x82\x80\xff\x00\"" ) as $input ) {
 			$whole = CSSProcessor::create( $input );
 			$this->assertTrue( $whole->next_token() );
@@ -41,12 +49,34 @@ class CSSStreamTest extends TestCase {
 			$decoded = '';
 			for ( $offset = 0; $offset <= strlen( $input ); ++$offset ) {
 				$processor->append_bytes( substr( $input, $offset, 1 ), strlen( $input ) === $offset );
-				while ( null !== ( $fragment = $processor->next_token_fragment() ) ) {
-					$decoded .= $fragment['value'];
+				while ( $processor->next_token() ) {
+					$decoded .= $processor->get_token_value();
 				}
+				$processor->flush_processed_css();
 				$processor = CSSProcessor::create_for_streaming( $processor->get_reentrancy_cursor() );
 			}
 			$this->assertSame( $expected, $decoded );
 		}
 	}
+
+	/** The existing whole-token setter must survive flushing and a fresh processor. */
+	public function test_buffered_tokens_use_the_existing_value_setter() {
+		$processor = CSSProcessor::create_for_streaming();
+		$output = '';
+		foreach ( array( 'a{src:url("https://old.exa', 'mple/a");color:red}            ' ) as $input ) {
+			$processor->append_bytes( $input );
+			while ( $processor->next_token() ) {
+				if ( 'https://old.example/a' === $processor->get_token_value() ) {
+					$this->assertTrue( $processor->set_token_value( 'https://new.example/moved/a' ) );
+				}
+			}
+			$output .= $processor->flush_processed_css();
+			$processor = CSSProcessor::create_for_streaming( $processor->get_reentrancy_cursor() );
+		}
+		$processor->append_bytes( '', true );
+		while ( $processor->next_token() ) {}
+		$output .= $processor->flush_processed_css();
+		$this->assertSame( 'a{src:url("https://new.example/moved/a");color:red}            ', $output );
+	}
+
 }
