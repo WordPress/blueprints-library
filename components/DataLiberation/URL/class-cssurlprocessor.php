@@ -30,62 +30,53 @@ class CSSURLProcessor {
 	/**
 	 * Moves the cursor to the next URL token, if available.
 	 *
-	 * @return bool
-	 */
-	public function next_url(): bool {
-		while ( $this->processor->next_token() ) {
-			$type   = $this->processor->get_token_type();
-			$name   = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
-			$is_url = $this->inspect_url_context( $type, $name );
-			if ( $is_url && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_URL ), true ) ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Recognizes URL values without treating comments or displayed text as URLs.
-	 *
 	 * The url() function expects a STRING token after whitespace. Bare @import and
 	 * image-set strings use the same lookahead; another token clears that expectation.
 	 * Direct unquoted URL tokens already include their url() wrapper.
 	 *
-	 * @param string $type CSS token type.
-	 * @param string $name Decoded function or at-keyword name, otherwise empty.
-	 * @return bool Whether this begins a URL value.
+	 * @return bool
 	 */
-	private function inspect_url_context( string $type, string $name ): bool {
-		if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
-			return false;
-		}
-		$expected                = $this->context['expect'];
-		$this->context['expect'] = '';
-		if ( CSSProcessor::TOKEN_FUNCTION === $type ) {
-			++$this->context['depth'];
-			$name                    = strtolower( $name );
-			$this->context['expect'] = 'url' === $name ? 'url' : '';
-			if ( in_array( $name, array( 'image-set', '-webkit-image-set' ), true ) ) {
-				if ( count( $this->context['images'] ) >= 128 ) {
-					throw new \RuntimeException( 'CSS image-set nesting exceeds 128 open functions.' );
+	public function next_url(): bool {
+		while ( $this->processor->next_token() ) {
+			$type = $this->processor->get_token_type();
+			$name = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
+			if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
+				continue;
+			}
+			$expected                = $this->context['expect'];
+			$this->context['expect'] = '';
+			if ( CSSProcessor::TOKEN_FUNCTION === $type ) {
+				++$this->context['depth'];
+				$name                    = strtolower( $name );
+				$this->context['expect'] = 'url' === $name ? 'url' : '';
+				if ( in_array( $name, array( 'image-set', '-webkit-image-set' ), true ) ) {
+					if ( count( $this->context['images'] ) >= 128 ) {
+						throw new \RuntimeException( 'CSS image-set nesting exceeds 128 open functions.' );
+					}
+					$this->context['images'][] = $this->context['depth'];
+					$this->context['expect']   = 'image';
 				}
-				$this->context['images'][] = $this->context['depth'];
-				$this->context['expect']   = 'image';
+			} elseif ( CSSProcessor::TOKEN_AT_KEYWORD === $type ) {
+				$this->context['expect'] = 'import' === strtolower( $name ) ? 'import' : '';
+			} elseif ( CSSProcessor::TOKEN_LEFT_PAREN === $type ) {
+				++$this->context['depth'];
+			} elseif ( CSSProcessor::TOKEN_RIGHT_PAREN === $type ) {
+				if ( end( $this->context['images'] ) === $this->context['depth'] ) {
+					array_pop( $this->context['images'] );
+				}
+				$this->context['depth'] = max( 0, $this->context['depth'] - 1 );
+			} elseif ( CSSProcessor::TOKEN_COMMA === $type && end( $this->context['images'] ) === $this->context['depth'] ) {
+				$this->context['expect'] = 'image';
 			}
-		} elseif ( CSSProcessor::TOKEN_AT_KEYWORD === $type ) {
-			$this->context['expect'] = 'import' === strtolower( $name ) ? 'import' : '';
-		} elseif ( CSSProcessor::TOKEN_LEFT_PAREN === $type ) {
-			++$this->context['depth'];
-		} elseif ( CSSProcessor::TOKEN_RIGHT_PAREN === $type ) {
-			if ( end( $this->context['images'] ) === $this->context['depth'] ) {
-				array_pop( $this->context['images'] );
+			if (
+				CSSProcessor::TOKEN_URL === $type ||
+				( '' !== $expected && CSSProcessor::TOKEN_STRING === $type )
+			) {
+				return true;
 			}
-			$this->context['depth'] = max( 0, $this->context['depth'] - 1 );
-		} elseif ( CSSProcessor::TOKEN_COMMA === $type && end( $this->context['images'] ) === $this->context['depth'] ) {
-			$this->context['expect'] = 'image';
 		}
-		return in_array( $type, array( CSSProcessor::TOKEN_URL, CSSProcessor::TOKEN_BAD_URL ), true ) ||
-			( '' !== $expected && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_BAD_STRING ), true ) );
+		return false;
 	}
 
 	/**
