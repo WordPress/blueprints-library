@@ -908,15 +908,44 @@ class CSSProcessor {
 	}
 
 	/**
-	 * Finds the source byte length of a decoded CSS value prefix.
+	 * Returns how many original CSS bytes to replace for an already-matched URL prefix.
 	 *
-	 * Decode with the same escape and UTF-8 rules used by token values before
-	 * cutting the source bytes of the matched URL base.
+	 * For example, "https://old.example" is 19 bytes. CSS can spell the "o"
+	 * as "\6f " instead: four source bytes, including the space, that decode
+	 * to one letter. The same URL prefix then takes 22 bytes in the CSS file:
 	 *
-	 * @param string $raw_value     CSS value bytes without quotes or url().
-	 * @param int    $decoded_bytes Number of decoded UTF-8 bytes to consume.
-	 * @param bool   $is_string     Whether CSS string line continuations are allowed.
-	 * @return int Source byte length of that prefix.
+	 *     Decoded prefix:  https://old.example       (19 bytes)
+	 *     CSS source:      https://\6f ld.example    (22 bytes)
+	 *
+	 * The caller matches the decoded URL, but edits the original CSS. This
+	 * method converts the matched prefix's decoded byte length to the source
+	 * byte length needed by that edit. It uses the same escape and UTF-8
+	 * decoding rules as token values. It does not check whether the prefix
+	 * matches, and does not change the CSS itself.
+	 *
+	 * Examples, both taken from unquoted url(...) values ($is_string = false):
+	 *
+	 *     $decoded_prefix = 'https://old.example';
+	 *     $decoded_bytes  = strlen( $decoded_prefix ); // 19.
+	 *
+	 *     // No CSS escapes: replace 19 source bytes for the 19-byte prefix.
+	 *     CSSProcessor::measure_value_prefix( 'https://old.example/photo.png', $decoded_bytes, false ); // 19.
+	 *
+	 *     // Escaped "o": replace 22 source bytes for the same 19-byte prefix.
+	 *     $raw_value    = 'https://\6f ld.example/photo\2e png';
+	 *     $source_bytes = CSSProcessor::measure_value_prefix( $raw_value, $decoded_bytes, false ); // 22.
+	 *     $updated      = substr_replace( $raw_value, 'https://new.example', 0, $source_bytes );
+	 *     // Result: https://new.example/photo\2e png
+	 *
+	 * The filename's "\2e " escape stays exactly as written. Using 19 instead
+	 * of 22 in substr_replace() would leave "ple" from the old host and produce:
+	 * https://new.exampleple/photo\2e png
+	 *
+	 * @param string $raw_value     Original CSS value bytes, without quotes or the url() wrapper.
+	 * @param int    $decoded_bytes strlen() of the prefix already matched against the decoded value.
+	 * @param bool   $is_string     True for a quoted CSS string: backslash-newline sequences occupy
+	 *                             source bytes but add no decoded bytes. False for an unquoted URL.
+	 * @return int Number of bytes to replace at the start of $raw_value, leaving the suffix untouched.
 	 */
 	public static function measure_value_prefix( string $raw_value, int $decoded_bytes, bool $is_string ): int {
 		$processor = new static( $raw_value );
