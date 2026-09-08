@@ -891,14 +891,14 @@ class CSSProcessor {
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_value_starts_at,
 					'length' => $this->token_value_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			case self::TOKEN_STRING:
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_starts_at,
 					'length' => $this->token_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			default:
@@ -908,9 +908,110 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Measures where a matched prefix ends in the exact CSS text we received.
+	 *
+	 * These spellings all decode to the same 19-byte prefix, "https://old.example":
+	 *
+	 *     Actual CSS spelling          Source bytes to replace
+	 *     https://old.example          19
+	 *     https://\6f ld.example       22
+	 *     https://\00006fld.example    25
+	 *
+	 * "\6f " and "\00006f" both mean "o", but occupy four and seven source
+	 * bytes respectively. The space in "\6f " is part of that CSS escape.
+	 *
+	 * The method receives both the actual CSS text ($raw_value) and the
+	 * matched prefix's decoded byte length ($decoded_bytes). It:
+	 *
+	 * 1. Reads that particular CSS spelling.
+	 * 2. Decodes it until it has accounted for the requested decoded bytes.
+	 * 3. Returns how many original bytes it consumed.
+	 *
+	 * The number 19 alone cannot determine the answer. The actual CSS source
+	 * determines whether the result is 19, 22, or 25 in the examples above.
+	 * The caller uses that result to cut off the old host without touching
+	 * the filename. It has already checked that the decoded URL matches the
+	 * prefix; this method only counts bytes and does not change the CSS.
+	 * Escape and UTF-8 decoding follow the same rules as token values.
+	 *
+	 * Examples from unquoted url(...) values ($is_string = false):
+	 *
+	 *     $decoded_prefix = 'https://old.example';
+	 *     $decoded_bytes  = strlen( $decoded_prefix ); // 19.
+	 *
+	 *     // No CSS escapes: replace 19 source bytes for the 19-byte prefix.
+	 *     CSSProcessor::measure_value_prefix( 'https://old.example/photo.png', $decoded_bytes, false ); // 19.
+	 *
+	 *     // A seven-byte spelling of "o" makes this prefix 25 source bytes long.
+	 *     CSSProcessor::measure_value_prefix( 'https://\00006fld.example/photo.png', $decoded_bytes, false ); // 25.
+	 *
+	 *     // Escaped "o": replace 22 source bytes for the same 19-byte prefix.
+	 *     $raw_value    = 'https://\6f ld.example/photo\2e png';
+	 *     $source_bytes = CSSProcessor::measure_value_prefix( $raw_value, $decoded_bytes, false ); // 22.
+	 *     $updated      = substr_replace( $raw_value, 'https://new.example', 0, $source_bytes );
+	 *     // Result: https://new.example/photo\2e png
+	 *
+	 * The filename's "\2e " escape stays exactly as written. Using 19 instead
+	 * of 22 in substr_replace() would leave "ple" from the old host and produce:
+	 * https://new.exampleple/photo\2e png
+	 *
+	 * @param string $raw_value     Original CSS value bytes, without quotes or the url() wrapper.
+	 * @param int    $decoded_bytes strlen() of the prefix already matched against the decoded value.
+	 * @param bool   $is_string     True for a quoted CSS string: backslash-newline sequences occupy
+	 *                             source bytes but add no decoded bytes. False for an unquoted URL.
+	 * @return int Number of bytes to replace at the start of $raw_value, leaving the suffix untouched.
+	 */
+	public static function measure_value_prefix( string $raw_value, int $decoded_bytes, bool $is_string ): int {
+		$processor = new static( $raw_value );
+		$at        = 0;
+		$decoded   = 0;
+		while ( $decoded < $decoded_bytes && $at < $processor->length ) {
+			// Ordinary URL bytes need no decoding. Stop the native scan at the prefix boundary.
+			$plain_bytes = strspn( $raw_value, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $at, $decoded_bytes - $decoded );
+			if ( $plain_bytes > 0 ) {
+				$at      += $plain_bytes;
+				$decoded += $plain_bytes;
+				continue;
+			}
+			$char = $raw_value[ $at ];
+			if ( '\\' === $char && $is_string && $at + 1 < $processor->length && false !== strpos( "\r\n\f", $raw_value[ $at + 1 ] ) ) {
+				$at += "\r" === $raw_value[ $at + 1 ] && "\n" === substr( $raw_value, $at + 2, 1 ) ? 3 : 2;
+			} elseif ( '\\' === $char && $processor->is_valid_escape( $at ) ) {
+				++$at;
+				$decoded += strlen( $processor->decode_escape_at( $at, $consumed ) );
+				$at      += $consumed;
+			} else {
+				$next    = $at;
+				$invalid = 0;
+				if ( 1 === _wp_scan_utf8( $raw_value, $next, $invalid, null, 1 ) ) {
+					$decoded += "\x00" === $char ? 3 : $next - $at;
+					$at       = $next;
+				} else {
+					$decoded += 3;
+					$at      += $invalid;
+				}
+			}
+		}
+		return $at;
+	}
+
+	/**
+	 * Escapes a replacement prefix for either quoted or unquoted CSS URL syntax.
+	 *
+	 * Keep the existing quotes or url() delimiters outside the replacement so
+	 * the unmatched suffix can keep its original source spelling.
+	 *
+	 * @param string $value Decoded replacement URL base.
+	 * @return string CSS value bytes without surrounding quotes.
+	 */
+	public static function escape_value_prefix( string $value ): string {
+		return self::escape_url_value( $value, false );
+	}
+
+	/**
 	 * Escapes a URL value for use in quoted url() syntax.
 	 *
-	 * Always returns a quoted URL string since they're easier
+	 * Whole-value replacements use quoted URL strings because they are easier
 	 * to escape. Quoted URLs are consumed using the string token
 	 * rules, and the only values we need to escape in strings, are:
 	 *
@@ -918,56 +1019,79 @@ class CSSProcessor {
 	 * * Newlines. That amounts to \n, \r, \f, \r\n when preprocessing is considered.
 	 * * U+005C REVERSE SOLIDUS (\)
 	 *
+	 * Prefix replacements keep the surrounding syntax and also escape spaces,
+	 * controls, apostrophes, and parentheses to work in unquoted URLs.
+	 *
+	 * @param string $unescaped Decoded URL value or prefix.
+	 * @param bool   $quote Whether to wrap a complete replacement in quotes.
+	 * @return string Escaped CSS value bytes.
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 */
-	private function escape_url_value( string $unescaped ): string {
-		$escaped = '';
-		$at      = 0;
-		while ( $at < strlen( $unescaped ) ) {
-			$safe_len = strcspn( $unescaped, "\n\r\f\\\"", $at );
-			if ( $safe_len > 0 ) {
-				$escaped .= substr( $unescaped, $at, $safe_len );
-				$at      += $safe_len;
-				continue;
-			}
-
-			$unsafe_char = $unescaped[ $at ];
-			switch ( $unsafe_char ) {
-				case "\r":
-					++$at;
-					/**
-					 * Add a trailing space to prevent accidentally creating a
-					 * wrong escape sequence. This is a valid CSS syntax and
-					 * CSS parsers will ignore that whitespace.
-					 *
-					 * Without the space, "carriage\return" would be encoded as "carriage\aeturn",
-					 * making `e` a part of the escape sequence `\ae` which is not
-					 * what the caller intended.
-					 */
-					$escaped .= '\\a ';
-					if ( strlen( $unescaped ) > $at + 1 && "\n" === $unescaped[ $at + 1 ] ) {
-						++$at;
-					}
-					break;
-				case "\f":
-				case "\n":
-					++$at;
-					$escaped .= '\\a ';
-					break;
-				case '\\':
-					++$at;
-					$escaped .= '\\5C ';
-					break;
-				case '"':
-					++$at;
-					$escaped .= '\\22 ';
-					break;
-				default:
-					_doing_it_wrong( __METHOD__, 'Unexpected character in URL value: ' . $unsafe_char, '1.0.0' );
-					break;
-			}
+	private static function escape_url_value( string $unescaped, bool $quote = true ): string {
+		$unsafe = $quote ? "\n\r\f\\\"" : "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\\\"'()";
+		// Scanning once is cheaper than a replacement lookup for long URLs with nothing to escape.
+		if ( strcspn( $unescaped, $unsafe ) === strlen( $unescaped ) ) {
+			return $quote ? '"' . $unescaped . '"' : $unescaped;
 		}
-		return '"' . $escaped . '"';
+
+		/**
+		 * Add a trailing space to prevent accidentally creating a
+		 * wrong escape sequence. This is a valid CSS syntax and
+		 * CSS parsers will ignore that whitespace.
+		 *
+		 * Without the space, "carriage\return" would be encoded as "carriage\aeturn",
+		 * making `e` a part of the escape sequence `\ae` which is not
+		 * what the caller intended.
+		 */
+		$escapes = array(
+			"\r\n" => '\a ',
+			"\r"   => '\a ',
+			"\n"   => '\a ',
+			"\f"   => '\a ',
+			'\\'   => '\5C ',
+			'"'    => '\22 ',
+		);
+		if ( ! $quote ) {
+			$escapes += array(
+				"\x00" => '\0 ',
+				"\x01" => '\1 ',
+				"\x02" => '\2 ',
+				"\x03" => '\3 ',
+				"\x04" => '\4 ',
+				"\x05" => '\5 ',
+				"\x06" => '\6 ',
+				"\x07" => '\7 ',
+				"\x08" => '\8 ',
+				"\x09" => '\9 ',
+				"\x0b" => '\b ',
+				"\x0e" => '\e ',
+				"\x0f" => '\f ',
+				"\x10" => '\10 ',
+				"\x11" => '\11 ',
+				"\x12" => '\12 ',
+				"\x13" => '\13 ',
+				"\x14" => '\14 ',
+				"\x15" => '\15 ',
+				"\x16" => '\16 ',
+				"\x17" => '\17 ',
+				"\x18" => '\18 ',
+				"\x19" => '\19 ',
+				"\x1a" => '\1a ',
+				"\x1b" => '\1b ',
+				"\x1c" => '\1c ',
+				"\x1d" => '\1d ',
+				"\x1e" => '\1e ',
+				"\x1f" => '\1f ',
+				' '    => '\20 ',
+				"\x7f" => '\7f ',
+				"'"    => '\27 ',
+				'('    => '\28 ',
+				')'    => '\29 ',
+			);
+		}
+		// strtr() matches CRLF before CR and does not escape the spaces or backslashes it inserts.
+		$escaped = strtr( $unescaped, $escapes );
+		return $quote ? '"' . $escaped . '"' : $escaped;
 	}
 
 	/**
@@ -1747,8 +1871,8 @@ class CSSProcessor {
 		// Hex digits (CSS spec allows at most 6).
 		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at, 6 );
 		if ( $hex_len > 0 ) {
-			$hex     = substr( $this->css, $at, $hex_len );
-			$at     += $hex_len;
+			$hex = substr( $this->css, $at, $hex_len );
+			$at += $hex_len;
 
 			// If the next input code point is whitespace, consume it as well.
 			if ( $at < $this->length ) {
