@@ -1021,28 +1021,42 @@ class CSSProcessor {
 	}
 
 	/**
-	 * Returns how many original CSS bytes to replace for an already-matched URL prefix.
+	 * Measures where a matched prefix ends in the exact CSS text we received.
 	 *
-	 * For example, "https://old.example" is 19 bytes. CSS can spell the "o"
-	 * as "\6f " instead: four source bytes, including the space, that decode
-	 * to one letter. The same URL prefix then takes 22 bytes in the CSS file:
+	 * These spellings all decode to the same 19-byte prefix, "https://old.example":
 	 *
-	 *     Decoded prefix:  https://old.example       (19 bytes)
-	 *     CSS source:      https://\6f ld.example    (22 bytes)
+	 *     Actual CSS spelling          Source bytes to replace
+	 *     https://old.example          19
+	 *     https://\6f ld.example       22
+	 *     https://\00006fld.example    25
 	 *
-	 * The caller matches the decoded URL, but edits the original CSS. This
-	 * method converts the matched prefix's decoded byte length to the source
-	 * byte length needed by that edit. It uses the same escape and UTF-8
-	 * decoding rules as token values. It does not check whether the prefix
-	 * matches, and does not change the CSS itself.
+	 * "\6f " and "\00006f" both mean "o", but occupy four and seven source
+	 * bytes respectively. The space in "\6f " is part of that CSS escape.
 	 *
-	 * Examples, both taken from unquoted url(...) values ($is_string = false):
+	 * The method receives both the actual CSS text ($raw_value) and the
+	 * matched prefix's decoded byte length ($decoded_bytes). It:
+	 *
+	 * 1. Reads that particular CSS spelling.
+	 * 2. Decodes it until it has accounted for the requested decoded bytes.
+	 * 3. Returns how many original bytes it consumed.
+	 *
+	 * The number 19 alone cannot determine the answer. The actual CSS source
+	 * determines whether the result is 19, 22, or 25 in the examples above.
+	 * The caller uses that result to cut off the old host without touching
+	 * the filename. It has already checked that the decoded URL matches the
+	 * prefix; this method only counts bytes and does not change the CSS.
+	 * Escape and UTF-8 decoding follow the same rules as token values.
+	 *
+	 * Examples from unquoted url(...) values ($is_string = false):
 	 *
 	 *     $decoded_prefix = 'https://old.example';
 	 *     $decoded_bytes  = strlen( $decoded_prefix ); // 19.
 	 *
 	 *     // No CSS escapes: replace 19 source bytes for the 19-byte prefix.
 	 *     CSSProcessor::measure_value_prefix( 'https://old.example/photo.png', $decoded_bytes, false ); // 19.
+	 *
+	 *     // A seven-byte spelling of "o" makes this prefix 25 source bytes long.
+	 *     CSSProcessor::measure_value_prefix( 'https://\00006fld.example/photo.png', $decoded_bytes, false ); // 25.
 	 *
 	 *     // Escaped "o": replace 22 source bytes for the same 19-byte prefix.
 	 *     $raw_value    = 'https://\6f ld.example/photo\2e png';
