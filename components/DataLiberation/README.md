@@ -291,8 +291,9 @@ those bytes with `escape_value_prefix()` output to keep the existing quotes,
 works in unquoted URLs. Whole-value `set_token_value()` still adds quotes and
 normalizes CRLF to one newline without dropping text after a lone CR.
 
-[The file-edit test caller](Tests/fixtures/css-prefix/edit-file.php) exercises
-both prefix and whole-value edits without streamed input or saved cursors.
+[The prefix-edit caller](Tests/fixtures/css-prefix/replace-url-prefix.php) and
+[the whole-URL caller](Tests/fixtures/css-prefix/replace-whole-url.php) show each
+operation separately, without streamed input or saved cursors.
 
 ## Find CSS URLs in imports and image sets
 
