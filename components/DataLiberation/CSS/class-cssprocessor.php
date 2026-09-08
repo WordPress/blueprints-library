@@ -891,14 +891,14 @@ class CSSProcessor {
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_value_starts_at,
 					'length' => $this->token_value_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			case self::TOKEN_STRING:
 				$this->lexical_updates[] = array(
 					'start'  => $this->token_starts_at,
 					'length' => $this->token_length,
-					'text'   => $this->escape_url_value( $new_value ),
+					'text'   => self::escape_url_value( $new_value ),
 				);
 				return true;
 			default:
@@ -908,9 +908,60 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Finds the source byte length of a decoded CSS value prefix.
+	 *
+	 * Decode with the same escape and UTF-8 rules used by token values before
+	 * cutting the source bytes of the matched URL base.
+	 *
+	 * @param string $raw_value     CSS value bytes without quotes or url().
+	 * @param int    $decoded_bytes Number of decoded UTF-8 bytes to consume.
+	 * @param bool   $is_string     Whether CSS string line continuations are allowed.
+	 * @return int Source byte length of that prefix.
+	 */
+	public static function measure_value_prefix( string $raw_value, int $decoded_bytes, bool $is_string ): int {
+		$processor = new static( $raw_value );
+		$at        = 0;
+		$decoded   = 0;
+		while ( $decoded < $decoded_bytes && $at < $processor->length ) {
+			$char = $raw_value[ $at ];
+			if ( '\\' === $char && $is_string && $at + 1 < $processor->length && false !== strpos( "\r\n\f", $raw_value[ $at + 1 ] ) ) {
+				$at += "\r" === $raw_value[ $at + 1 ] && "\n" === substr( $raw_value, $at + 2, 1 ) ? 3 : 2;
+			} elseif ( '\\' === $char && $processor->is_valid_escape( $at ) ) {
+				++$at;
+				$decoded += strlen( $processor->decode_escape_at( $at, $consumed ) );
+				$at      += $consumed;
+			} else {
+				$next    = $at;
+				$invalid = 0;
+				if ( 1 === _wp_scan_utf8( $raw_value, $next, $invalid, null, 1 ) ) {
+					$decoded += "\x00" === $char ? 3 : $next - $at;
+					$at       = $next;
+				} else {
+					$decoded += 3;
+					$at      += $invalid;
+				}
+			}
+		}
+		return $at;
+	}
+
+	/**
+	 * Escapes a replacement prefix for either quoted or unquoted CSS URL syntax.
+	 *
+	 * Keep the existing quotes or url() delimiters outside the replacement so
+	 * the unmatched suffix can keep its original source spelling.
+	 *
+	 * @param string $value Decoded replacement URL base.
+	 * @return string CSS value bytes without surrounding quotes.
+	 */
+	public static function escape_value_prefix( string $value ): string {
+		return self::escape_url_value( $value, false );
+	}
+
+	/**
 	 * Escapes a URL value for use in quoted url() syntax.
 	 *
-	 * Always returns a quoted URL string since they're easier
+	 * Whole-value replacements use quoted URL strings because they are easier
 	 * to escape. Quoted URLs are consumed using the string token
 	 * rules, and the only values we need to escape in strings, are:
 	 *
@@ -918,13 +969,20 @@ class CSSProcessor {
 	 * * Newlines. That amounts to \n, \r, \f, \r\n when preprocessing is considered.
 	 * * U+005C REVERSE SOLIDUS (\)
 	 *
+	 * Prefix replacements keep the surrounding syntax and also escape spaces,
+	 * controls, apostrophes, and parentheses to work in unquoted URLs.
+	 *
+	 * @param string $unescaped Decoded URL value or prefix.
+	 * @param bool   $quote Whether to wrap a complete replacement in quotes.
+	 * @return string Escaped CSS value bytes.
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 */
-	private function escape_url_value( string $unescaped ): string {
+	private static function escape_url_value( string $unescaped, bool $quote = true ): string {
 		$escaped = '';
 		$at      = 0;
+		$unsafe  = $quote ? "\n\r\f\\\"" : "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\\\"'()";
 		while ( $at < strlen( $unescaped ) ) {
-			$safe_len = strcspn( $unescaped, "\n\r\f\\\"", $at );
+			$safe_len = strcspn( $unescaped, $unsafe, $at );
 			if ( $safe_len > 0 ) {
 				$escaped .= substr( $unescaped, $at, $safe_len );
 				$at      += $safe_len;
@@ -945,7 +1003,7 @@ class CSSProcessor {
 					 * what the caller intended.
 					 */
 					$escaped .= '\\a ';
-					if ( strlen( $unescaped ) > $at + 1 && "\n" === $unescaped[ $at + 1 ] ) {
+					if ( strlen( $unescaped ) > $at && "\n" === $unescaped[ $at ] ) {
 						++$at;
 					}
 					break;
@@ -963,11 +1021,12 @@ class CSSProcessor {
 					$escaped .= '\\22 ';
 					break;
 				default:
-					_doing_it_wrong( __METHOD__, 'Unexpected character in URL value: ' . $unsafe_char, '1.0.0' );
+					++$at;
+					$escaped .= '\\' . dechex( ord( $unsafe_char ) ) . ' ';
 					break;
 			}
 		}
-		return '"' . $escaped . '"';
+		return $quote ? '"' . $escaped . '"' : $escaped;
 	}
 
 	/**
@@ -1747,8 +1806,8 @@ class CSSProcessor {
 		// Hex digits (CSS spec allows at most 6).
 		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at, 6 );
 		if ( $hex_len > 0 ) {
-			$hex     = substr( $this->css, $at, $hex_len );
-			$at     += $hex_len;
+			$hex = substr( $this->css, $at, $hex_len );
+			$at += $hex_len;
 
 			// If the next input code point is whitespace, consume it as well.
 			if ( $at < $this->length ) {

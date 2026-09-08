@@ -281,3 +281,15 @@ posts: 2
 block markup exported
 frontmatter title exported
 ```
+
+## Replace a CSS value prefix without changing its suffix
+
+`CSSProcessor::measure_value_prefix()` finds how many source bytes represent a
+decoded prefix, including CSS escapes and string line continuations. Replace
+those bytes with `escape_value_prefix()` output to keep the existing quotes,
+`url()` wrapper, and unmatched suffix unchanged. The escaped replacement also
+works in unquoted URLs. Whole-value `set_token_value()` still adds quotes and
+normalizes CRLF to one newline without dropping text after a lone CR.
+
+[The file-edit test caller](Tests/fixtures/css-prefix/edit-file.php) exercises
+both prefix and whole-value edits without streamed input or saved cursors.
