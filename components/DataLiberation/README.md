@@ -303,3 +303,25 @@ not returned. More than 128 nested image sets throw an error.
 
 [The file-rewrite caller](Tests/fixtures/css-context/rewrite-file.php) uses the
 whole-string iterator and writes the output only after iteration completes.
+
+## Stream CSS tokens and resume
+
+`CSSProcessor::create_for_streaming()` accepts source chunks through
+`append_bytes($bytes, $is_last)`. Read complete tokens with the existing
+`next_token()`, getters, and `set_token_value()`. If a token is unfinished,
+the processor keeps it and tries again after the next read, like XML.
+Only mark actual source EOF, not the end of an interrupted response.
+
+`flush_processed_css()` returns completed input with edits applied and releases
+its source bytes. Call it before appending more input or saving a cursor.
+`get_reentrancy_cursor()` saves the unfinished input in a JSON-safe array;
+pass it to `create_for_streaming()` in the next process. Save the source offset,
+output offset, and cursor together after writing and flushing the output.
+Resume truncates output to that saved offset before replaying more source.
+[The separate-process file caller](Tests/fixtures/css-token-stream/rewrite-file.php)
+shows both sides of that checkpoint boundary.
+
+There is no token-size cap. A large comment, string, identifier, or embedded
+image increases memory use and the saved cursor size. Each read reparses the
+unfinished token. Small chunks therefore do not bound the largest token's
+memory use or parsing work.
