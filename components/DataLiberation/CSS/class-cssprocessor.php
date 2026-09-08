@@ -1036,6 +1036,13 @@ class CSSProcessor {
 		$at        = 0;
 		$decoded   = 0;
 		while ( $decoded < $decoded_bytes && $at < $processor->length ) {
+			// Ordinary URL bytes need no decoding. Stop the native scan at the prefix boundary.
+			$plain_bytes = strspn( $raw_value, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $at, $decoded_bytes - $decoded );
+			if ( $plain_bytes > 0 ) {
+				$at      += $plain_bytes;
+				$decoded += $plain_bytes;
+				continue;
+			}
 			$char = $raw_value[ $at ];
 			if ( '\\' === $char && $is_string && $at + 1 < $processor->length && false !== strpos( "\r\n\f", $raw_value[ $at + 1 ] ) ) {
 				$at += "\r" === $raw_value[ $at + 1 ] && "\n" === substr( $raw_value, $at + 2, 1 ) ? 3 : 2;
@@ -1091,54 +1098,69 @@ class CSSProcessor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 */
 	private static function escape_url_value( string $unescaped, bool $quote = true ): string {
-		$escaped = '';
-		$at      = 0;
-		$unsafe  = $quote ? "\n\r\f\\\"" : "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\\\"'()";
-		while ( $at < strlen( $unescaped ) ) {
-			$safe_len = strcspn( $unescaped, $unsafe, $at );
-			if ( $safe_len > 0 ) {
-				$escaped .= substr( $unescaped, $at, $safe_len );
-				$at      += $safe_len;
-				continue;
-			}
-
-			$unsafe_char = $unescaped[ $at ];
-			switch ( $unsafe_char ) {
-				case "\r":
-					++$at;
-					/**
-					 * Add a trailing space to prevent accidentally creating a
-					 * wrong escape sequence. This is a valid CSS syntax and
-					 * CSS parsers will ignore that whitespace.
-					 *
-					 * Without the space, "carriage\return" would be encoded as "carriage\aeturn",
-					 * making `e` a part of the escape sequence `\ae` which is not
-					 * what the caller intended.
-					 */
-					$escaped .= '\\a ';
-					if ( strlen( $unescaped ) > $at && "\n" === $unescaped[ $at ] ) {
-						++$at;
-					}
-					break;
-				case "\f":
-				case "\n":
-					++$at;
-					$escaped .= '\\a ';
-					break;
-				case '\\':
-					++$at;
-					$escaped .= '\\5C ';
-					break;
-				case '"':
-					++$at;
-					$escaped .= '\\22 ';
-					break;
-				default:
-					++$at;
-					$escaped .= '\\' . dechex( ord( $unsafe_char ) ) . ' ';
-					break;
-			}
+		$unsafe = $quote ? "\n\r\f\\\"" : "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\f\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\\\"'()";
+		// Scanning once is cheaper than a replacement lookup for long URLs with nothing to escape.
+		if ( strcspn( $unescaped, $unsafe ) === strlen( $unescaped ) ) {
+			return $quote ? '"' . $unescaped . '"' : $unescaped;
 		}
+
+		/**
+		 * Add a trailing space to prevent accidentally creating a
+		 * wrong escape sequence. This is a valid CSS syntax and
+		 * CSS parsers will ignore that whitespace.
+		 *
+		 * Without the space, "carriage\return" would be encoded as "carriage\aeturn",
+		 * making `e` a part of the escape sequence `\ae` which is not
+		 * what the caller intended.
+		 */
+		$escapes = array(
+			"\r\n" => '\a ',
+			"\r"   => '\a ',
+			"\n"   => '\a ',
+			"\f"   => '\a ',
+			'\\'   => '\5C ',
+			'"'    => '\22 ',
+		);
+		if ( ! $quote ) {
+			$escapes += array(
+				"\x00" => '\0 ',
+				"\x01" => '\1 ',
+				"\x02" => '\2 ',
+				"\x03" => '\3 ',
+				"\x04" => '\4 ',
+				"\x05" => '\5 ',
+				"\x06" => '\6 ',
+				"\x07" => '\7 ',
+				"\x08" => '\8 ',
+				"\x09" => '\9 ',
+				"\x0b" => '\b ',
+				"\x0e" => '\e ',
+				"\x0f" => '\f ',
+				"\x10" => '\10 ',
+				"\x11" => '\11 ',
+				"\x12" => '\12 ',
+				"\x13" => '\13 ',
+				"\x14" => '\14 ',
+				"\x15" => '\15 ',
+				"\x16" => '\16 ',
+				"\x17" => '\17 ',
+				"\x18" => '\18 ',
+				"\x19" => '\19 ',
+				"\x1a" => '\1a ',
+				"\x1b" => '\1b ',
+				"\x1c" => '\1c ',
+				"\x1d" => '\1d ',
+				"\x1e" => '\1e ',
+				"\x1f" => '\1f ',
+				' '    => '\20 ',
+				"\x7f" => '\7f ',
+				"'"    => '\27 ',
+				'('    => '\28 ',
+				')'    => '\29 ',
+			);
+		}
+		// strtr() matches CRLF before CR and does not escape the spaces or backslashes it inserts.
+		$escaped = strtr( $unescaped, $escapes );
 		return $quote ? '"' . $escaped . '"' : $escaped;
 	}
 
