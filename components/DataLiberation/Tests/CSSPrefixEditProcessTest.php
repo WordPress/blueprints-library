@@ -83,6 +83,36 @@ URL;
 		$this->assertSame( $input_css, $actual_css );
 	}
 
+	/** A string can split the hostname across lines without adding a newline to its URL. */
+	public function test_prefix_replacement_skips_string_line_continuations() {
+		// Backslash followed by a newline joins "o" and "ld.example" into "old.example".
+		$input_css = <<<'CSS'
+a{src:url("https://o\
+ld.example\/photo\2e png")}
+b{src:url('https://o\
+ld.example\/photo\2e png')}
+CSS;
+		$expected_css = <<<'CSS'
+a{src:url("https://new.example\/photo\2e png")}
+b{src:url('https://new.example\/photo\2e png')}
+CSS;
+
+		$actual_css = $this->replace_url_prefix_in_file( $input_css, 'https://new.example' );
+
+		$this->assertSame( $expected_css, $actual_css );
+	}
+
+	/** A CRLF in the new prefix must become one escape without escaping its inserted space again. */
+	public function test_prefix_replacement_encodes_crlf_once_and_keeps_the_suffix() {
+		$input_css = 'a{src:url(https://old.example/photo.png)}';
+		$replacement_prefix = "https://new.example/first\r\nsecond";
+		$expected_css = 'a{src:url(https://new.example/first\a second/photo.png)}';
+
+		$actual_css = $this->replace_url_prefix_in_file( $input_css, $replacement_prefix );
+
+		$this->assertSame( $expected_css, $actual_css );
+	}
+
 	/** A literal newline ends this string before a closing quote. Do not rewrite its prefix. */
 	public function test_string_with_an_unescaped_newline_is_copied_unchanged() {
 		$input_css = <<<'CSS'
