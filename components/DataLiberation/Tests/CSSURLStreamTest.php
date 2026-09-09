@@ -100,9 +100,9 @@ class CSSURLStreamTest extends TestCase {
 	}
 	/**
 	 * Expands 1,500 short URLs into over 5 MiB of output.
-	 * Each output piece must stay within 64 KiB without holding all replacements in memory.
+	 * Output must reach the caller before all replacements accumulate in memory.
 	 */
-	public function test_expanded_output_is_yielded_in_bounded_chunks() {
+	public function test_expanded_output_is_yielded_as_it_grows() {
 		$target = 'https://new.example/' . str_repeat( 'a', 4096 );
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => $target ) );
 		$input = str_repeat( 'a{src:url(https://old.example/a)}', 1500 );
@@ -112,15 +112,27 @@ class CSSURLStreamTest extends TestCase {
 		}
 		$actual = hash_init( 'sha256' );
 		$bytes = 0;
+		$chunks = 0;
 		$memory = memory_get_usage();
 		foreach ( $processor->rewrite_chunk( $input, true ) as $chunk ) {
-			$this->assertLessThanOrEqual( 65536, strlen( $chunk ) );
 			$this->assertLessThan( 2 * 1024 * 1024, memory_get_usage() - $memory );
 			$bytes += strlen( $chunk );
+			++$chunks;
 			hash_update( $actual, $chunk );
 		}
+		$this->assertGreaterThan( 1, $chunks );
 		$this->assertGreaterThan( 5 * 1024 * 1024, $bytes );
 		$this->assertSame( hash_final( $expected ), hash_final( $actual ) );
+	}
+
+	/** A large URL is returned whole, without byte slices or an empty final piece. */
+	public function test_large_url_is_yielded_without_splitting() {
+		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
+		$path = str_repeat( 'a', 131072 );
+		$input = 'url(https://old.example/' . $path . ')';
+		$chunks = iterator_to_array( $processor->rewrite_chunk( $input, true ), false );
+		$this->assertCount( 1, $chunks );
+		$this->assertSame( 'url(https://new.example/' . $path . ')', $chunks[0] );
 	}
 
 	/** Stops at the first output piece and checks that saving a cursor is rejected until iteration ends. */
@@ -167,13 +179,13 @@ class CSSURLStreamTest extends TestCase {
 	}
 
 	/**
-	 * Joins output pieces so tests can compare their exact bytes, while checking each piece's size.
+	 * Joins output pieces so tests can compare their exact bytes, and rejects empty pieces.
 	 * The large-output test reads the generator directly so this helper does not affect its memory check.
 	 */
 	private function rewrite_chunk( CSSURLProcessor $processor, string $input, bool $last ): string {
 		$output = '';
 		foreach ( $processor->rewrite_chunk( $input, $last ) as $chunk ) {
-			$this->assertLessThanOrEqual( 65536, strlen( $chunk ) );
+			$this->assertNotSame( '', $chunk );
 			$output .= $chunk;
 		}
 		return $output;

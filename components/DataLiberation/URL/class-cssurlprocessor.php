@@ -174,12 +174,13 @@ class CSSURLProcessor {
 	 * from the last saved cursor and source offset. First remove output bytes
 	 * after the saved output offset so the repeated input does not duplicate them.
 	 *
-	 * Output pieces are limited to 64 KiB, but unfinished tokens have no size
-	 * limit. A large comment or URL can increase memory use and cursor size.
+	 * The 64 KiB output threshold is checked after each complete token. A large
+	 * token can exceed it and is returned without splitting. Unfinished tokens
+	 * have no size limit. A large comment or URL can increase memory use and cursor size.
 	 *
 	 * @param string $chunk   Source bytes immediately after the previous chunk; may be empty.
 	 * @param bool   $is_last True only at the actual end of the file, not when a download stops early.
-	 * @return \Generator<string> Output pieces of at most 64 KiB, in source order.
+	 * @return \Generator<string> Nonempty output pieces, in source order.
 	 */
 	public function rewrite_chunk( string $chunk, bool $is_last ): \Generator {
 		if ( null === $this->mappings ) {
@@ -230,14 +231,16 @@ class CSSURLProcessor {
 			if ( strlen( $output ) >= 65536 ) {
 				// Replacements can be much longer than the input URLs. Return
 				// this output now so later replacements do not keep adding to it.
-				yield from $this->split_output_chunks( $output );
+				yield $output;
 				$output = '';
 			}
 		}
 		// Completed tokens have been copied to output. Release their source
 		// bytes, but keep any unfinished token for the next input chunk.
 		$this->processor->flush_processed_css();
-		yield from $this->split_output_chunks( $output );
+		if ( '' !== $output ) {
+			yield $output;
+		}
 		$this->input_open = false;
 	}
 
@@ -267,22 +270,6 @@ class CSSURLProcessor {
 			'context' => $this->context,
 			'mapping_hash' => $this->mapping_hash,
 		);
-	}
-
-	/**
-	 * Returns output in pieces of at most 64 KiB, even when one token is larger.
-	 *
-	 * The full string already exists here. Splitting it limits the size of each
-	 * piece given to the caller; it does not limit the memory used by that string.
-	 *
-	 * @param string $bytes Rewritten CSS bytes waiting to be returned to the caller.
-	 * @return \Generator<string> Consecutive pieces that together contain all of $bytes.
-	 */
-	private function split_output_chunks( string $bytes ): \Generator {
-		$length = strlen( $bytes );
-		for ( $offset = 0; $offset < $length; $offset += 65536 ) {
-			yield substr( $bytes, $offset, 65536 );
-		}
 	}
 
 	/**

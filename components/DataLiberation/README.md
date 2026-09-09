@@ -378,11 +378,15 @@ a{src:url(https://new.example/photo.png)}
 For files, use a fixed input chunk size and save progress in this order:
 
 1. Read a source chunk and pass it to `rewrite_chunk()`.
-2. Write every output piece from the `foreach` loop. Each piece is at most
-   64 KiB. Finish the loop, then flush the output file.
+2. Write every output piece from the `foreach` loop. Finish the loop, then
+   flush the output file.
 3. Save the source byte offset, output byte offset, and parser cursor together.
    This saved state is a checkpoint. The source offset counts all bytes read,
    including the unfinished bytes held in the cursor.
+
+The 64 KiB output threshold is checked after each complete token. A large
+token can exceed it and is returned without splitting. Any remaining output
+is returned after the input chunk has been processed.
 
 On resume, seek the source to its saved offset. Remove output bytes after the
 saved output offset, then append there. Those extra bytes may have been written
