@@ -21,11 +21,15 @@ class CSSURLProcessor {
 	/**
 	 * Whether the current token holds a URL, rather than a comment or displayed text.
 	 *
+	 * The string in @import "theme.css" holds a URL; the same string after
+	 * content: does not. Malformed string and URL tokens give false.
+	 * This checks the CSS token and its position, not full URL validity.
+	 *
 	 * The next_token() method records this before updating $context for the
 	 * following token. It is not saved in the cursor: resume reads a new token
 	 * and classifies it using the saved context.
 	 *
-	 * @var bool
+	 * @var bool True also for an empty URL.
 	 */
 	private $current_token_is_url = false;
 
@@ -200,7 +204,7 @@ class CSSURLProcessor {
 		$this->processor->append_bytes( $chunk, $is_last );
 		while ( $this->next_token() ) {
 			$piece = $this->processor->get_unnormalized_token();
-			if ( $this->is_at_url() ) {
+			if ( $this->current_token_is_url ) {
 				$type    = $this->processor->get_token_type();
 				$decoded = $this->get_raw_url();
 				foreach ( $this->mappings as $mapping ) {
@@ -282,7 +286,7 @@ class CSSURLProcessor {
 	 */
 	public function next_url(): bool {
 		while ( $this->next_token() ) {
-			if ( $this->is_at_url() ) {
+			if ( $this->current_token_is_url ) {
 				return true;
 			}
 		}
@@ -299,8 +303,8 @@ class CSSURLProcessor {
 	 *
 	 * Both whole-string and streaming callers advance here so they cannot skip
 	 * the state changes needed to interpret later strings. A successful read can
-	 * produce a comment or a malformed token. is_at_url() tells whether the
-	 * current token holds a URL that the caller can read or replace.
+	 * produce a comment or a malformed token. $current_token_is_url tells
+	 * whether the current token holds a URL that the caller can read or replace.
 	 *
 	 * @return bool True when there is a current token; false at the end of input or when more bytes are needed.
 	 */
@@ -351,19 +355,6 @@ class CSSURLProcessor {
 			$this->context['expect'] = 'image';
 		}
 		return true;
-	}
-
-	/**
-	 * Returns whether the current token holds a URL, without advancing or changing state.
-	 *
-	 * The string in @import "theme.css" holds a URL; the same string after
-	 * content: does not. Malformed string and URL tokens also return false.
-	 * This checks the CSS token and its position, not full URL validity.
-	 *
-	 * @return bool True when the current token holds a URL, including an empty URL.
-	 */
-	private function is_at_url(): bool {
-		return $this->current_token_is_url;
 	}
 
 	/**
