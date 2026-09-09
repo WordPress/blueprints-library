@@ -298,3 +298,13 @@ character loop, with an early return when no bytes need escaping.
 [The prefix-edit caller](Tests/fixtures/css-prefix/replace-url-prefix.php) and
 [the whole-URL caller](Tests/fixtures/css-prefix/replace-whole-url.php) show each
 operation separately, without streamed input or saved cursors.
+
+## Find CSS URLs in imports and image sets
+
+`CSSURLProcessor::next_url()` recognizes `url()`, bare `@import` strings, and
+strings used as images in `image-set()` or `-webkit-image-set()`. Comments,
+displayed text, MIME-type strings, and malformed string or URL tokens are
+not returned. More than 128 nested image sets throw an error.
+
+[The file-rewrite caller](Tests/fixtures/css-context/rewrite-file.php) uses the
+whole-string iterator and writes the output only after iteration completes.
