@@ -53,6 +53,35 @@ class CSSURLStreamProcessTest extends TestCase {
 	}
 
 	/**
+	 * Restores the URL position after @import, even when a comment spans the saved offsets.
+	 *
+	 * @dataProvider interruptions
+	 */
+	public function test_file_rewrite_resumes_between_import_keyword_and_url( $stop ) {
+		// The comment ends at the second 32 KiB read. Both stop modes save a
+		// position after @import but before the string that supplies its URL.
+		$prefix = 'a{src:url(https://old.example/first)}@import';
+		$comment = '/*' . str_repeat( ' ', 65536 - strlen( $prefix ) - 4 ) . '*/';
+		$input = $prefix . $comment . '"https://old.example/theme.css";'
+			. 'a{content:"https://old.example/text";src:url(https://old.example/bad(image),url(https://old.example/last)}';
+		$expected = 'a{src:url(https://old.example/moved/first)}@import' . $comment . '"https://old.example/moved/theme.css";'
+			. 'a{content:"https://old.example/text";src:url(https://old.example/bad(image),url(https://old.example/moved/last)}';
+		file_put_contents( $this->directory . '/source.css', $input );
+		$this->assertSame( 'none' === $stop ? 0 : 99, $this->run_worker( $stop ), file_get_contents( $this->directory . '/worker.log' ) );
+		if ( 'none' !== $stop ) {
+			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+			$this->assertSame( 'before' === $stop ? 32768 : 65536, $state['source_bytes'] );
+			$this->assertSame( 'import', $state['css']['context']['expect'] );
+			$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
+		}
+		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+		$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+		$this->assertSame( strlen( $input ), $state['source_bytes'] );
+		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
+	}
+
+	/**
 	 * Saves part of the file, then reaches 129 nested image-set() calls and fails.
 	 * A second process must report the same error and leave the saved state before the file end.
 	 */

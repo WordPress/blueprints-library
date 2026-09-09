@@ -32,6 +32,20 @@ class CSSURLContextProcessTest extends TestCase {
 		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
 	}
 
+	/** A malformed import consumes its URL position; a later valid URL must still be found. */
+	public function test_file_rewrite_skips_malformed_urls_and_following_text() {
+		$input = "@import \"https://old.example/bad\n"
+			. '"https://old.example/text";a{src:url(https://old.example/bad(image),url(https://old.example/good)}'
+			. '@import/**/"https://old.example/theme.css";';
+		$expected = "@import \"https://old.example/bad\n"
+			. '"https://old.example/text";a{src:url(https://old.example/bad(image),url("https://new.example/good")}'
+			. '@import/**/"https://new.example/theme.css";';
+		file_put_contents( $this->directory . '/source.css', $input );
+		$this->assertSame( 0, $this->run_worker(), file_get_contents( $this->directory . '/worker.log' ) );
+		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+	}
+
 	/** The caller must not publish a stylesheet after URL-context tracking rejects excessive nesting. */
 	public function test_nesting_failure_leaves_the_existing_output_untouched() {
 		$input = 'a{src:' . str_repeat( 'image-set(', 129 ) . '"https://old.example/a"' . str_repeat( ')', 129 ) . '}';
@@ -52,6 +66,19 @@ class CSSURLContextProcessTest extends TestCase {
 			$urls[] = $processor->get_raw_url();
 		}
 		$this->assertSame( array( 'https://old.example/theme.css', 'https://old.example/a', 'https://old.example/b', 'https://old.example/c' ), $urls );
+	}
+
+	/** Reading a URL twice must not consume another token or lose an empty URL. */
+	public function test_url_reads_leave_the_iterator_on_the_current_url() {
+		$css = '@import/**/"theme.css";a{content:"text";src:url(""),url(a.png),image-set("b.png" type("image/png"),"c.png" 2x)}';
+		$processor = new CSSURLProcessor( $css );
+		foreach ( array( 'theme.css', '', 'a.png', 'b.png', 'c.png' ) as $url ) {
+			$this->assertTrue( $processor->next_url() );
+			$this->assertSame( $url, $processor->get_raw_url() );
+			$this->assertSame( $url, $processor->get_raw_url() );
+		}
+		$this->assertFalse( $processor->next_url() );
+		$this->assertFalse( $processor->next_url() );
 	}
 
 	/** Runs a whole-file caller without streamed input or a saved cursor. */

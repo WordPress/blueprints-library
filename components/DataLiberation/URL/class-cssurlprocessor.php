@@ -19,10 +19,22 @@ class CSSURLProcessor {
 	private $processor;
 
 	/**
+	 * Whether the current token holds a URL, rather than a comment or displayed text.
+	 *
+	 * The next_token() method records this before updating $context for the
+	 * following token. It is not saved in the cursor: resume reads a new token
+	 * and classifies it using the saved context.
+	 *
+	 * @var bool
+	 */
+	private $current_token_is_url = false;
+
+	/**
 	 * Remembers where a quoted string can be a URL as tokens are read.
 	 *
-	 * Both next_url() and rewrite_chunk() update this state. Streaming callers
-	 * save it in the cursor so a new process can continue inside an image-set().
+	 * Both next_url() and rewrite_chunk() advance through next_token(), which
+	 * updates this state. Streaming callers save it in the cursor so a new
+	 * process can continue inside an image-set().
 	 *
 	 * @var array {
 	 *     @type int    $depth  Number of function or '(' tokens not yet closed by ')'.
@@ -185,13 +197,11 @@ class CSSURLProcessor {
 		$this->input_open = true;
 		$output           = '';
 		$this->processor->append_bytes( $chunk, $is_last );
-		while ( $this->processor->next_token() ) {
-			$type   = $this->processor->get_token_type();
-			$name   = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
-			$is_url = $this->inspect_url_context( $type, $name );
-			$piece  = $this->processor->get_unnormalized_token();
-			if ( $is_url && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_URL ), true ) ) {
-				$decoded = $this->processor->get_token_value();
+		while ( $this->next_token() ) {
+			$piece = $this->processor->get_unnormalized_token();
+			if ( $this->is_at_url() ) {
+				$type    = $this->processor->get_token_type();
+				$decoded = $this->get_raw_url();
 				foreach ( $this->mappings as $mapping ) {
 					$prefix       = $mapping['prefix'];
 					$origin_bytes = strlen( $mapping['origin'] );
@@ -284,11 +294,8 @@ class CSSURLProcessor {
 	 * @return bool True when get_raw_url() can read the next URL; false when none remain.
 	 */
 	public function next_url(): bool {
-		while ( $this->processor->next_token() ) {
-			$type   = $this->processor->get_token_type();
-			$name   = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
-			$is_url = $this->inspect_url_context( $type, $name );
-			if ( $is_url && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_URL ), true ) ) {
+		while ( $this->next_token() ) {
+			if ( $this->is_at_url() ) {
 				return true;
 			}
 		}
@@ -296,27 +303,35 @@ class CSSURLProcessor {
 	}
 
 	/**
-	 * Tracks open CSS functions and checks whether this token holds a URL.
+	 * Moves to the next CSS token and records whether it holds a URL.
 	 *
 	 * In @import "theme.css", the @import token makes the next string a URL.
 	 * url("photo.png") and image-set("photo.png" 1x) use the same rule. Spaces
 	 * and comments do not clear that expectation; any other token consumes it.
 	 * An unquoted url(photo.png) is already one URL token, including its wrapper.
 	 *
-	 * Call once for every token, in order, so both whole-string and streaming
-	 * callers track the same open functions and expected URL strings. A true
-	 * result can include malformed URL or string tokens; callers skip those.
+	 * Both whole-string and streaming callers advance here so they cannot skip
+	 * the state changes needed to interpret later strings. A successful read can
+	 * produce a comment or a malformed token. is_at_url() tells whether the
+	 * current token holds a URL that the caller can read or replace.
 	 *
-	 * @param string $type Token type returned by CSSProcessor::get_token_type().
-	 * @param string $name Function or @-keyword name with CSS escapes decoded; otherwise ''.
-	 * @return bool Whether this token is in a URL position, even if its syntax is malformed.
+	 * @return bool True when there is a current token; false at the end of input or when more bytes are needed.
 	 */
-	private function inspect_url_context( string $type, string $name ): bool {
-		if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
+	private function next_token(): bool {
+		$this->current_token_is_url = false;
+		if ( ! $this->processor->next_token() ) {
 			return false;
 		}
-		$expected                = $this->context['expect'];
-		$this->context['expect'] = '';
+		$type = $this->processor->get_token_type();
+		if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
+			return true;
+		}
+		// The expectation belongs to this token. For @import "theme.css", save
+		// that the string is a URL before clearing the expectation for the next token.
+		$this->current_token_is_url = CSSProcessor::TOKEN_URL === $type ||
+			( '' !== $this->context['expect'] && CSSProcessor::TOKEN_STRING === $type );
+		$name                       = in_array( $type, array( CSSProcessor::TOKEN_FUNCTION, CSSProcessor::TOKEN_AT_KEYWORD ), true ) ? $this->processor->get_token_value() : '';
+		$this->context['expect']    = '';
 		if ( CSSProcessor::TOKEN_FUNCTION === $type ) {
 			++$this->context['depth'];
 			$name                    = strtolower( $name );
@@ -348,8 +363,20 @@ class CSSURLProcessor {
 		} elseif ( CSSProcessor::TOKEN_COMMA === $type && end( $this->context['images'] ) === $this->context['depth'] ) {
 			$this->context['expect'] = 'image';
 		}
-		return in_array( $type, array( CSSProcessor::TOKEN_URL, CSSProcessor::TOKEN_BAD_URL ), true ) ||
-			( '' !== $expected && in_array( $type, array( CSSProcessor::TOKEN_STRING, CSSProcessor::TOKEN_BAD_STRING ), true ) );
+		return true;
+	}
+
+	/**
+	 * Returns whether the current token holds a URL, without advancing or changing state.
+	 *
+	 * The string in @import "theme.css" holds a URL; the same string after
+	 * content: does not. Malformed string and URL tokens also return false.
+	 * This checks the CSS token and its position, not full URL validity.
+	 *
+	 * @return bool True when the current token holds a URL, including an empty URL.
+	 */
+	private function is_at_url(): bool {
+		return $this->current_token_is_url;
 	}
 
 	/**
