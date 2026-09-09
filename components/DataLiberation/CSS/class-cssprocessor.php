@@ -31,6 +31,9 @@ use function WordPress\Encoding\wp_scrub_utf8;
  * This processor delays normalization as much as possible. That keeps the raw byte
  * positions intact for accurate rewrites while still letting consumers ask for a
  * normalized token when they need one.
+ * For example, url(a<NUL>b) is a URL token whose value is a�b, where <NUL>
+ * means one zero byte in the source. That byte stays in the raw token, so later
+ * edits still use byte offsets from the original input.
  *
  * ### No EOF token
  *
@@ -1649,8 +1652,10 @@ class CSSProcessor {
 				"'" === $this->css[ $this->at ] ||
 				'(' === $this->css[ $this->at ] ||
 
-				// Non-printable code point.
-				$byte <= 0x08 ||
+				// NUL becomes U+FFFD during CSS preprocessing, so it is valid here.
+				// Keep its source byte for offsets; decode_range() replaces it when
+				// the caller reads the value. Other non-printable controls stay invalid.
+				( $byte >= 0x01 && $byte <= 0x08 ) ||
 
 				// Line Tabulation.
 				0x0B === $byte ||
