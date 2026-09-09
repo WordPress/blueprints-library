@@ -3,9 +3,13 @@
 use PHPUnit\Framework\TestCase;
 use WordPress\DataLiberation\URL\CSSURLProcessor;
 
-/** Streamed stylesheets must keep CSS context across input and process boundaries. */
+/** Checks that splitting CSS input and restoring saved state do not change URL rewrite results. */
 class CSSURLStreamTest extends TestCase {
-	/** @dataProvider stylesheets */
+	/**
+	 * Splits each example at every byte position and restores the parser between the two parts.
+	 *
+	 * @dataProvider stylesheets
+	 */
 	public function test_rewrites_and_resumes_at_every_byte( $input, $expected ) {
 		$mapping = array( 'https://old.example' => 'http://new.example/local' );
 		for ( $split = 0; $split <= strlen( $input ); ++$split ) {
@@ -18,7 +22,10 @@ class CSSURLStreamTest extends TestCase {
 		}
 	}
 
-	/** Pairs URL syntax and non-URL text with the exact bytes expected after rewriting. */
+	/**
+	 * Supplies CSS and its expected output, including text that must stay unchanged.
+	 * Escapes and malformed CSS use exact strings so unwanted byte changes fail the test.
+	 */
 	public static function stylesheets() {
 		return array(
 			'trailing URL spaces' => array( 'a{src:url(https://old.example                       )}', 'a{src:url(http://new.example/local                       )}' ),
@@ -45,7 +52,7 @@ class CSSURLStreamTest extends TestCase {
 		);
 	}
 
-	/** Tiny chunks repeatedly cross the same token instead of just splitting it once. */
+	/** Sends one byte per call and restores the parser after each byte, including inside escapes. */
 	public function test_one_byte_chunks_match_whole_chunk_output() {
 		$mapping = array( 'https://old.example' => 'http://new.example/local' );
 		foreach ( self::stylesheets() as $case ) {
@@ -60,7 +67,10 @@ class CSSURLStreamTest extends TestCase {
 		}
 	}
 
-	/** A single token, not just a stylesheet, can exceed the input chunk size. */
+	/**
+	 * Sends a single comment, string, URL, or name across many 32 KiB chunks.
+	 * The saved unfinished input must grow until that item ends, then become empty.
+	 */
 	public function test_large_tokens_are_retained_until_complete_then_released() {
 		$mapping = array( 'https://old.example' => 'https://old.example/moved' );
 		foreach ( array( array( '/*', '*/' ), array( 'a{content:"', '"}' ), array( 'a{src:url(data:image/png;base64,', ')}' ), array( 'a{src:url(https://old.example/', ')}' ), array( '.long', '{}' ) ) as $token ) {
@@ -86,7 +96,10 @@ class CSSURLStreamTest extends TestCase {
 			$this->assertSame( '', $processor->get_reentrancy_cursor()['css']['pending_b64'] );
 		}
 	}
-	/** Expanding a short source URL many times must not buffer a large output string. */
+	/**
+	 * Expands 1,500 short URLs into over 5 MiB of output.
+	 * Each output piece must stay within 64 KiB without holding all replacements in memory.
+	 */
 	public function test_expanded_output_is_yielded_in_bounded_chunks() {
 		$target = 'https://new.example/' . str_repeat( 'a', 4096 );
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => $target ) );
@@ -108,7 +121,7 @@ class CSSURLStreamTest extends TestCase {
 		$this->assertSame( hash_final( $expected ), hash_final( $actual ) );
 	}
 
-	/** A saved cursor must not skip output still held by the generator. */
+	/** Stops at the first output piece and checks that saving a cursor is rejected until iteration ends. */
 	public function test_cannot_checkpoint_unconsumed_output() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$output = $processor->rewrite_chunk( 'a{src:url(https://old.example/a)}', true );
@@ -118,7 +131,7 @@ class CSSURLStreamTest extends TestCase {
 		$processor->get_reentrancy_cursor();
 	}
 
-	/** An unfinished source base cannot be resumed with a different replacement. */
+	/** Changes the target host after saving half a URL; resume must reject the changed rule. */
 	public function test_changed_mapping_cannot_resume_an_open_url() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$this->rewrite_chunk( $processor, 'a{src:url("https://old.exa', false );
@@ -127,7 +140,10 @@ class CSSURLStreamTest extends TestCase {
 		CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://other.example' ), $processor->get_reentrancy_cursor() );
 	}
 
-	/** Source line continuations are buffered with the token instead of capped as a prefix. */
+	/**
+	 * Inserts over 1 MiB of backslash-newline pairs between the 'h' and 'ttps://' of a short URL.
+	 * Those pairs decode to no characters, but must be retained until the quoted URL ends.
+	 */
 	public function test_long_escaped_url_is_rewritten_after_its_closing_quote() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$output = $this->rewrite_chunk( $processor, 'a{src:url("h', false );
@@ -138,7 +154,7 @@ class CSSURLStreamTest extends TestCase {
 		$this->assertSame( 'a{src:url("https://new.example/a")}', $output );
 	}
 
-	/** A URL is returned only after the tokenizer can identify its complete value. */
+	/** Sends a URL without its closing ')'; only the preceding CSS may be returned before resume. */
 	public function test_unfinished_url_is_not_written_before_its_end() {
 		$processor = CSSURLProcessor::create_for_streaming( array( 'https://old.example' => 'https://new.example' ) );
 		$output = $this->rewrite_chunk( $processor, 'a{src:url(https://old.example/' . str_repeat( 'a', 65536 ), false );
@@ -148,7 +164,10 @@ class CSSURLStreamTest extends TestCase {
 		$this->assertSame( 'a{src:url(https://new.example/' . str_repeat( 'a', 65536 ) . ')}', $output );
 	}
 
-	/** Collects only the small input chunks supplied by these assertions. */
+	/**
+	 * Joins output pieces so tests can compare their exact bytes, while checking each piece's size.
+	 * The large-output test reads the generator directly so this helper does not affect its memory check.
+	 */
 	private function rewrite_chunk( CSSURLProcessor $processor, string $input, bool $last ): string {
 		$output = '';
 		foreach ( $processor->rewrite_chunk( $input, $last ) as $chunk ) {

@@ -5,7 +5,12 @@ namespace WordPress\DataLiberation\URL;
 use WordPress\DataLiberation\CSS\CSSProcessor;
 
 /**
- * Provides URL specific helpers on top of the CSSProcessor tokenizer.
+ * Finds CSS URLs in a complete string or rewrites them as source chunks arrive.
+ *
+ * CSSProcessor reads one CSS item, called a token, at a time. A token can be
+ * a quoted string, a comment, or an unquoted url(...). The surrounding syntax
+ * tells whether a string holds a URL: @import "theme.css" does, but
+ * content: "theme.css" does not.
  */
 class CSSURLProcessor {
 	/**
@@ -13,7 +18,19 @@ class CSSURLProcessor {
 	 */
 	private $processor;
 
-	/** @var array URL syntax context shared by whole-string and streaming callers. */
+	/**
+	 * Remembers where a quoted string can be a URL as tokens are read.
+	 *
+	 * Both next_url() and rewrite_chunk() update this state. Streaming callers
+	 * save it in the cursor so a new process can continue inside an image-set().
+	 *
+	 * @var array {
+	 *     @type int    $depth  Number of function or '(' tokens not yet closed by ')'.
+	 *     @type int[]  $images Depth of each open image-set(), outermost first.
+	 *     @type string $expect Why the next string can be a URL: 'url', 'import',
+	 *                          or 'image'. Empty when no URL string is expected.
+	 * }
+	 */
 	private $context = array(
 		'depth' => 0,
 		'images' => array(),
@@ -27,26 +44,63 @@ class CSSURLProcessor {
 		$this->processor = CSSProcessor::create( $css );
 	}
 
-	/** @var array|null Compiled source bases, longest first; null for the whole-string iterator. */
+	/**
+	 * URL replacement rules prepared once by create_for_streaming().
+	 *
+	 * Each input rule produces two entries: one for https://old.example and one
+	 * for //old.example, for example. Entries with longer source bases come first
+	 * so a rule for /blog wins over a rule for the whole site.
+	 *
+	 * Each entry contains 'origin' (scheme and host, with any port), 'prefix'
+	 * (origin and path), 'target' (replacement escaped for CSS), and 'position'
+	 * (original entry order, used when two prefixes have the same length).
+	 *
+	 * @var array|null Null when constructed for next_url(), without streaming rules.
+	 */
 	private $mappings;
 
-	/** @var bool Whether the caller still has output chunks to consume for this input. */
+	/**
+	 * Whether iteration over the current rewrite_chunk() result has started but not finished.
+	 *
+	 * While true, output may still be waiting in the generator. Reject new input
+	 * and saved cursors until the caller finishes the foreach loop. Otherwise
+	 * a saved cursor could advance past output that the caller has not received.
+	 *
+	 * @var bool
+	 */
 	private $input_open = false;
 
-	/** @var string Binds resumed prefix decisions to the same compiled mapping. */
+	/**
+	 * Identifies the URL replacement rules used before a rewrite stopped.
+	 *
+	 * A file started with old.example -> new.example must not resume with
+	 * old.example -> other.example. That could leave two target hosts in one
+	 * output file. create_for_streaming() rejects a cursor if its saved hash
+	 * differs from the hash of the rules supplied for the new run.
+	 *
+	 * @var string|null SHA-256 hash of $mappings, including match order; null before streaming.
+	 */
 	private $mapping_hash;
 
 	/**
-	 * Opens URL rewriting for a CSS file without retaining completed input.
+	 * Starts or resumes URL rewriting for CSS supplied in chunks.
 	 *
-	 * @param array<string,string> $url_mapping Source HTTP(S) bases mapped to target HTTP(S) bases.
-	 * @param array|null           $cursor {
-	 *               Optional state returned by get_reentrancy_cursor().
-	 *     @type array $css CSS tokenizer cursor.
-	 *     @type array $context Function depth and expected URL syntax.
-	 *     @type string $mapping_hash Hash of the compiled mapping.
+	 * For example, array( 'https://old.example' => 'https://new.example/local' )
+	 * changes https://old.example/photo.png to https://new.example/local/photo.png.
+	 * Both bases must be HTTP(S) URLs without credentials, a query, or a fragment.
+	 *
+	 * Pass null for a new file. To resume, pass the cursor returned by
+	 * get_reentrancy_cursor() and the same mapping in the same order. The cursor
+	 * contains unfinished CSS bytes; supply only source bytes after the saved
+	 * source offset. Completed source bytes are not kept by this processor.
+	 *
+	 * @param array<string,string> $url_mapping Source URL bases as keys, replacement bases as values.
+	 * @param array|null           $cursor State from get_reentrancy_cursor(), or null to start. {
+	 *     @type array  $css          CSSProcessor state, including unfinished source bytes.
+	 *     @type array  $context      Saved $context: open parentheses, image sets, and expected strings.
+	 *     @type string $mapping_hash Hash used to reject a resume with different replacement rules.
 	 * }
-	 * @return static
+	 * @return static Processor ready for rewrite_chunk().
 	 */
 	public static function create_for_streaming( array $url_mapping, ?array $cursor = null ) {
 		if ( null !== $cursor && ( ! isset( $cursor['css'], $cursor['context'], $cursor['mapping_hash'] ) || ! is_array( $cursor['css'] ) || ! is_array( $cursor['context'] ) ) ) {
@@ -91,18 +145,29 @@ class CSSURLProcessor {
 	}
 
 	/**
-	 * Rewrites one supplied chunk and yields bytes ready to write.
+	 * Rewrites URLs in the next source chunk and returns output through a generator.
 	 *
-	 * Only URL base bytes change. CSS delimiters and the unmatched URL suffix keep
-	 * their source spelling. Comments and displayed strings are never URL contexts.
-	 * The caller writes every yielded chunk before saving its source/output offsets
-	 * and this processor cursor together at the input boundary. If writing fails or
-	 * the generator is abandoned, reopen from the last saved cursor. A cursor covers
-	 * all supplied source bytes, including the entire unfinished token kept inside it.
+	 * A chunk can end inside `url(https://old.exa`. That URL stays in memory until
+	 * later input completes it, or $is_last marks the actual end of the file.
+	 * Only the matched URL base changes. Quotes, parentheses, and the remaining
+	 * URL bytes keep their original spelling. Comments and displayed text stay
+	 * unchanged. Malformed string and URL tokens also stay unchanged.
 	 *
-	 * @param string $chunk   Next source bytes.
-	 * @param bool   $is_last Whether this is the actual end of the stylesheet.
-	 * @return \Generator<string> Output chunks of at most 64 KiB; drain them before saving the cursor.
+	 * Use foreach to write each output chunk. Finish that loop before supplying
+	 * more input or calling get_reentrancy_cursor(). For files, flush the output,
+	 * then save the cursor and both file offsets together. The source offset
+	 * includes every supplied byte, even bytes still held in the cursor.
+	 *
+	 * If writing fails or the loop stops early, discard this processor. Resume
+	 * from the last saved cursor and source offset. First remove output bytes
+	 * after the saved output offset so the repeated input does not duplicate them.
+	 *
+	 * Output pieces are limited to 64 KiB, but unfinished tokens have no size
+	 * limit. A large comment or URL can increase memory use and cursor size.
+	 *
+	 * @param string $chunk   Source bytes immediately after the previous chunk; may be empty.
+	 * @param bool   $is_last True only at the actual end of the file, not when a download stops early.
+	 * @return \Generator<string> Output pieces of at most 64 KiB, in source order.
 	 */
 	public function rewrite_chunk( string $chunk, bool $is_last ): \Generator {
 		if ( null === $this->mappings ) {
@@ -130,13 +195,20 @@ class CSSURLProcessor {
 				foreach ( $this->mappings as $mapping ) {
 					$prefix       = $mapping['prefix'];
 					$origin_bytes = strlen( $mapping['origin'] );
+					// Scheme and host ignore letter case; paths do not. Thus
+					// OLD.EXAMPLE/blog can match old.example/blog, but /Blog cannot.
 					if ( strlen( $decoded ) < strlen( $prefix ) || 0 !== strncasecmp( $decoded, $mapping['origin'], $origin_bytes ) ||
 						substr( $decoded, $origin_bytes, strlen( $prefix ) - $origin_bytes ) !== substr( $prefix, $origin_bytes ) ) {
 						continue;
 					}
+					// A base ending in /blog must not match /blogger. A slash, query,
+					// fragment, or URL end must follow the matched base.
 					if ( strlen( $decoded ) > strlen( $prefix ) && false === strpos( '/?#', $decoded[ strlen( $prefix ) ] ) ) {
 						continue;
 					}
+					// Match decoded text, but edit the original bytes. For example,
+					// an escaped letter such as \6f takes more source bytes than 'o'.
+					// Measure only the base so escapes after it keep their spelling.
 					$value_start      = $this->processor->get_token_value_start() - $this->processor->get_token_start();
 					$raw_value        = substr( $piece, $value_start, $this->processor->get_token_value_length() );
 					$raw_prefix_bytes = CSSProcessor::measure_value_prefix( $raw_value, strlen( $prefix ), CSSProcessor::TOKEN_STRING === $type );
@@ -146,24 +218,31 @@ class CSSURLProcessor {
 			}
 			$output .= $piece;
 			if ( strlen( $output ) >= 65536 ) {
-				// Yield expanded replacements before reading the next source token.
+				// Replacements can be much longer than the input URLs. Return
+				// this output now so later replacements do not keep adding to it.
 				yield from $this->split_output_chunks( $output );
 				$output = '';
 			}
 		}
-		// Output above already includes every completed token; retain only unread source.
+		// Completed tokens have been copied to output. Release their source
+		// bytes, but keep any unfinished token for the next input chunk.
 		$this->processor->flush_processed_css();
 		yield from $this->split_output_chunks( $output );
 		$this->input_open = false;
 	}
 
 	/**
-	 * Returns state to save beside the source and destination byte offsets.
+	 * Returns the parser state needed to resume this rewrite in a new process.
 	 *
-	 * @return array {
-	 *     @type array $css  CSS tokenizer cursor.
-	 *     @type array $context Function depth and expected URL syntax.
-	 *     @type string $mapping_hash Hash of the compiled mapping; resume requires the same mapping.
+	 * Call this after writing all output from rewrite_chunk(). The array can be
+	 * encoded as JSON. Save it with the source and output byte offsets, then pass
+	 * it to create_for_streaming() with the same URL mapping to resume. This method
+	 * returns data only; the caller must save it and manage the two files.
+	 *
+	 * @return array State for create_for_streaming(). {
+	 *     @type array  $css          CSSProcessor state, including unfinished source bytes.
+	 *     @type array  $context      Saved $context, so a string after resume keeps its URL meaning.
+	 *     @type string $mapping_hash Hash used to check that replacement rules did not change.
 	 * }
 	 */
 	public function get_reentrancy_cursor(): array {
@@ -181,10 +260,13 @@ class CSSURLProcessor {
 	}
 
 	/**
-	 * Splits a completed token or accumulated output into chunks ready to write.
+	 * Returns output in pieces of at most 64 KiB, even when one token is larger.
 	 *
-	 * @param string $bytes Current output buffer.
-	 * @return \Generator<string> Bounded output chunks.
+	 * The full string already exists here. Splitting it limits the size of each
+	 * piece given to the caller; it does not limit the memory used by that string.
+	 *
+	 * @param string $bytes Rewritten CSS bytes waiting to be returned to the caller.
+	 * @return \Generator<string> Consecutive pieces that together contain all of $bytes.
 	 */
 	private function split_output_chunks( string $bytes ): \Generator {
 		$length = strlen( $bytes );
@@ -194,9 +276,12 @@ class CSSURLProcessor {
 	}
 
 	/**
-	 * Moves the cursor to the next URL token, if available.
+	 * Finds the next URL in the complete CSS string passed to the constructor.
 	 *
-	 * @return bool
+	 * Recognizes url(), @import strings, and image-set() image strings. Skips
+	 * comments, displayed text, and malformed string or URL tokens.
+	 *
+	 * @return bool True when get_raw_url() can read the next URL; false when none remain.
 	 */
 	public function next_url(): bool {
 		while ( $this->processor->next_token() ) {
@@ -211,15 +296,20 @@ class CSSURLProcessor {
 	}
 
 	/**
-	 * Recognizes URL values without treating comments or displayed text as URLs.
+	 * Tracks open CSS functions and checks whether this token holds a URL.
 	 *
-	 * The url() function expects a STRING token after whitespace. Bare @import and
-	 * image-set strings use the same lookahead; another token clears that expectation.
-	 * Direct unquoted URL tokens already include their url() wrapper in both input modes.
+	 * In @import "theme.css", the @import token makes the next string a URL.
+	 * url("photo.png") and image-set("photo.png" 1x) use the same rule. Spaces
+	 * and comments do not clear that expectation; any other token consumes it.
+	 * An unquoted url(photo.png) is already one URL token, including its wrapper.
 	 *
-	 * @param string $type CSS token type.
-	 * @param string $name Decoded function or at-keyword name, otherwise empty.
-	 * @return bool Whether this begins a URL value.
+	 * Call once for every token, in order, so both whole-string and streaming
+	 * callers track the same open functions and expected URL strings. A true
+	 * result can include malformed URL or string tokens; callers skip those.
+	 *
+	 * @param string $type Token type returned by CSSProcessor::get_token_type().
+	 * @param string $name Function or @-keyword name with CSS escapes decoded; otherwise ''.
+	 * @return bool Whether this token is in a URL position, even if its syntax is malformed.
 	 */
 	private function inspect_url_context( string $type, string $name ): bool {
 		if ( in_array( $type, array( CSSProcessor::TOKEN_WHITESPACE, CSSProcessor::TOKEN_COMMENT ), true ) ) {
@@ -232,12 +322,14 @@ class CSSURLProcessor {
 			$name                    = strtolower( $name );
 			$this->context['expect'] = 'url' === $name ? 'url' : '';
 			if ( in_array( $name, array( 'image-set', '-webkit-image-set' ), true ) ) {
-				// In image-set("a.png" type("image/png"), "b.png" 2x),
-				// type() is nested one level deeper than image-set(). Save each
-				// open image-set's depth so only commas at that depth start images.
-				// The matching ')' removes that entry. Cap the stack at 128 open
-				// image-set() calls, even for malformed input. This does not cap
-				// images within a set or separate image-set() calls in the file.
+				// In image-set("a.png" type("image/png"), "b.png" 2x), the comma
+				// starts another image. A comma inside type(...) must not do so:
+				// type() is one level deeper than the image-set() around it.
+				// Save the depth of each open image-set() to tell them apart;
+				// its closing ')' removes that depth from the list.
+				// Keep at most 128 open image-set() calls, even in malformed CSS,
+				// so repeated openings cannot grow the list without a limit.
+				// This limits nesting, not images per set or separate sets in a file.
 				if ( count( $this->context['images'] ) >= 128 ) {
 					throw new \RuntimeException( 'CSS image-set nesting exceeds 128 open functions.' );
 				}
