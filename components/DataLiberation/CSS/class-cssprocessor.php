@@ -308,6 +308,9 @@ class CSSProcessor {
 	 */
 	private $lexical_updates = array();
 
+	/** @var bool Whether an unfinished token may receive more source bytes. */
+	private $expecting_more_input = false;
+
 	/**
 	 * Constructor for the CSS processor.
 	 *
@@ -342,15 +345,125 @@ class CSSProcessor {
 	}
 
 	/**
+	 * Opens a processor that keeps unfinished tokens until more input arrives.
+	 *
+	 * @param array|null $cursor {
+	 *     Optional state from get_reentrancy_cursor(), after flushing processed CSS.
+	 *     @type string $pending_b64 Unprocessed source bytes, base64 encoded.
+	 *     @type bool   $expecting_more_input Whether the source has more bytes.
+	 * }
+	 * @return static
+	 */
+	public static function create_for_streaming( ?array $cursor = null ) {
+		if ( null !== $cursor && ( ! isset( $cursor['pending_b64'], $cursor['expecting_more_input'] ) || ! is_string( $cursor['pending_b64'] ) || ! is_bool( $cursor['expecting_more_input'] ) ) ) {
+			throw new \InvalidArgumentException( 'The CSS cursor must contain a base64 input tail and whether more input is expected.' );
+		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Cursor JSON must preserve arbitrary source bytes.
+		$pending = null === $cursor ? '' : base64_decode( $cursor['pending_b64'], true );
+		if ( false === $pending ) {
+			throw new \InvalidArgumentException( 'The CSS cursor contains an invalid base64 input tail.' );
+		}
+		$processor                       = new static( $pending );
+		$processor->expecting_more_input = $cursor['expecting_more_input'] ?? true;
+		return $processor;
+	}
+
+	/**
+	 * Appends source bytes after the caller has flushed completed tokens.
+	 *
+	 * The unfinished token stays in memory and is parsed again. Neither its size
+	 * nor the saved cursor size is capped. Use small reads to limit other input.
+	 *
+	 * @param string $bytes Next source bytes.
+	 * @param bool   $is_last Whether this is the actual end of the stylesheet.
+	 */
+	public function append_bytes( string $bytes, bool $is_last = false ): void {
+		if ( ! $this->expecting_more_input ) {
+			throw new \LogicException( 'CSS input cannot be appended after the end of the stylesheet.' );
+		}
+		if ( 0 !== $this->at ) {
+			throw new \LogicException( 'Flush processed CSS before appending more input.' );
+		}
+		$this->css                 .= $bytes;
+		$this->length               = strlen( $this->css );
+		$this->expecting_more_input = ! $is_last;
+	}
+
+	/** Returns whether more source bytes may be appended. */
+	public function is_expecting_more_input(): bool {
+		return $this->expecting_more_input;
+	}
+
+	/**
+	 * Returns edited, completed input and keeps the unfinished token for another read.
+	 *
+	 * Flush before appending input or saving a cursor. Existing whole-token setters
+	 * work in streaming mode; their edits are applied only to the returned prefix.
+	 *
+	 * @return string Processed CSS, including edits made with set_token_value().
+	 */
+	public function flush_processed_css(): string {
+		if ( 0 === $this->at ) {
+			return '';
+		}
+		$pending               = substr( $this->css, $this->at );
+		$updated               = $this->get_updated_css();
+		$output                = substr( $updated, 0, strlen( $updated ) - strlen( $pending ) );
+		$this->css             = $pending;
+		$this->length          = strlen( $pending );
+		$this->at              = 0;
+		$this->lexical_updates = array();
+		$this->after_token();
+		return $output;
+	}
+
+	/**
+	 * Returns unfinished input to save beside the caller's source and output offsets.
+	 *
+	 * @return array {
+	 *     @type string $pending_b64 Unprocessed source bytes, base64 encoded.
+	 *     @type bool   $expecting_more_input Whether the source has more bytes.
+	 * }
+	 */
+	public function get_reentrancy_cursor(): array {
+		if ( 0 !== $this->at ) {
+			throw new \LogicException( 'Flush processed CSS before saving a cursor.' );
+		}
+		return array(
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Cursor JSON must preserve arbitrary source bytes.
+			'pending_b64' => base64_encode( $this->css ),
+			'expecting_more_input' => $this->expecting_more_input,
+		);
+	}
+
+	/**
 	 * Moves to the next token in the CSS stream.
 	 *
 	 * Implements the main tokenization loop, consuming the next token from the input stream.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-token
 	 *
-	 * @return bool Whether a token was found.
+	 * @return bool Whether a complete token was found; false also means more input is needed.
 	 */
 	public function next_token(): bool {
+		$start = $this->at;
+		if ( ! $this->scan_next_token() ) {
+			return false;
+		}
+		// A CSS escape needs at most six hex digits and CRLF after its backslash.
+		// Ten bytes also cover UTF-8 and the lookahead used to classify a token.
+		// A name may become a function, and a number may acquire a unit. Retry the
+		// whole token when more bytes arrive instead of saving its internal state.
+		if ( $this->expecting_more_input && $this->at > $this->length - 10 ) {
+			$this->at = $start;
+			$this->after_token();
+			return false;
+		}
+		return true;
+	}
+
+	/** Reads a whole token with the same CSS rules for complete and growing input. */
+	private function scan_next_token(): bool {
 		$this->after_token();
 
 		// Bale out once we reach the end.
@@ -1473,6 +1586,19 @@ class CSSProcessor {
 
 		// Repeatedly consume the next input code point from the stream.
 		while ( $this->at < $this->length ) {
+			// Scan runs such as https://example.com/photo.png in native code rather
+			// than one PHP iteration per byte. These ASCII bytes need no special
+			// handling in an unquoted URL. Quotes, parentheses, whitespace, escapes,
+			// and non-ASCII bytes fall through to the rules below.
+			// Only the cursor advances; source bytes stay unchanged. This also makes
+			// reparsing a long unfinished URL cheaper when another chunk arrives.
+			// This set only selects the fast path; it does not validate the URL or
+			// reject other bytes, which still reach the CSS token rules below.
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			// U+0029 RIGHT PARENTHESIS ())
 			// Return the <url-token>.
 			if ( ')' === $this->css[ $this->at ] ) {
@@ -1629,6 +1755,17 @@ class CSSProcessor {
 	 */
 	private function consume_ident_sequence() {
 		while ( $this->at < $this->length ) {
+			// Scan ASCII name characters, as in margin-top or item_2, in native
+			// code rather than one PHP iteration per byte. Letters, digits, "-",
+			// and "_" can continue a name; deciding whether an identifier may
+			// start here is a separate check, not the purpose of this byte list.
+			// Non-ASCII bytes, NULL, and escapes use the rules below. Advancing
+			// only the cursor preserves the source spelling for later decoding.
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_', $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			$codepoint_bytes = $this->consume_ident_codepoint( $this->at );
 			if ( $codepoint_bytes > 0 ) {
 				$this->at += $codepoint_bytes;
