@@ -53,6 +53,40 @@ class CSSStreamProcessTest extends TestCase {
 		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
 	}
 
+	/**
+	 * Places NUL at the end of the second 32 KiB read, inside an unfinished URL.
+	 * Resume must retain that byte, rewrite the URL, and leave a later bad URL unchanged.
+	 *
+	 * @dataProvider interruptions
+	 */
+	public function test_nul_preprocessing_preserves_file_offsets_after_resume( $stop ) {
+		$first = 'a{src:url(https://old.example/first.png)}';
+		$url_start = 'a{src:url(https://old.example/a';
+		$comment = '/*' . str_repeat( 'x', 65535 - strlen( $first . '/**/' . $url_start ) ) . '*/';
+		$bad_url = "a{src:url(https://old.example/bad\x01.png)}";
+		$input = $first . $comment . $url_start . "\x00b.png)}" . $bad_url
+			. 'a{src:url(https://old.example/last.png)}';
+		$expected = 'a{src:url("https://old.example/moved/first.png")}' . $comment
+			. "a{src:url(\"https://old.example/moved/a\u{FFFD}b.png\")}" . $bad_url
+			. 'a{src:url("https://old.example/moved/last.png")}';
+		$this->assertSame( "\x00", $input[65535] );
+		file_put_contents( $this->directory . '/source.css', $input );
+		$this->assertSame( 'none' === $stop ? 0 : 99, $this->run_worker( $stop ), file_get_contents( $this->directory . '/worker.log' ) );
+		if ( 'none' !== $stop ) {
+			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+			$this->assertSame( 'before' === $stop ? 32768 : 65536, $state['source_bytes'] );
+			if ( 'after' === $stop ) {
+				$this->assertStringContainsString( "\x00", base64_decode( $state['css']['pending_b64'] ) );
+			}
+			$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
+		}
+		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+		$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+		$this->assertSame( strlen( $input ), $state['source_bytes'] );
+		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
+	}
+
 	/** Runs through completion or exits on either side of the second file checkpoint. */
 	public static function interruptions() {
 		return array( array( 'none' ), array( 'before' ), array( 'after' ) );

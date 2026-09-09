@@ -32,6 +32,20 @@ class CSSURLContextProcessTest extends TestCase {
 		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
 	}
 
+	/** NUL-containing URLs can be rewritten; other controls still make a URL invalid. */
+	public function test_file_rewrite_applies_nul_preprocessing_before_url_validation() {
+		$comment = "/* Keep this NUL: \x00 and these line endings: \r\n\f */";
+		$bad_url = "a{src:url(https://old.example/bad\x01.png)}";
+		$input = $comment . "a{src:url(https://old.example/a\x00b.png)}" . $bad_url
+			. 'a{src:url(https://old.example/last.png)}';
+		$expected = $comment . "a{src:url(\"https://new.example/a\u{FFFD}b.png\")}" . $bad_url
+			. 'a{src:url("https://new.example/last.png")}';
+		file_put_contents( $this->directory . '/source.css', $input );
+		$this->assertSame( 0, $this->run_worker(), file_get_contents( $this->directory . '/worker.log' ) );
+		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+	}
+
 	/** The caller must not publish a stylesheet after URL-context tracking rejects excessive nesting. */
 	public function test_nesting_failure_leaves_the_existing_output_untouched() {
 		$input = 'a{src:' . str_repeat( 'image-set(', 129 ) . '"https://old.example/a"' . str_repeat( ')', 129 ) . '}';
