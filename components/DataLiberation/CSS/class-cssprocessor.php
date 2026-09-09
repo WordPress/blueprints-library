@@ -1592,6 +1592,8 @@ class CSSProcessor {
 			// and non-ASCII bytes fall through to the rules below.
 			// Only the cursor advances; source bytes stay unchanged. This also makes
 			// reparsing a long unfinished URL cheaper when another chunk arrives.
+			// This set only selects the fast path; it does not validate the URL or
+			// reject other bytes, which still reach the CSS token rules below.
 			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $this->at );
 			if ( $plain > 0 ) {
 				$this->at += $plain;
@@ -1753,6 +1755,12 @@ class CSSProcessor {
 	 */
 	private function consume_ident_sequence() {
 		while ( $this->at < $this->length ) {
+			// Scan ASCII name characters, as in margin-top or item_2, in native
+			// code rather than one PHP iteration per byte. Letters, digits, "-",
+			// and "_" can continue a name; deciding whether an identifier may
+			// start here is a separate check, not the purpose of this byte list.
+			// Non-ASCII bytes, NULL, and escapes use the rules below. Advancing
+			// only the cursor preserves the source spelling for later decoding.
 			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_', $this->at );
 			if ( $plain > 0 ) {
 				$this->at += $plain;
