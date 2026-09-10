@@ -22,6 +22,22 @@ class CSSURLStreamProcessTest extends TestCase {
 		rmdir( $this->directory );
 	}
 
+	/** A multi-chunk stylesheet with few URLs must finish within the worker's CPU budget. */
+	public function test_large_stylesheet_rewrite_does_not_rescan_ascii_suffixes() {
+		$rules = str_repeat( '.card{color:red;margin:10px}', 100000 );
+		$input = $rules . 'a{src:url(https://old.example/photo.png)}';
+		$expected = $rules . 'a{src:url("https://new.example/photo.png")}';
+		file_put_contents( $this->directory . '/source.css', $input );
+		$arguments = array( PHP_BINARY, __DIR__ . '/fixtures/css-stream/rewrite-large-file.php', $this->directory . '/source.css', $this->directory . '/target.css' );
+		$command = implode( ' ', array_map( 'escapeshellarg', $arguments ) );
+		$process = proc_open( $command, array( 0 => array( 'pipe', 'r' ), 1 => array( 'file', $this->directory . '/worker.log', 'w' ), 2 => array( 'file', $this->directory . '/worker.log', 'a' ) ), $pipes, null, null, array( 'bypass_shell' => true ) );
+		$this->assertIsResource( $process );
+		fclose( $pipes[0] );
+		$this->assertSame( 0, proc_close( $process ), file_get_contents( $this->directory . '/worker.log' ) );
+		$this->assertSame( hash( 'sha256', $expected ), hash_file( 'sha256', $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+	}
+
 	/**
 	 * Checks an uninterrupted rewrite and two runs that exit before or after saving state.
 	 * A new process must finish each stopped run with the exact expected file bytes.
