@@ -309,39 +309,31 @@ not returned. More than 128 nested image sets throw an error.
 [The file-rewrite caller](Tests/fixtures/css-context/rewrite-file.php) uses the
 whole-string iterator and writes the output only after iteration completes.
 
-## Stream CSS tokens and resume
+## Stream CSS with the existing scan-and-edit API
 
-`CSSProcessor::create_for_streaming()` accepts source chunks through
-`append_bytes($bytes, $is_last)`. Read complete tokens with the existing
-`next_token()`, getters, and `set_token_value()`. If a token is unfinished,
-the processor keeps it and tries again after the next read, like XML.
-Only mark actual source EOF, not the end of an interrupted response.
+For example, one read can end at `url(https://old.exa` and the next can supply
+`mple/photo.png)`. The processor waits for the rest of that URL before returning
+it. The caller then reads and edits it with the same methods used for a complete
+CSS string.
 
-`flush_processed_css()` returns completed input with edits applied and releases
-its source bytes. Call it before appending more input or saving a cursor.
-`get_reentrancy_cursor()` saves the unfinished input in a JSON-safe array;
-pass it to `create_for_streaming()` in the next process. Save the source offset,
-output offset, and cursor together after writing and flushing the output.
-Resume truncates output to that saved offset before replaying more source.
-[The separate-process file caller](Tests/fixtures/css-token-stream/rewrite-file.php)
-shows both sides of that checkpoint boundary.
+Both `CSSProcessor` and `CSSURLProcessor` follow the XML streaming API:
 
-There is no token-size cap. A large comment, string, identifier, or embedded
-image increases memory use and the saved cursor size. Each read reparses the
-unfinished token. Small chunks therefore do not bound the largest token's
-memory use or parsing work.
+1. Call `create_for_streaming($css = '', $cursor = null)` to supply initial
+   bytes or start with an empty buffer.
+2. Call `append_bytes($bytes)` when more source bytes arrive.
+3. Use `next_token()` or `next_url()` and the existing getters and setters.
+   A false result can mean the processor needs more input. Check
+   `is_paused_at_incomplete_input()` to distinguish that from completion.
+4. Call `input_finished()` only at the actual source end. Continue scanning
+   to read the last tokens. A stopped download is not the source end.
+5. `is_finished()` becomes true when input has ended and no current or unread
+   token remains. `is_expecting_more_input()` says whether more bytes can still
+   be appended.
 
-## Rewrite a CSS file in chunks and resume
-
-A read can end between `https://old.exa` and `mple/photo.png`. Supply the next
-part to `CSSURLProcessor::rewrite_chunk()` and it can rewrite the complete URL.
-To continue in a new process, save the parser state, called a cursor. It holds
-the unfinished CSS bytes and remembers where a string can be a URL, such as
-after `@import` or inside `image-set()`.
-
-The same CSS parser handles whole-string and chunked input. It finds URLs in
-`url()`, quoted `@import` values, and `image-set()` image strings. Comments,
-displayed text, and malformed string or URL tokens stay unchanged.
+The whole-string API is unchanged: `CSSProcessor::create($css)` and
+`new CSSURLProcessor($css)` still take a complete stylesheet. Getters, setters,
+and `get_updated_css()` work the same way with either input mode. There is no
+separate `rewrite_chunk()` API or built-in URL mapping policy.
 
 <!-- snippet:
 filename: css-chunks.php
@@ -353,73 +345,86 @@ require '/php-toolkit/vendor/autoload.php';
 
 use WordPress\DataLiberation\URL\CSSURLProcessor;
 
-$mapping = array( 'https://old.example' => 'https://new.example' );
-$processor = CSSURLProcessor::create_for_streaming( $mapping );
-foreach ( $processor->rewrite_chunk( 'a{src:url(https://old.exa', false ) as $bytes ) {
-	echo $bytes;
-}
-
-// The foreach loop has written all available output. The cursor keeps the
-// unfinished URL, so the new processor needs only the bytes after 'old.exa'.
-// This JSON round trip shows how to restore state; it does not save a file.
-$cursor = json_decode( json_encode( $processor->get_reentrancy_cursor() ), true );
-$processor = CSSURLProcessor::create_for_streaming( $mapping, $cursor );
-foreach ( $processor->rewrite_chunk( 'mple/photo.png)}', true ) as $bytes ) {
-	echo $bytes;
+$processor = CSSURLProcessor::create_for_streaming();
+$parts = array( 'a{src:url(https://old.exa', 'mple/photo.png)}' );
+foreach ( $parts as $index => $bytes ) {
+	$processor->append_bytes( $bytes );
+	if ( $index === count( $parts ) - 1 ) {
+		$processor->input_finished();
+	}
+	while ( $processor->next_url() ) {
+		if ( 'https://old.example/photo.png' === $processor->get_raw_url() ) {
+			$processor->set_raw_url( 'https://new.example/photo.png' );
+		}
+	}
+	echo $processor->flush_processed_css();
 }
 echo "\n";
 ```
 
 <!-- expected-output -->
 ```
-a{src:url(https://new.example/photo.png)}
+a{src:url("https://new.example/photo.png")}
 ```
 
-For files, use a fixed input chunk size and save progress in this order:
+The caller chooses which URLs to change. `set_raw_url()` uses the existing
+whole-value setter: it quotes an unquoted URL and escapes the replacement for
+CSS. For example, replacing `old.png` with `new.png` changes `url(old.png)` to
+`url("new.png")`. It does not apply a separate prefix-only rewrite rule.
 
-1. Read a source chunk and pass it to `rewrite_chunk()`.
-2. Write every output piece from the `foreach` loop. Finish the loop, then
-   flush the output file.
-3. Save the source byte offset, output byte offset, and parser cursor together.
-   This saved state is a checkpoint. The source offset counts all bytes read,
-   including the unfinished bytes held in the cursor.
+### Write and release completed output
 
-The 64 KiB output threshold is checked after each complete token. A large
-token can exceed it and is returned without splitting. Any remaining output
-is returned after the input chunk has been processed.
+`flush_processed_css()` returns completed CSS with edits applied and removes
+those source bytes from memory. An unfinished token remains for the next read.
+Flushing clears the current token or URL, so edit it before flushing.
+
+Appending input does not require a flush. Without flushing, `get_updated_css()`
+returns all supplied CSS with edits applied. After a flush, it returns only the
+retained CSS. Choose when to flush based on how much output the caller wants to
+keep in memory. For example, flushing after each edited URL avoids storing many
+large replacements. Flush once more after scanning stops to get completed CSS
+after the last URL. There is no automatic output-size threshold or byte slicing.
+
+There is no token-size cap. A large comment, string, identifier, or embedded
+image can use a lot of memory even with small input chunks. Each read reparses
+the unfinished token. Small chunks therefore do not bound the largest token's
+memory use or parsing work. The cursor does not copy these bytes.
+More than 128 open, nested `image-set()` functions causes an error.
+
+### Resume in a new process
+
+Suppose the source is `a{src:url(https://old.example/photo.png)}`. A read ends
+inside the URL. After flushing `a{src:`, the saved source offset points at
+`url(`, not at the end of that read. A new process reads the unfinished URL
+again from `url(`. It does not repeat the flushed prefix.
+
+`get_reentrancy_cursor()` returns an opaque string. Save it with
+`get_token_byte_offset_in_the_input_stream()`. Supply source bytes from that
+offset to `create_for_streaming($css, $cursor)`. The cursor contains parsing
+state, including the URL position after `@import` or inside `image-set()`, but
+no source bytes or edits. Do not inspect or change its internal format.
+
+A cursor saved while a token or URL is current reads that token again on
+resume, as XML does. If `input_finished()` was already called, pass all remaining
+source bytes to the factory; appending after the source end is rejected.
+For file rewrites, save a checkpoint after flushing completed output instead:
+
+1. Read a source chunk and append it. Mark the source end when it is reached.
+2. Scan and edit using the ordinary token or URL methods.
+3. Write the string from `flush_processed_css()` and flush the output file.
+4. Save the processor's source byte offset, the output file offset, and the
+   parser cursor together. Do not use the input file handle's current offset:
+   it can be past bytes that the processor still needs to read again.
 
 On resume, seek the source to its saved offset. Remove output bytes after the
 saved output offset, then append there. Those extra bytes may have been written
 before the previous process stopped, but after its last checkpoint. Removing
 them prevents duplicate output when the corresponding source is read again.
-Keep the source file and URL mapping unchanged between runs. The cursor stores
-a hash of the prepared replacement rules; resume rejects different rules.
+Keep the source file and the caller's edit rules unchanged between runs.
+The processor does not check either of them.
 
-If a write fails or the output loop stops early, discard the processor and
-resume from the last checkpoint. Do not continue the unfinished output loop.
-The [file-rewrite test caller](Tests/fixtures/css-stream/rewrite-file.php)
-shows how to save and restore both file positions and the parser state.
-
-Before matching, CSS escapes in a URL are decoded. Scheme and host matching
-ignores letter case; path matching uses letter case. The longest source base
-wins. For example, `/blog` matches `/blog/photo.png`, `/blog?x=1`, and `/blog#top`,
-but not `/blogger`. A match can also end at the URL end.
-
-URLs that start with `//` keep that form. Relative paths, data URLs, and unrelated
-hosts stay unchanged. Only the matched base is replaced. The remaining URL bytes
-and surrounding quotes, parentheses, and spaces keep their original spelling.
-Escapes inside the replaced base can change spelling. URLs read from CSS are
-not fully normalized: path parts such as `/a/../b` and alternate encoded host
-spellings are not resolved before matching.
-
-The [token-streaming limits above](#stream-css-tokens-and-resume) still apply.
-An unfinished token, such as a comment or URL, is kept and parsed again when
-more input arrives. There is no size limit for that token. Small input and output
-chunks therefore do not limit its memory use, cursor size, or parsing work.
-More than 128 open, nested `image-set()` functions causes an error before the
-file is complete. `rewrite_chunk()` releases completed source bytes itself;
-the caller does not need to call `flush_processed_css()`.
-
-Set `$is_last` to `true` only at the actual file end. If that is known only after
-the last nonempty read, call `rewrite_chunk('', true)`. A download that stops
-early has not reached the file end and must not be marked as complete.
+If a write fails, discard the processor and resume from the last checkpoint.
+The [token file caller](Tests/fixtures/css-token-stream/rewrite-file.php) and
+[URL file caller](Tests/fixtures/css-stream/rewrite-file.php) show how to save
+and restore both file positions and the parser state. Their tests stop on both
+sides of a checkpoint and start a fresh PHP process to finish the output.

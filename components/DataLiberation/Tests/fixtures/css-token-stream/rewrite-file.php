@@ -16,11 +16,14 @@ fseek( $input, $state['source_bytes'] );
 // Discard them before replaying the corresponding source chunk.
 ftruncate( $output, $state['output_bytes'] );
 fseek( $output, $state['output_bytes'] );
-$processor = CSSProcessor::create_for_streaming( $state['css'] );
+$processor = CSSProcessor::create_for_streaming( '', $state['css'] );
 $chunks = 0;
-while ( ! feof( $input ) ) {
+while ( ! $processor->is_finished() ) {
 	$chunk = fread( $input, 32768 );
-	$processor->append_bytes( $chunk, feof( $input ) );
+	$processor->append_bytes( $chunk );
+	if ( feof( $input ) ) {
+		$processor->input_finished();
+	}
 	while ( $processor->next_token() ) {
 		if ( in_array( $processor->get_token_type(), array( CSSProcessor::TOKEN_URL, CSSProcessor::TOKEN_STRING ), true ) ) {
 			$processor->set_token_value( str_replace( 'https://old.example/', 'https://old.example/moved/', $processor->get_token_value() ) );
@@ -36,7 +39,9 @@ while ( ! feof( $input ) ) {
 	if ( 'before' === $stop && 2 === $chunks ) {
 		exit( 99 );
 	}
-	$state = array( 'source_bytes' => ftell( $input ), 'output_bytes' => ftell( $output ), 'css' => $processor->get_reentrancy_cursor() );
+	// The source offset follows completed tokens, not fread(): unfinished bytes
+	// must be read again from the file when a new process restores this cursor.
+	$state = array( 'source_bytes' => $processor->get_token_byte_offset_in_the_input_stream(), 'output_bytes' => ftell( $output ), 'css' => $processor->get_reentrancy_cursor() );
 	file_put_contents( $state_path . '.tmp', json_encode( $state ) );
 	rename( $state_path . '.tmp', $state_path );
 	if ( 'after' === $stop && 2 === $chunks ) {

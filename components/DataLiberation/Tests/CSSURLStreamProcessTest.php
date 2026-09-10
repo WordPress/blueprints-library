@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use WordPress\DataLiberation\URL\CSSURLProcessor;
 
 /** Rewrites real CSS files in child PHP processes to check output and saved state after a stop. */
 class CSSURLStreamProcessTest extends TestCase {
@@ -30,13 +31,17 @@ class CSSURLStreamProcessTest extends TestCase {
 	public function test_file_rewrite_resumes_after_process_death( $stop ) {
 		// The worker reads 32 KiB at a time. Its first read ends after '\6',
 		// inside the '\6f ' escape for 'o'. Its second read ends inside a comment.
-		// Both saved positions require unfinished CSS bytes to survive a restart.
+		// Both saved positions require the next process to reread unfinished CSS.
 		$prefix = '/*' . str_repeat( 'a', 32743 ) . '*/a{src:url("https://\\6f ld.example/a.png")}';
 		$input = $prefix . '/*' . str_repeat( 'b', 32768 ) . '*/'
 			. '@import "https://old.example/theme.css";'
 			. 'a{src:url(https://old.example/' . str_repeat( 'c', 131072 ) . ')}';
 		$this->assertSame( '\\6', substr( $input, 32766, 2 ) );
-		$expected = strtr( $input, array( 'https://\\6f ld.example/' => 'https://old.example/moved/', 'https://old.example/' => 'https://old.example/moved/' ) );
+		$whole = new CSSURLProcessor( $input );
+		while ( $whole->next_url() ) {
+			$whole->set_raw_url( str_replace( 'https://old.example/', 'https://old.example/moved/', $whole->get_raw_url() ) );
+		}
+		$expected = $whole->get_updated_css();
 		file_put_contents( $this->directory . '/source.css', $input );
 		$this->assertSame( 'none' === $stop ? 0 : 99, $this->run_worker( $stop ), file_get_contents( $this->directory . '/worker.log' ) );
 		if ( 'none' !== $stop ) {
@@ -64,14 +69,14 @@ class CSSURLStreamProcessTest extends TestCase {
 		$comment = '/*' . str_repeat( ' ', 65536 - strlen( $prefix ) - 4 ) . '*/';
 		$input = $prefix . $comment . '"https://old.example/theme.css";'
 			. 'a{content:"https://old.example/text";src:url(https://old.example/bad(image),url(https://old.example/last)}';
-		$expected = 'a{src:url(https://old.example/moved/first)}@import' . $comment . '"https://old.example/moved/theme.css";'
-			. 'a{content:"https://old.example/text";src:url(https://old.example/bad(image),url(https://old.example/moved/last)}';
+		$expected = 'a{src:url("https://old.example/moved/first")}@import' . $comment . '"https://old.example/moved/theme.css";'
+			. 'a{content:"https://old.example/text";src:url(https://old.example/bad(image),url("https://old.example/moved/last")}';
 		file_put_contents( $this->directory . '/source.css', $input );
 		$this->assertSame( 'none' === $stop ? 0 : 99, $this->run_worker( $stop ), file_get_contents( $this->directory . '/worker.log' ) );
 		if ( 'none' !== $stop ) {
 			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
-			$this->assertSame( 'before' === $stop ? 32768 : 65536, $state['source_bytes'] );
-			$this->assertSame( 'import', $state['css']['context']['expect'] );
+			$this->assertSame( strlen( $prefix ), $state['source_bytes'] );
+			$this->assertLessThan( 512, strlen( $state['css'] ) );
 			$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
 		}
 		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
@@ -93,9 +98,28 @@ class CSSURLStreamProcessTest extends TestCase {
 			$this->assertStringContainsString( 'nesting exceeds 128', file_get_contents( $this->directory . '/worker.log' ) );
 			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
 			$this->assertLessThan( strlen( $input ), $state['source_bytes'] );
-			$this->assertTrue( $state['css']['css']['expecting_more_input'] );
+			$this->assertTrue( CSSURLProcessor::create_for_streaming( '', $state['css'] )->is_expecting_more_input() );
 			$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
 		}
+	}
+
+	/** A stop after marking EOF must not skip a URL that has not yet been written. */
+	public function test_resume_after_process_death_between_eof_and_final_edit() {
+		$path = str_repeat( 'a', 65536 );
+		$input = '@import "https://old.example/' . $path . '";';
+		file_put_contents( $this->directory . '/source.css', $input );
+		$this->assertSame( 99, $this->run_worker( 'eof' ), file_get_contents( $this->directory . '/worker.log' ) );
+		$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+		$this->assertSame( strlen( '@import ' ), $state['source_bytes'] );
+		$this->assertSame( '@import ', file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
+		$expected = '@import "https://old.example/moved/' . $path . '";';
+		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );
+		$this->assertSame( $input, file_get_contents( $this->directory . '/source.css' ) );
+		$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
+		$this->assertSame( strlen( $input ), $state['source_bytes'] );
+		$this->assertSame( strlen( $expected ), $state['output_bytes'] );
+		$this->assertTrue( CSSURLProcessor::create_for_streaming( '', $state['css'] )->is_finished() );
 	}
 
 	/**
