@@ -22,7 +22,7 @@ class CSSURLStreamProcessTest extends TestCase {
 		rmdir( $this->directory );
 	}
 
-	/** A multi-chunk stylesheet with few URLs must finish within the worker's CPU budget. */
+	/** A multi-chunk stylesheet with few URLs must finish within the worker's execution budget. */
 	public function test_large_stylesheet_rewrite_does_not_rescan_ascii_suffixes() {
 		$rules = str_repeat( '.card{color:red;margin:10px}', 100000 );
 		$input = $rules . 'a{src:url(https://old.example/photo.png)}';
