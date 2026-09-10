@@ -16,14 +16,18 @@ class CSSStreamTest extends TestCase {
 			$whole_tokens[] = array( $whole->get_token_type(), $whole->get_token_value(), $whole->get_unnormalized_token() );
 		}
 		for ( $offset = 0; $offset <= strlen( $input ); ++$offset ) {
-			$processor->append_bytes( substr( $input, $offset, 1 ), strlen( $input ) === $offset );
+			$processor->append_bytes( substr( $input, $offset, 1 ) );
+			if ( strlen( $input ) === $offset ) {
+				$processor->input_finished();
+			}
 			$steps = 0;
 			while ( $processor->next_token() ) {
 				$tokens[] = array( $processor->get_token_type(), $processor->get_token_value(), $processor->get_unnormalized_token() );
 				$this->assertLessThan( 64, ++$steps, 'The lexer must consume input or finish its current token.' );
 			}
 			$output .= $processor->flush_processed_css();
-			$processor = CSSProcessor::create_for_streaming( json_decode( json_encode( $processor->get_reentrancy_cursor() ), true ) );
+			$resume_offset = $processor->get_token_byte_offset_in_the_input_stream();
+			$processor = CSSProcessor::create_for_streaming( substr( $input, $resume_offset, min( $offset + 1, strlen( $input ) ) - $resume_offset ), $processor->get_reentrancy_cursor() );
 		}
 		$this->assertSame( $input, $output );
 		$this->assertSame( $whole_tokens, $tokens );
@@ -48,12 +52,16 @@ class CSSStreamTest extends TestCase {
 			$processor = CSSProcessor::create_for_streaming();
 			$decoded = '';
 			for ( $offset = 0; $offset <= strlen( $input ); ++$offset ) {
-				$processor->append_bytes( substr( $input, $offset, 1 ), strlen( $input ) === $offset );
+				$processor->append_bytes( substr( $input, $offset, 1 ) );
+				if ( strlen( $input ) === $offset ) {
+					$processor->input_finished();
+				}
 				while ( $processor->next_token() ) {
 					$decoded .= $processor->get_token_value();
 				}
 				$processor->flush_processed_css();
-				$processor = CSSProcessor::create_for_streaming( $processor->get_reentrancy_cursor() );
+				$resume_offset = $processor->get_token_byte_offset_in_the_input_stream();
+				$processor = CSSProcessor::create_for_streaming( substr( $input, $resume_offset, min( $offset + 1, strlen( $input ) ) - $resume_offset ), $processor->get_reentrancy_cursor() );
 			}
 			$this->assertSame( $expected, $decoded );
 		}
@@ -63,7 +71,9 @@ class CSSStreamTest extends TestCase {
 	public function test_buffered_tokens_use_the_existing_value_setter() {
 		$processor = CSSProcessor::create_for_streaming();
 		$output = '';
+		$source = '';
 		foreach ( array( 'a{src:url("https://old.exa', 'mple/a");color:red}            ' ) as $input ) {
+			$source .= $input;
 			$processor->append_bytes( $input );
 			while ( $processor->next_token() ) {
 				if ( 'https://old.example/a' === $processor->get_token_value() ) {
@@ -71,9 +81,9 @@ class CSSStreamTest extends TestCase {
 				}
 			}
 			$output .= $processor->flush_processed_css();
-			$processor = CSSProcessor::create_for_streaming( $processor->get_reentrancy_cursor() );
+			$processor = CSSProcessor::create_for_streaming( substr( $source, $processor->get_token_byte_offset_in_the_input_stream() ), $processor->get_reentrancy_cursor() );
 		}
-		$processor->append_bytes( '', true );
+		$processor->input_finished();
 		while ( $processor->next_token() ) {}
 		$output .= $processor->flush_processed_css();
 		$this->assertSame( 'a{src:url("https://new.example/moved/a");color:red}            ', $output );

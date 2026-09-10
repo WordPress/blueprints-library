@@ -43,7 +43,8 @@ class CSSStreamProcessTest extends TestCase {
 			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
 			$this->assertGreaterThan( 0, $state['source_bytes'] );
 			$this->assertLessThan( strlen( $input ), $state['source_bytes'] );
-			$this->assertNotSame( '', $state['css']['pending_b64'] );
+			$this->assertIsString( $state['css'] );
+			$this->assertLessThan( 512, strlen( $state['css'] ) );
 			$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
 		}
 		$this->assertSame( hash( 'sha256', $expected ), hash_file( 'sha256', $this->directory . '/target.css' ) );
@@ -55,7 +56,7 @@ class CSSStreamProcessTest extends TestCase {
 
 	/**
 	 * Places NUL at the end of the second 32 KiB read, inside an unfinished URL.
-	 * Resume must retain that byte, rewrite the URL, and leave a later bad URL unchanged.
+	 * Resume must reread that byte, rewrite the URL, and leave a later bad URL unchanged.
 	 *
 	 * @dataProvider interruptions
 	 */
@@ -74,10 +75,7 @@ class CSSStreamProcessTest extends TestCase {
 		$this->assertSame( 'none' === $stop ? 0 : 99, $this->run_worker( $stop ), file_get_contents( $this->directory . '/worker.log' ) );
 		if ( 'none' !== $stop ) {
 			$state = json_decode( file_get_contents( $this->directory . '/state.json' ), true );
-			$this->assertSame( 'before' === $stop ? 32768 : 65536, $state['source_bytes'] );
-			if ( 'after' === $stop ) {
-				$this->assertStringContainsString( "\x00", base64_decode( $state['css']['pending_b64'] ) );
-			}
+			$this->assertSame( 'before' === $stop ? strlen( $first ) : strlen( $first . $comment . 'a{src:' ), $state['source_bytes'] );
 			$this->assertSame( 0, $this->run_worker( 'none' ), file_get_contents( $this->directory . '/worker.log' ) );
 		}
 		$this->assertSame( $expected, file_get_contents( $this->directory . '/target.css' ) );

@@ -314,6 +314,12 @@ class CSSProcessor {
 	/** @var bool Whether an unfinished token may receive more source bytes. */
 	private $expecting_more_input = false;
 
+	/** @var bool Whether the last scan needs more bytes before it can return a token. */
+	private $paused_at_incomplete_input = false;
+
+	/** @var int Source bytes before the retained buffer, including bytes discarded by earlier processes. */
+	private $input_bytes_forgotten = 0;
+
 	/**
 	 * Constructor for the CSS processor.
 	 *
@@ -348,48 +354,57 @@ class CSSProcessor {
 	}
 
 	/**
-	 * Opens a processor that keeps unfinished tokens until more input arrives.
+	 * Opens a processor that accepts more CSS through append_bytes().
 	 *
-	 * @param array|null $cursor {
-	 *     Optional state from get_reentrancy_cursor(), after flushing processed CSS.
-	 *     @type string $pending_b64 Unprocessed source bytes, base64 encoded.
-	 *     @type bool   $expecting_more_input Whether the source has more bytes.
-	 * }
+	 * To resume, supply source bytes starting at the saved token byte offset,
+	 * together with the cursor. The cursor contains no CSS bytes or pending edits.
+	 * A cursor saved on a token reads that token again, as XMLProcessor does.
+	 *
+	 * @param string      $css    Initial source bytes; may be empty.
+	 * @param string|null $cursor Opaque state from get_reentrancy_cursor(), or null for a new stream.
 	 * @return static
 	 */
-	public static function create_for_streaming( ?array $cursor = null ) {
-		if ( null !== $cursor && ( ! isset( $cursor['pending_b64'], $cursor['expecting_more_input'] ) || ! is_string( $cursor['pending_b64'] ) || ! is_bool( $cursor['expecting_more_input'] ) ) ) {
-			throw new \InvalidArgumentException( 'The CSS cursor must contain a base64 input tail and whether more input is expected.' );
+	public static function create_for_streaming( string $css = '', ?string $cursor = null ) {
+		$processor                       = new static( $css );
+		$processor->expecting_more_input = true;
+		if ( null !== $cursor ) {
+			$state = json_decode( $cursor, true );
+			if ( ! is_array( $state ) || ! isset( $state['input_offset'], $state['expecting_more_input'] ) || ! is_int( $state['input_offset'] ) || $state['input_offset'] < 0 || ! is_bool( $state['expecting_more_input'] ) ) {
+				throw new \InvalidArgumentException( 'The CSS cursor must contain a nonnegative source byte offset and whether more input is expected.' );
+			}
+			$processor->input_bytes_forgotten = $state['input_offset'];
+			$processor->expecting_more_input  = $state['expecting_more_input'];
 		}
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Cursor JSON must preserve arbitrary source bytes.
-		$pending = null === $cursor ? '' : base64_decode( $cursor['pending_b64'], true );
-		if ( false === $pending ) {
-			throw new \InvalidArgumentException( 'The CSS cursor contains an invalid base64 input tail.' );
-		}
-		$processor                       = new static( $pending );
-		$processor->expecting_more_input = $cursor['expecting_more_input'] ?? true;
 		return $processor;
 	}
 
 	/**
-	 * Appends source bytes after the caller has flushed completed tokens.
+	 * Adds source bytes and allows a paused scan to continue.
 	 *
-	 * The unfinished token stays in memory and is parsed again. Neither its size
-	 * nor the saved cursor size is capped. Use small reads to limit other input.
+	 * Earlier bytes and edits remain available through get_updated_css(). Call
+	 * flush_processed_css() separately to return and release completed output.
+	 * An unfinished token stays in memory and is parsed again; its size is not capped.
 	 *
 	 * @param string $bytes Next source bytes.
-	 * @param bool   $is_last Whether this is the actual end of the stylesheet.
 	 */
-	public function append_bytes( string $bytes, bool $is_last = false ): void {
+	public function append_bytes( string $bytes ): void {
 		if ( ! $this->expecting_more_input ) {
 			throw new \LogicException( 'CSS input cannot be appended after the end of the stylesheet.' );
 		}
-		if ( 0 !== $this->at ) {
-			throw new \LogicException( 'Flush processed CSS before appending more input.' );
-		}
-		$this->css                 .= $bytes;
-		$this->length               = strlen( $this->css );
-		$this->expecting_more_input = ! $is_last;
+		$this->css                       .= $bytes;
+		$this->length                     = strlen( $this->css );
+		$this->paused_at_incomplete_input = false;
+	}
+
+	/**
+	 * Marks the actual end of the source, so the next scan uses CSS's EOF rules.
+	 *
+	 * A download stopping early is not EOF. Unlike XML, CSS can return an unclosed
+	 * string or URL at EOF; input_finished() preserves those existing CSS rules.
+	 */
+	public function input_finished(): void {
+		$this->expecting_more_input       = false;
+		$this->paused_at_incomplete_input = false;
 	}
 
 	/** Returns whether more source bytes may be appended. */
@@ -397,11 +412,22 @@ class CSSProcessor {
 		return $this->expecting_more_input;
 	}
 
+	/** Returns whether the last scan stopped for more bytes, including token lookahead. */
+	public function is_paused_at_incomplete_input(): bool {
+		return $this->paused_at_incomplete_input;
+	}
+
+	/** Returns whether input has ended and no token remains to be read or inspected. */
+	public function is_finished(): bool {
+		return ! $this->expecting_more_input && $this->at >= $this->length && null === $this->token_type;
+	}
+
 	/**
 	 * Returns edited, completed input and keeps the unfinished token for another read.
 	 *
-	 * Flush before appending input or saving a cursor. Existing whole-token setters
-	 * work in streaming mode; their edits are applied only to the returned prefix.
+	 * Existing whole-token setters work in streaming mode; their edits are applied
+	 * only to the returned prefix. Flushing also clears the current token. Write and
+	 * flush this output before saving a file-rewrite cursor and its source offset.
 	 *
 	 * @return string Processed CSS, including edits made with set_token_value().
 	 */
@@ -409,34 +435,46 @@ class CSSProcessor {
 		if ( 0 === $this->at ) {
 			return '';
 		}
-		$pending               = substr( $this->css, $this->at );
-		$updated               = $this->get_updated_css();
-		$output                = substr( $updated, 0, strlen( $updated ) - strlen( $pending ) );
-		$this->css             = $pending;
-		$this->length          = strlen( $pending );
-		$this->at              = 0;
-		$this->lexical_updates = array();
+		$pending                      = substr( $this->css, $this->at );
+		$updated                      = $this->get_updated_css();
+		$output                       = substr( $updated, 0, strlen( $updated ) - strlen( $pending ) );
+		$this->css                    = $pending;
+		$this->length                 = strlen( $pending );
+		$this->input_bytes_forgotten += $this->at;
+		$this->at                     = 0;
+		$this->lexical_updates        = array();
 		$this->after_token();
 		return $output;
 	}
 
 	/**
-	 * Returns unfinished input to save beside the caller's source and output offsets.
+	 * Returns opaque parser state for a new processor at the current source position.
 	 *
-	 * @return array {
-	 *     @type string $pending_b64 Unprocessed source bytes, base64 encoded.
-	 *     @type bool   $expecting_more_input Whether the source has more bytes.
-	 * }
+	 * Save get_token_byte_offset_in_the_input_stream() separately. Resume reads
+	 * the original source again from that position; the cursor contains neither
+	 * unfinished bytes nor edits. Do not depend on the string's internal format.
+	 *
+	 * @return string State accepted by create_for_streaming().
 	 */
-	public function get_reentrancy_cursor(): array {
-		if ( 0 !== $this->at ) {
-			throw new \LogicException( 'Flush processed CSS before saving a cursor.' );
-		}
-		return array(
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Cursor JSON must preserve arbitrary source bytes.
-			'pending_b64' => base64_encode( $this->css ),
-			'expecting_more_input' => $this->expecting_more_input,
+	public function get_reentrancy_cursor(): string {
+		return json_encode(
+			array(
+				'input_offset' => $this->get_token_byte_offset_in_the_input_stream(),
+				'expecting_more_input' => $this->expecting_more_input,
+			)
 		);
+	}
+
+	/**
+	 * Returns the original source offset from which a saved cursor must resume.
+	 *
+	 * This is the current token's start, or the next unread position when no token
+	 * is exposed. After flushing, it is the first source byte not yet returned.
+	 *
+	 * @return int Byte offset in the source, unaffected by replacement lengths.
+	 */
+	public function get_token_byte_offset_in_the_input_stream(): int {
+		return $this->input_bytes_forgotten + ( $this->token_starts_at ?? $this->at );
 	}
 
 	/**
@@ -449,8 +487,12 @@ class CSSProcessor {
 	 * @return bool Whether a complete token was found; false also means more input is needed.
 	 */
 	public function next_token(): bool {
+		if ( $this->paused_at_incomplete_input ) {
+			return false;
+		}
 		$start = $this->at;
 		if ( ! $this->scan_next_token() ) {
+			$this->paused_at_incomplete_input = $this->expecting_more_input;
 			return false;
 		}
 		// A CSS escape needs at most six hex digits and CRLF after its backslash.
@@ -460,6 +502,7 @@ class CSSProcessor {
 		if ( $this->expecting_more_input && $this->at > $this->length - 10 ) {
 			$this->at = $start;
 			$this->after_token();
+			$this->paused_at_incomplete_input = true;
 			return false;
 		}
 		return true;

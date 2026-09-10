@@ -24,24 +24,27 @@ class CSSPreprocessingTest extends TestCase {
 	}
 
 	/**
-	 * Restores JSON state at every byte split, including beside NUL and inside CRLF or an escape.
+	 * Restores at every byte split by rereading the unfinished source, including NUL, CRLF, and escapes.
 	 * The expected token is specified by the test, not copied from a whole-string parse.
 	 *
 	 * @dataProvider preprocessing_cases
 	 */
 	public function test_preprocessing_survives_split_input_and_resume( $input, $type, $value ) {
 		for ( $split = 0; $split <= strlen( $input ); ++$split ) {
-			$processor = CSSProcessor::create_for_streaming();
+			$processor = CSSProcessor::create_for_streaming( substr( $input, 0, $split ) );
 			$output = '';
 			$tokens = array();
-			foreach ( array( substr( $input, 0, $split ), substr( $input, $split ) ) as $index => $chunk ) {
-				$processor->append_bytes( $chunk, 1 === $index );
+			for ( $index = 0; $index < 2; ++$index ) {
+				if ( 1 === $index ) {
+					$processor->input_finished();
+				}
 				while ( $processor->next_token() ) {
 					$tokens[] = array( $processor->get_token_type(), $processor->get_token_value(), $processor->get_unnormalized_token() );
 				}
 				$output .= $processor->flush_processed_css();
-				$cursor = json_decode( json_encode( $processor->get_reentrancy_cursor() ), true );
-				$processor = CSSProcessor::create_for_streaming( $cursor );
+				if ( 0 === $index ) {
+					$processor = CSSProcessor::create_for_streaming( substr( $input, $processor->get_token_byte_offset_in_the_input_stream() ), $processor->get_reentrancy_cursor() );
+				}
 			}
 			$this->assertSame( array( array( $type, $value, $input ) ), $tokens, 'Split at byte ' . $split );
 			$this->assertSame( $input, $output, 'Split at byte ' . $split );
